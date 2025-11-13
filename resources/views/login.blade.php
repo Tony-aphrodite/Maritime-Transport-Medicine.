@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MARINA - Portal de Acceso</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -12,282 +13,366 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --primary-color: #0F4C75;
+            --primary-dark: #0A3A5C;
+            --secondary-color: #3282B8;
+            --accent-color: #BBE1FA;
+            --success-color: #10B981;
+            --warning-color: #F59E0B;
+            --error-color: #EF4444;
+            --text-primary: #1F2937;
+            --text-secondary: #6B7280;
+            --background-light: #F8FAFC;
+            --background-white: #FFFFFF;
+            --border-light: #E5E7EB;
+            --border-focus: #3B82F6;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f6fa;
-            color: #333;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, var(--background-light) 0%, #E0F2FE 100%);
+            color: var(--text-primary);
             line-height: 1.6;
-            height: 100vh;
-            overflow-x: hidden;
+            min-height: 100vh;
+            font-feature-settings: 'kern' 1, 'liga' 1;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
-        /* Custom Scrollbar Styling */
-        ::-webkit-scrollbar {
-            width: 6px;
+        .background-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(15, 76, 117, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
         }
 
-        ::-webkit-scrollbar-track {
-            background: rgba(0,0,0,0.1);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: rgba(139, 21, 56, 0.3);
-            border-radius: 3px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(139, 21, 56, 0.5);
-        }
-
-        /* Firefox Scrollbar */
-        html {
-            scrollbar-width: thin;
-            scrollbar-color: rgba(139, 21, 56, 0.3) rgba(0,0,0,0.1);
-        }
-
-        /* Smooth scrolling */
-        html {
-            scroll-behavior: smooth;
-        }
-
-        /* Optional: Hide scrollbar completely for cleaner look */
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        
-        .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-
-        /* Header */
         .header {
-            background-color: #8B1538;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             color: white;
             padding: 1rem 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: var(--shadow-md);
+            backdrop-filter: blur(10px);
         }
 
         .logo-section {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 1rem;
         }
 
         .logo {
-            width: 60px;
-            height: 60px;
+            width: 50px;
+            height: 50px;
             display: flex;
             align-items: center;
             justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
         }
 
         .logo svg {
-            width: 100%;
-            height: 100%;
+            width: 32px;
+            height: 32px;
             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
         }
 
         .title {
-            font-size: 1.4rem;
+            font-size: 1.25rem;
             font-weight: 600;
-            letter-spacing: 0.5px;
+            letter-spacing: -0.025em;
         }
 
         .nav-links {
             display: flex;
-            gap: 30px;
+            gap: 2rem;
         }
 
         .nav-links a {
             color: white;
             text-decoration: none;
             font-weight: 500;
-            padding: 8px 16px;
-            border-radius: 4px;
-            transition: background-color 0.3s ease;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
         }
 
         .nav-links a:hover {
-            background-color: rgba(255,255,255,0.1);
+            background-color: rgba(255,255,255,0.15);
+            transform: translateY(-1px);
         }
 
-        /* Main Content */
         .main-content {
-            min-height: calc(100vh - 120px);
+            min-height: calc(100vh - 80px);
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 1.5rem;
-            max-height: calc(100vh - 120px);
-            overflow-y: auto;
+            padding: 2rem;
         }
 
         .login-container {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            padding: 3rem;
+            background: var(--background-white);
+            border-radius: 20px;
+            box-shadow: var(--shadow-xl);
+            padding: 2.5rem;
             width: 100%;
-            max-width: 450px;
-            border: 1px solid #e1e8ed;
+            max-width: 420px;
+            border: 1px solid var(--border-light);
+            backdrop-filter: blur(10px);
         }
 
-        .logo-branding {
+        .brand-section {
             text-align: center;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1.5rem;
-            border-bottom: 2px solid #e1e8ed;
+            margin-bottom: 2rem;
         }
 
-        .logo-branding .logo-container {
-            margin-bottom: 1rem;
+        .brand-logo {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 1rem;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-md);
         }
 
-        .logo-branding svg {
-            width: 80px;
-            height: 80px;
+        .brand-logo svg {
+            width: 32px;
+            height: 32px;
+            color: white;
         }
 
-        .branding-title {
-            font-size: 1.3rem;
+        .brand-title {
+            font-size: 1.5rem;
             font-weight: 700;
-            color: #8B1538;
-            margin-bottom: 0.3rem;
-            letter-spacing: 0.5px;
+            color: var(--primary-color);
+            margin-bottom: 0.25rem;
+            letter-spacing: -0.025em;
         }
 
-        .branding-subtitle {
-            font-size: 0.9rem;
-            color: #7f8c8d;
+        .brand-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
             font-weight: 500;
-            letter-spacing: 0.3px;
+        }
+
+        .welcome-section {
+            margin-bottom: 2rem;
+            text-align: center;
         }
 
         .welcome-title {
-            font-size: 2.2rem;
+            font-size: 1.75rem;
             font-weight: 700;
-            color: #2c3e50;
-            text-align: center;
-            margin-bottom: 2rem;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.025em;
+        }
+
+        .welcome-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 400;
         }
 
         .form-group {
             margin-bottom: 1.5rem;
         }
 
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
         .input-container {
             position: relative;
         }
 
-        .input-container i {
+        .input-icon {
             position: absolute;
-            left: 15px;
+            left: 1rem;
             top: 50%;
             transform: translateY(-50%);
-            color: #7f8c8d;
-            font-size: 1.1rem;
+            color: var(--text-secondary);
+            font-size: 1rem;
+            z-index: 1;
         }
 
         .form-input {
             width: 100%;
-            padding: 15px 15px 15px 45px;
-            border: 2px solid #e1e8ed;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            background-color: #fafbfc;
+            padding: 0.875rem 1rem 0.875rem 2.75rem;
+            border: 2px solid var(--border-light);
+            border-radius: 12px;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            background-color: var(--background-white);
+            font-weight: 400;
         }
 
         .form-input:focus {
             outline: none;
-            border-color: #8B1538;
-            background-color: white;
-            box-shadow: 0 0 0 3px rgba(139, 21, 56, 0.1);
+            border-color: var(--border-focus);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            background-color: var(--background-white);
         }
 
         .form-input::placeholder {
-            color: #95a5a6;
+            color: var(--text-secondary);
+            font-weight: 400;
         }
 
         .login-btn {
             width: 100%;
-            padding: 15px;
-            background-color: #8B1538;
+            padding: 0.875rem;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             color: white;
             border: none;
-            border-radius: 8px;
-            font-size: 1.1rem;
+            border-radius: 12px;
+            font-size: 0.95rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             margin-bottom: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .login-btn:hover::before {
+            left: 100%;
         }
 
         .login-btn:hover {
-            background-color: #6d1029;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(139, 21, 56, 0.3);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
         }
 
-        .form-links {
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        .form-options {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 2rem;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            gap: 1rem;
         }
 
-        .form-links a {
-            color: #8B1538;
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .checkbox {
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid var(--border-light);
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .checkbox:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .checkbox-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        .forgot-link {
+            color: var(--primary-color);
             text-decoration: none;
-            font-size: 0.9rem;
+            font-size: 0.875rem;
             font-weight: 500;
+            transition: color 0.2s ease;
         }
 
-        .form-links a:hover {
+        .forgot-link:hover {
+            color: var(--primary-dark);
             text-decoration: underline;
         }
 
-        .tutorials-section {
-            border-top: 1px solid #e1e8ed;
-            padding-top: 1.5rem;
+        .divider {
+            text-align: center;
+            margin: 1.5rem 0;
+            position: relative;
         }
 
-        .tutorials-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 1rem;
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--border-light);
         }
 
-        .tutorials-list {
-            list-style: none;
+        .divider span {
+            background: var(--background-white);
+            padding: 0 1rem;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
         }
 
-        .tutorials-list li {
-            margin-bottom: 0.5rem;
+        .register-section {
+            text-align: center;
+            padding: 1.5rem;
+            background: var(--background-light);
+            border-radius: 12px;
+            border: 1px solid var(--border-light);
         }
 
-        .tutorials-list a {
-            color: #34495e;
+        .register-text {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+        }
+
+        .register-link {
+            color: var(--primary-color);
             text-decoration: none;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 5px 0;
-            transition: color 0.3s ease;
+            font-weight: 600;
+            transition: color 0.2s ease;
         }
 
-        .tutorials-list a:hover {
-            color: #8B1538;
-        }
-
-        .tutorials-list i {
-            font-size: 0.8rem;
-            color: #8B1538;
+        .register-link:hover {
+            color: var(--primary-dark);
         }
 
         /* Responsive */
@@ -296,70 +381,56 @@
                 flex-direction: column;
                 gap: 1rem;
                 text-align: center;
-                padding: 1.5rem 1rem;
+                padding: 1rem;
             }
 
             .nav-links {
-                gap: 15px;
+                gap: 1rem;
+            }
+
+            .main-content {
+                padding: 1rem;
             }
 
             .login-container {
-                margin: 1rem;
                 padding: 2rem;
             }
 
             .welcome-title {
-                font-size: 1.8rem;
+                font-size: 1.5rem;
             }
 
-            .form-links {
+            .form-options {
                 flex-direction: column;
-                gap: 0.5rem;
-                text-align: center;
+                align-items: stretch;
+                gap: 0.75rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 1.5rem;
+                border-radius: 16px;
+            }
+
+            .brand-section {
+                margin-bottom: 1.5rem;
+            }
+
+            .welcome-section {
+                margin-bottom: 1.5rem;
             }
         }
     </style>
 </head>
 <body>
+    <div class="background-pattern"></div>
+    
     <!-- Header -->
     <header class="header">
         <div class="logo-section">
             <div class="logo">
-                <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-                    <!-- Shield Background -->
-                    <path d="M60 10 L85 20 L85 50 Q85 75 60 100 Q35 75 35 50 L35 20 Z" 
-                          fill="#8B1538" stroke="#D4AF37" stroke-width="2"/>
-                    
-                    <!-- Inner Shield -->
-                    <path d="M60 15 L80 23 L80 48 Q80 70 60 90 Q40 70 40 48 L40 23 Z" 
-                          fill="white" opacity="0.95"/>
-                    
-                    <!-- Medical Cross -->
-                    <rect x="57" y="35" width="6" height="20" fill="#8B1538"/>
-                    <rect x="50" y="42" width="20" height="6" fill="#8B1538"/>
-                    
-                    <!-- Digital Circuit Lines -->
-                    <g stroke="#D4AF37" stroke-width="1.5" fill="none" opacity="0.8">
-                        <path d="M45 30 L50 30 L52 32 L55 32"/>
-                        <path d="M65 32 L68 32 L70 30 L75 30"/>
-                        <path d="M45 60 L48 60 L50 58 L53 58"/>
-                        <path d="M67 58 L70 58 L72 60 L75 60"/>
-                        <circle cx="47" cy="30" r="1.5" fill="#D4AF37"/>
-                        <circle cx="73" cy="30" r="1.5" fill="#D4AF37"/>
-                        <circle cx="47" cy="60" r="1.5" fill="#D4AF37"/>
-                        <circle cx="73" cy="60" r="1.5" fill="#D4AF37"/>
-                    </g>
-                    
-                    <!-- Maritime Wave -->
-                    <path d="M40 70 Q50 65 60 70 T80 70" 
-                          stroke="#2C3E50" stroke-width="2" fill="none"/>
-                    <path d="M42 75 Q52 70 62 75 T82 75" 
-                          stroke="#2C3E50" stroke-width="1.5" fill="none" opacity="0.6"/>
-                    
-                    <!-- Gold Accents -->
-                    <circle cx="60" cy="25" r="2" fill="#D4AF37"/>
-                    <rect x="58" y="78" width="4" height="4" fill="#D4AF37" rx="1"/>
-                </svg>
+                <i class="fas fa-anchor" style="color: white; font-size: 1.5rem;"></i>
             </div>
             <div class="title">MARINA - Secretaría de Marina</div>
         </div>
@@ -372,81 +443,59 @@
     <!-- Main Content -->
     <main class="main-content">
         <div class="login-container">
-            <div class="logo-branding">
-                <div class="logo-container">
-                    <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-                        <!-- Shield Background -->
-                        <path d="M60 10 L85 20 L85 50 Q85 75 60 100 Q35 75 35 50 L35 20 Z" 
-                              fill="#8B1538" stroke="#D4AF37" stroke-width="2"/>
-                        
-                        <!-- Inner Shield -->
-                        <path d="M60 15 L80 23 L80 48 Q80 70 60 90 Q40 70 40 48 L40 23 Z" 
-                              fill="white" opacity="0.95"/>
-                        
-                        <!-- Medical Cross -->
-                        <rect x="57" y="35" width="6" height="20" fill="#8B1538"/>
-                        <rect x="50" y="42" width="20" height="6" fill="#8B1538"/>
-                        
-                        <!-- Digital Circuit Lines -->
-                        <g stroke="#D4AF37" stroke-width="1.5" fill="none" opacity="0.8">
-                            <path d="M45 30 L50 30 L52 32 L55 32"/>
-                            <path d="M65 32 L68 32 L70 30 L75 30"/>
-                            <path d="M45 60 L48 60 L50 58 L53 58"/>
-                            <path d="M67 58 L70 58 L72 60 L75 60"/>
-                            <circle cx="47" cy="30" r="1.5" fill="#D4AF37"/>
-                            <circle cx="73" cy="30" r="1.5" fill="#D4AF37"/>
-                            <circle cx="47" cy="60" r="1.5" fill="#D4AF37"/>
-                            <circle cx="73" cy="60" r="1.5" fill="#D4AF37"/>
-                        </g>
-                        
-                        <!-- Maritime Wave -->
-                        <path d="M40 70 Q50 65 60 70 T80 70" 
-                              stroke="#2C3E50" stroke-width="2" fill="none"/>
-                        <path d="M42 75 Q52 70 62 75 T82 75" 
-                              stroke="#2C3E50" stroke-width="1.5" fill="none" opacity="0.6"/>
-                        
-                        <!-- Gold Accents -->
-                        <circle cx="60" cy="25" r="2" fill="#D4AF37"/>
-                        <rect x="58" y="78" width="4" height="4" fill="#D4AF37" rx="1"/>
-                    </svg>
+            <!-- Brand Section -->
+            <div class="brand-section">
+                <div class="brand-logo">
+                    <i class="fas fa-user-md" style="color: white; font-size: 1.5rem;"></i>
                 </div>
-                <div class="branding-title">Certificación Médica Digital</div>
-                <div class="branding-subtitle">Sistema Electrónico de Evaluación Médica</div>
+                <div class="brand-title">Certificación Médica</div>
+                <div class="brand-subtitle">Sistema Digital de Medicina Marítima</div>
             </div>
             
-            <h1 class="welcome-title">¡Bienvenido!</h1>
+            <!-- Welcome Section -->
+            <div class="welcome-section">
+                <h1 class="welcome-title">Bienvenido de vuelta</h1>
+                <p class="welcome-subtitle">Ingresa a tu cuenta para continuar</p>
+            </div>
             
+            <!-- Login Form -->
             <form action="/dashboard" method="GET">
                 <div class="form-group">
+                    <label class="form-label" for="email">Correo electrónico</label>
                     <div class="input-container">
-                        <i class="fas fa-envelope"></i>
-                        <input type="email" class="form-input" placeholder="Correo electrónico" required>
+                        <i class="fas fa-envelope input-icon"></i>
+                        <input type="email" id="email" class="form-input" placeholder="ejemplo@marina.gob.mx" required>
                     </div>
                 </div>
                 
                 <div class="form-group">
+                    <label class="form-label" for="password">Contraseña</label>
                     <div class="input-container">
-                        <i class="fas fa-lock"></i>
-                        <input type="password" class="form-input" placeholder="Contraseña" required>
+                        <i class="fas fa-lock input-icon"></i>
+                        <input type="password" id="password" class="form-input" placeholder="Ingresa tu contraseña" required>
                     </div>
                 </div>
                 
-                <button type="submit" class="login-btn">Ingresar</button>
-                
-                <div class="form-links">
-                    <a href="#recovery">Recuperación de cuenta</a>
-                    <a href="/registro">Registrarme</a>
+                <div class="form-options">
+                    <div class="remember-me">
+                        <input type="checkbox" id="remember" class="checkbox">
+                        <label for="remember" class="checkbox-label">Recordarme</label>
+                    </div>
+                    <a href="#recovery" class="forgot-link">¿Olvidaste tu contraseña?</a>
                 </div>
+                
+                <button type="submit" class="login-btn">
+                    <span>Iniciar Sesión</span>
+                </button>
             </form>
             
-            <div class="tutorials-section">
-                <h3 class="tutorials-title">Tutoriales</h3>
-                <ul class="tutorials-list">
-                    <li><a href="#tutorial-recovery"><i class="fas fa-circle"></i> Recuperar Cuenta</a></li>
-                    <li><a href="#tutorial-appointments"><i class="fas fa-circle"></i> Registro de Citas</a></li>
-                    <li><a href="#tutorial-personal-data"><i class="fas fa-circle"></i> Registro de Datos Personales</a></li>
-                    <li><a href="#tutorial-agenda"><i class="fas fa-circle"></i> Registro en la Agenda</a></li>
-                </ul>
+            <div class="divider">
+                <span>¿No tienes cuenta?</span>
+            </div>
+            
+            <div class="register-section">
+                <p class="register-text">¿Eres nuevo en el sistema?</p>
+                <a href="/registro" class="register-link">Crear nueva cuenta</a>
             </div>
         </div>
     </main>
