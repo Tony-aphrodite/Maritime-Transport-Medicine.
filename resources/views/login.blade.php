@@ -373,7 +373,7 @@
             
             <h1 class="welcome-title">¡Bienvenido!</h1>
             
-            <form action="#" method="POST">
+            <form action="/dashboard" method="GET">
                 <div class="form-group">
                     <div class="input-container">
                         <i class="fas fa-envelope"></i>
