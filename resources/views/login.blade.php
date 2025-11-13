@@ -392,7 +392,7 @@
                 
                 <div class="form-links">
                     <a href="#recovery">Recuperación de cuenta</a>
-                    <a href="#register">Registrarme</a>
+                    <a href="/registro">Registrarme</a>
                 </div>
             </form>
             
