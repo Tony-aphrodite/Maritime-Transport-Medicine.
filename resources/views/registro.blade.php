@@ -19,6 +19,42 @@
             color: #2d3748;
             line-height: 1.6;
             min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Custom Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.05);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(139, 21, 56, 0.2);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(139, 21, 56, 0.4);
+        }
+
+        /* Firefox Scrollbar */
+        html {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(139, 21, 56, 0.2) rgba(0,0,0,0.05);
+            scroll-behavior: smooth;
+        }
+
+        /* Optional: Hide scrollbar completely for cleaner look */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
 
         /* Header */
