@@ -17,6 +17,47 @@
             background-color: #f5f6fa;
             color: #333;
             line-height: 1.6;
+            height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Custom Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.1);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(139, 21, 56, 0.3);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(139, 21, 56, 0.5);
+        }
+
+        /* Firefox Scrollbar */
+        html {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(139, 21, 56, 0.3) rgba(0,0,0,0.1);
+        }
+
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Optional: Hide scrollbar completely for cleaner look */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
 
         /* Header */
@@ -76,11 +117,13 @@
 
         /* Main Content */
         .main-content {
-            min-height: calc(100vh - 80px);
+            min-height: calc(100vh - 120px);
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 2rem;
+            padding: 1.5rem;
+            max-height: calc(100vh - 120px);
+            overflow-y: auto;
         }
 
         .login-container {
