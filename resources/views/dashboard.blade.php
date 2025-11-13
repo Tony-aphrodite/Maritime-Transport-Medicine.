@@ -140,7 +140,7 @@
             font-weight: 500;
         }
 
-        /* Main Content */
+        /* Main Conte  nt */
         .container {
             max-width: 1200px;
             margin: 0 auto;
