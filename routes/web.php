@@ -41,3 +41,8 @@ Route::post('/password/email', function () {
     // Here you would handle the password reset email logic
     return redirect()->back()->with('status', 'Se ha enviado un enlace de recuperación a tu correo electrónico.');
 })->name('password.email');
+
+// CURP Validation Routes
+Route::get('/curp/validate', [App\Http\Controllers\CurpController::class, 'showValidationForm'])->name('curp.validate');
+Route::post('/curp/validate', [App\Http\Controllers\CurpController::class, 'validateCurp'])->name('curp.validate.submit');
+Route::post('/curp/validate-format', [App\Http\Controllers\CurpController::class, 'validateFormat'])->name('curp.validate.format');
