@@ -568,7 +568,8 @@
                                id="curp" 
                                name="curp" 
                                class="form-input" 
-                               placeholder="Ej: PEGJ850415HDFRRN05" 
+                               placeholder="Ej: RICJ830716HTSSNN05" 
+                               value="RICJ830716HTSSNN05"
                                maxlength="18"
                                required>
                     </div>
