@@ -59,13 +59,13 @@
 
         /* Header */
         .main-header {
-            background: linear-gradient(135deg, #8B1538 0%, #a91d42 100%);
+            background: linear-gradient(135deg, #0F4C75 0%, #3282B8 100%);
             color: white;
             padding: 1.5rem 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 8px 32px rgba(139, 21, 56, 0.3);
+            box-shadow: 0 8px 32px rgba(15, 76, 117, 0.3);
             position: relative;
             overflow: hidden;
         }
@@ -164,13 +164,13 @@
             left: 0;
             right: 0;
             height: 6px;
-            background: linear-gradient(90deg, #8B1538, #D4AF37, #8B1538);
+            background: linear-gradient(90deg, #0F4C75, #3282B8, #0F4C75);
         }
 
         .page-title {
             font-size: 2rem;
             font-weight: 700;
-            background: linear-gradient(135deg, #8B1538, #a91d42);
+            background: linear-gradient(135deg, #0F4C75, #3282B8);
             background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -192,7 +192,7 @@
             transform: translateX(-50%);
             width: 40px;
             height: 2px;
-            background: linear-gradient(90deg, #8B1538, #D4AF37);
+            background: linear-gradient(90deg, #0F4C75, #3282B8);
             border-radius: 2px;
         }
 
@@ -213,7 +213,7 @@
         }
 
         .section-header {
-            background: linear-gradient(135deg, #8B1538 0%, #a91d42 100%);
+            background: linear-gradient(135deg, #0F4C75 0%, #3282B8 100%);
             color: white;
             padding: 1rem 1.5rem;
             font-size: 1.1rem;
@@ -266,7 +266,7 @@
         }
 
         .field-label i {
-            color: #8B1538;
+            color: #0F4C75;
             font-size: 1rem;
         }
 
@@ -290,8 +290,8 @@
 
         .form-control:focus, .form-select:focus {
             outline: none;
-            border-color: #8B1538;
-            box-shadow: 0 0 0 4px rgba(139, 21, 56, 0.1);
+            border-color: #0F4C75;
+            box-shadow: 0 0 0 4px rgba(15, 76, 117, 0.1);
             transform: translateY(-2px);
         }
 
@@ -326,22 +326,22 @@
         }
 
         .radio-option:hover {
-            border-color: #8B1538;
-            background: #fef7f7;
+            border-color: #0F4C75;
+            background: #f0f8ff;
         }
 
         .radio-option input[type="radio"] {
             width: 20px;
             height: 20px;
-            accent-color: #8B1538;
+            accent-color: #0F4C75;
             cursor: pointer;
         }
 
         .radio-option input[type="radio"]:checked + label,
         .radio-option:has(input[type="radio"]:checked) {
-            border-color: #8B1538;
-            background: linear-gradient(135deg, #fef7f7, #fff1f1);
-            color: #8B1538;
+            border-color: #0F4C75;
+            background: linear-gradient(135deg, #f0f8ff, #e6f3ff);
+            color: #0F4C75;
         }
 
         .radio-option label {
@@ -363,7 +363,7 @@
 
         .search-btn {
             padding: 12px 18px;
-            background: linear-gradient(135deg, #8B1538, #a91d42);
+            background: linear-gradient(135deg, #0F4C75, #3282B8);
             color: white;
             border: none;
             border-radius: 8px;
@@ -378,9 +378,9 @@
         }
 
         .search-btn:hover {
-            background: linear-gradient(135deg, #6d1029, #8B1538);
+            background: linear-gradient(135deg, #0A3A5C, #0F4C75);
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(139, 21, 56, 0.3);
+            box-shadow: 0 8px 25px rgba(15, 76, 117, 0.3);
         }
 
         .search-btn i {
@@ -429,15 +429,15 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #8B1538, #a91d42);
+            background: linear-gradient(135deg, #0F4C75, #3282B8);
             color: white;
-            box-shadow: 0 8px 25px rgba(139, 21, 56, 0.3);
+            box-shadow: 0 8px 25px rgba(15, 76, 117, 0.3);
         }
 
         .btn-primary:hover {
-            background: linear-gradient(135deg, #6d1029, #8B1538);
+            background: linear-gradient(135deg, #0A3A5C, #0F4C75);
             transform: translateY(-3px);
-            box-shadow: 0 12px 35px rgba(139, 21, 56, 0.4);
+            box-shadow: 0 12px 35px rgba(15, 76, 117, 0.4);
         }
 
         .btn-secondary {
@@ -463,14 +463,14 @@
         }
 
         .login-redirect a {
-            color: #8B1538;
+            color: #0F4C75;
             text-decoration: none;
             font-weight: 600;
             transition: color 0.3s ease;
         }
 
         .login-redirect a:hover {
-            color: #a91d42;
+            color: #3282B8;
             text-decoration: underline;
         }
 
@@ -486,7 +486,7 @@
 
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #8B1538, #D4AF37);
+            background: linear-gradient(90deg, #0F4C75, #3282B8);
             width: 33%;
             border-radius: 3px;
             animation: progressAnimation 2s ease-in-out;
@@ -572,7 +572,7 @@
             width: 40px;
             height: 40px;
             border: 4px solid #e2e8f0;
-            border-top: 4px solid #8B1538;
+            border-top: 4px solid #0F4C75;
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin: 0 auto 1rem;
@@ -607,37 +607,37 @@
                 <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
                     <!-- Shield Background -->
                     <path d="M60 10 L85 20 L85 50 Q85 75 60 100 Q35 75 35 50 L35 20 Z" 
-                          fill="#8B1538" stroke="#D4AF37" stroke-width="2"/>
+                          fill="#0F4C75" stroke="#3282B8" stroke-width="2"/>
                     
                     <!-- Inner Shield -->
                     <path d="M60 15 L80 23 L80 48 Q80 70 60 90 Q40 70 40 48 L40 23 Z" 
                           fill="white" opacity="0.95"/>
                     
                     <!-- Medical Cross -->
-                    <rect x="57" y="35" width="6" height="20" fill="#8B1538"/>
-                    <rect x="50" y="42" width="20" height="6" fill="#8B1538"/>
+                    <rect x="57" y="35" width="6" height="20" fill="#0F4C75"/>
+                    <rect x="50" y="42" width="20" height="6" fill="#0F4C75"/>
                     
                     <!-- Digital Circuit Lines -->
-                    <g stroke="#D4AF37" stroke-width="1.5" fill="none" opacity="0.8">
+                    <g stroke="#3282B8" stroke-width="1.5" fill="none" opacity="0.8">
                         <path d="M45 30 L50 30 L52 32 L55 32"/>
                         <path d="M65 32 L68 32 L70 30 L75 30"/>
                         <path d="M45 60 L48 60 L50 58 L53 58"/>
                         <path d="M67 58 L70 58 L72 60 L75 60"/>
-                        <circle cx="47" cy="30" r="1.5" fill="#D4AF37"/>
-                        <circle cx="73" cy="30" r="1.5" fill="#D4AF37"/>
-                        <circle cx="47" cy="60" r="1.5" fill="#D4AF37"/>
-                        <circle cx="73" cy="60" r="1.5" fill="#D4AF37"/>
+                        <circle cx="47" cy="30" r="1.5" fill="#3282B8"/>
+                        <circle cx="73" cy="30" r="1.5" fill="#3282B8"/>
+                        <circle cx="47" cy="60" r="1.5" fill="#3282B8"/>
+                        <circle cx="73" cy="60" r="1.5" fill="#3282B8"/>
                     </g>
                     
                     <!-- Maritime Wave -->
                     <path d="M40 70 Q50 65 60 70 T80 70" 
-                          stroke="#2C3E50" stroke-width="2" fill="none"/>
+                          stroke="#BBE1FA" stroke-width="2" fill="none"/>
                     <path d="M42 75 Q52 70 62 75 T82 75" 
-                          stroke="#2C3E50" stroke-width="1.5" fill="none" opacity="0.6"/>
+                          stroke="#BBE1FA" stroke-width="1.5" fill="none" opacity="0.6"/>
                     
-                    <!-- Gold Accents -->
-                    <circle cx="60" cy="25" r="2" fill="#D4AF37"/>
-                    <rect x="58" y="78" width="4" height="4" fill="#D4AF37" rx="1"/>
+                    <!-- Blue Accents -->
+                    <circle cx="60" cy="25" r="2" fill="#3282B8"/>
+                    <rect x="58" y="78" width="4" height="4" fill="#3282B8" rx="1"/>
                 </svg>
             </div>
             <div class="header-title">MARINA - Secretaría de Marina</div>
