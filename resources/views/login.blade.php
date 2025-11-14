@@ -429,8 +429,42 @@
     <!-- Header -->
     <header class="header">
         <div class="logo-section">
-            <div class="logo">
-                <i class="fas fa-anchor" style="color: white; font-size: 1.5rem;"></i>
+            <div class="logo" style="background: rgba(255, 255, 255, 0.1); border-radius: 12px; backdrop-filter: blur(10px);">
+                <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" style="width: 32px; height: 32px;">
+                    <!-- Shield Background -->
+                    <path d="M60 10 L85 20 L85 50 Q85 75 60 100 Q35 75 35 50 L35 20 Z" 
+                          fill="#0F4C75" stroke="#3282B8" stroke-width="2"/>
+                    
+                    <!-- Inner Shield -->
+                    <path d="M60 15 L80 23 L80 48 Q80 70 60 90 Q40 70 40 48 L40 23 Z" 
+                          fill="white" opacity="0.95"/>
+                    
+                    <!-- Medical Cross -->
+                    <rect x="57" y="35" width="6" height="20" fill="#0F4C75"/>
+                    <rect x="50" y="42" width="20" height="6" fill="#0F4C75"/>
+                    
+                    <!-- Digital Circuit Lines -->
+                    <g stroke="#3282B8" stroke-width="1.5" fill="none" opacity="0.8">
+                        <path d="M45 30 L50 30 L52 32 L55 32"/>
+                        <path d="M65 32 L68 32 L70 30 L75 30"/>
+                        <path d="M45 60 L48 60 L50 58 L53 58"/>
+                        <path d="M67 58 L70 58 L72 60 L75 60"/>
+                        <circle cx="47" cy="30" r="1.5" fill="#3282B8"/>
+                        <circle cx="73" cy="30" r="1.5" fill="#3282B8"/>
+                        <circle cx="47" cy="60" r="1.5" fill="#3282B8"/>
+                        <circle cx="73" cy="60" r="1.5" fill="#3282B8"/>
+                    </g>
+                    
+                    <!-- Maritime Wave -->
+                    <path d="M40 70 Q50 65 60 70 T80 70" 
+                          stroke="#BBE1FA" stroke-width="2" fill="none"/>
+                    <path d="M42 75 Q52 70 62 75 T82 75" 
+                          stroke="#BBE1FA" stroke-width="1.5" fill="none" opacity="0.6"/>
+                    
+                    <!-- Blue Accents -->
+                    <circle cx="60" cy="25" r="2" fill="#3282B8"/>
+                    <rect x="58" y="78" width="4" height="4" fill="#3282B8" rx="1"/>
+                </svg>
             </div>
             <div class="title">MARINA - Secretaría de Marina</div>
         </div>
@@ -445,11 +479,45 @@
         <div class="login-container">
             <!-- Brand Section -->
             <div class="brand-section">
-                <div class="brand-logo">
-                    <i class="fas fa-user-md" style="color: white; font-size: 1.5rem;"></i>
+                <div class="brand-logo" style="background: transparent; box-shadow: none; width: 80px; height: 80px; border-radius: 0;">
+                    <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" style="width: 80px; height: 80px;">
+                        <!-- Shield Background -->
+                        <path d="M60 10 L85 20 L85 50 Q85 75 60 100 Q35 75 35 50 L35 20 Z" 
+                              fill="#0F4C75" stroke="#3282B8" stroke-width="2"/>
+                        
+                        <!-- Inner Shield -->
+                        <path d="M60 15 L80 23 L80 48 Q80 70 60 90 Q40 70 40 48 L40 23 Z" 
+                              fill="white" opacity="0.95"/>
+                        
+                        <!-- Medical Cross -->
+                        <rect x="57" y="35" width="6" height="20" fill="#0F4C75"/>
+                        <rect x="50" y="42" width="20" height="6" fill="#0F4C75"/>
+                        
+                        <!-- Digital Circuit Lines -->
+                        <g stroke="#3282B8" stroke-width="1.5" fill="none" opacity="0.8">
+                            <path d="M45 30 L50 30 L52 32 L55 32"/>
+                            <path d="M65 32 L68 32 L70 30 L75 30"/>
+                            <path d="M45 60 L48 60 L50 58 L53 58"/>
+                            <path d="M67 58 L70 58 L72 60 L75 60"/>
+                            <circle cx="47" cy="30" r="1.5" fill="#3282B8"/>
+                            <circle cx="73" cy="30" r="1.5" fill="#3282B8"/>
+                            <circle cx="47" cy="60" r="1.5" fill="#3282B8"/>
+                            <circle cx="73" cy="60" r="1.5" fill="#3282B8"/>
+                        </g>
+                        
+                        <!-- Maritime Wave -->
+                        <path d="M40 70 Q50 65 60 70 T80 70" 
+                              stroke="#BBE1FA" stroke-width="2" fill="none"/>
+                        <path d="M42 75 Q52 70 62 75 T82 75" 
+                              stroke="#BBE1FA" stroke-width="1.5" fill="none" opacity="0.6"/>
+                        
+                        <!-- Blue Accents -->
+                        <circle cx="60" cy="25" r="2" fill="#3282B8"/>
+                        <rect x="58" y="78" width="4" height="4" fill="#3282B8" rx="1"/>
+                    </svg>
                 </div>
-                <div class="brand-title">Certificación Médica</div>
-                <div class="brand-subtitle">Sistema Digital de Medicina Marítima</div>
+                <div class="brand-title">Certificación Médica Digital</div>
+                <div class="brand-subtitle">Sistema Electrónico de Evaluación Médica</div>
             </div>
             
             <!-- Welcome Section -->
@@ -481,7 +549,7 @@
                         <input type="checkbox" id="remember" class="checkbox">
                         <label for="remember" class="checkbox-label">Recordarme</label>
                     </div>
-                    <a href="#recovery" class="forgot-link">¿Olvidaste tu contraseña?</a>
+                    <a href="{{ route('password.request') }}" class="forgot-link">¿Olvidaste tu contraseña?</a>
                 </div>
                 
                 <button type="submit" class="login-btn">

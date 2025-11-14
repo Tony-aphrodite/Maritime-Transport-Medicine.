@@ -32,18 +32,18 @@
         }
 
         ::-webkit-scrollbar-thumb {
-            background: rgba(139, 21, 56, 0.2);
+            background: rgba(15, 76, 117, 0.2);
             border-radius: 3px;
         }
 
         ::-webkit-scrollbar-thumb:hover {
-            background: rgba(139, 21, 56, 0.4);
+            background: rgba(15, 76, 117, 0.4);
         }
 
         /* Firefox Scrollbar */
         html {
             scrollbar-width: thin;
-            scrollbar-color: rgba(139, 21, 56, 0.2) rgba(0,0,0,0.05);
+            scrollbar-color: rgba(15, 76, 117, 0.2) rgba(0,0,0,0.05);
             scroll-behavior: smooth;
         }
 
@@ -59,7 +59,7 @@
 
         /* Header */
         .main-header {
-            background: linear-gradient(135deg, #8B1538 0%, #a91d42 100%);
+            background: linear-gradient(135deg, #0F4C75 0%, #3282B8 100%);
             color: white;
             padding: 1.5rem 2rem;
             display: flex;
@@ -166,13 +166,13 @@
             left: 0;
             right: 0;
             height: 6px;
-            background: linear-gradient(90deg, #8B1538, #D4AF37, #8B1538);
+            background: linear-gradient(90deg, #0F4C75, #3282B8, #0F4C75);
         }
 
         .dashboard-title h1 {
             font-size: 2rem;
             font-weight: 700;
-            background: linear-gradient(135deg, #8B1538, #a91d42);
+            background: linear-gradient(135deg, #0F4C75, #3282B8);
             background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -292,7 +292,7 @@
         }
 
         .contact-header {
-            background: linear-gradient(135deg, #8B1538 0%, #a91d42 100%);
+            background: linear-gradient(135deg, #0F4C75 0%, #3282B8 100%);
             padding: 2rem;
             color: white;
             position: relative;
@@ -360,7 +360,7 @@
             left: 0;
             width: 4px;
             height: 100%;
-            background: linear-gradient(135deg, #8B1538, #D4AF37);
+            background: linear-gradient(135deg, #0F4C75, #3282B8);
         }
 
         .contact-card:hover {
@@ -379,7 +379,7 @@
         .contact-icon {
             width: 48px;
             height: 48px;
-            background: linear-gradient(135deg, #8B1538, #a91d42);
+            background: linear-gradient(135deg, #0F4C75, #3282B8);
             border-radius: 12px;
             display: flex;
             align-items: center;
@@ -405,14 +405,14 @@
         }
 
         .contact-value a {
-            color: #8B1538;
+            color: #0F4C75;
             text-decoration: none;
             font-weight: 500;
             transition: all 0.3s ease;
         }
 
         .contact-value a:hover {
-            color: #a91d42;
+            color: #3282B8;
             text-decoration: none;
         }
 
@@ -568,37 +568,37 @@
                 <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
                     <!-- Shield Background -->
                     <path d="M60 10 L85 20 L85 50 Q85 75 60 100 Q35 75 35 50 L35 20 Z" 
-                          fill="#8B1538" stroke="#D4AF37" stroke-width="2"/>
+                          fill="#0F4C75" stroke="#3282B8" stroke-width="2"/>
                     
                     <!-- Inner Shield -->
                     <path d="M60 15 L80 23 L80 48 Q80 70 60 90 Q40 70 40 48 L40 23 Z" 
                           fill="white" opacity="0.95"/>
                     
                     <!-- Medical Cross -->
-                    <rect x="57" y="35" width="6" height="20" fill="#8B1538"/>
-                    <rect x="50" y="42" width="20" height="6" fill="#8B1538"/>
+                    <rect x="57" y="35" width="6" height="20" fill="#0F4C75"/>
+                    <rect x="50" y="42" width="20" height="6" fill="#0F4C75"/>
                     
                     <!-- Digital Circuit Lines -->
-                    <g stroke="#D4AF37" stroke-width="1.5" fill="none" opacity="0.8">
+                    <g stroke="#3282B8" stroke-width="1.5" fill="none" opacity="0.8">
                         <path d="M45 30 L50 30 L52 32 L55 32"/>
                         <path d="M65 32 L68 32 L70 30 L75 30"/>
                         <path d="M45 60 L48 60 L50 58 L53 58"/>
                         <path d="M67 58 L70 58 L72 60 L75 60"/>
-                        <circle cx="47" cy="30" r="1.5" fill="#D4AF37"/>
-                        <circle cx="73" cy="30" r="1.5" fill="#D4AF37"/>
-                        <circle cx="47" cy="60" r="1.5" fill="#D4AF37"/>
-                        <circle cx="73" cy="60" r="1.5" fill="#D4AF37"/>
+                        <circle cx="47" cy="30" r="1.5" fill="#3282B8"/>
+                        <circle cx="73" cy="30" r="1.5" fill="#3282B8"/>
+                        <circle cx="47" cy="60" r="1.5" fill="#3282B8"/>
+                        <circle cx="73" cy="60" r="1.5" fill="#3282B8"/>
                     </g>
                     
                     <!-- Maritime Wave -->
                     <path d="M40 70 Q50 65 60 70 T80 70" 
-                          stroke="#2C3E50" stroke-width="2" fill="none"/>
+                          stroke="#BBE1FA" stroke-width="2" fill="none"/>
                     <path d="M42 75 Q52 70 62 75 T82 75" 
-                          stroke="#2C3E50" stroke-width="1.5" fill="none" opacity="0.6"/>
+                          stroke="#BBE1FA" stroke-width="1.5" fill="none" opacity="0.6"/>
                     
                     <!-- Gold Accents -->
-                    <circle cx="60" cy="25" r="2" fill="#D4AF37"/>
-                    <rect x="58" y="78" width="4" height="4" fill="#D4AF37" rx="1"/>
+                    <circle cx="60" cy="25" r="2" fill="#3282B8"/>
+                    <rect x="58" y="78" width="4" height="4" fill="#3282B8" rx="1"/>
                 </svg>
             </div>
             <div class="header-title">MARINA - Secretaría de Marina</div>

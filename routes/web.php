@@ -32,3 +32,12 @@ Route::get('/registro', function () {
 Route::get('/dashboard', function () {
     return view('dashboard');
 });
+
+Route::get('/password/reset', function () {
+    return view('password-reset');
+})->name('password.request');
+
+Route::post('/password/email', function () {
+    // Here you would handle the password reset email logic
+    return redirect()->back()->with('status', 'Se ha enviado un enlace de recuperación a tu correo electrónico.');
+})->name('password.email');
