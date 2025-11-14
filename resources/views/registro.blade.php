@@ -731,10 +731,10 @@
                                            maxlength="18"
                                            style="text-transform: uppercase; font-family: 'Courier New', monospace; letter-spacing: 0.5px;"
                                            required>
-                                    <a href="/curp/validate" target="_blank" class="search-btn" style="text-decoration: none;">
+                                    <button type="button" onclick="validateCurpFromRegistry()" class="search-btn" style="border: none; cursor: pointer;">
                                         <i class="fas fa-check-circle"></i>
                                         Validar CURP
-                                    </a>
+                                    </button>
                                 </div>
                                 <div id="curpValidationMessage" style="margin-top: 0.5rem; font-size: 0.875rem; display: none;"></div>
                             </div>
@@ -1025,6 +1025,167 @@
                 curpInput.style.borderColor = '';
                 curpInput.style.backgroundColor = '';
             }
+        });
+
+        // Function to handle CURP validation from registry
+        function validateCurpFromRegistry() {
+            const curpInput = document.getElementById('curpInput');
+            const curp = curpInput.value.trim().toUpperCase();
+            
+            if (!curp) {
+                alert('Por favor ingrese un CURP antes de validar');
+                curpInput.focus();
+                return;
+            }
+            
+            if (curp.length !== 18) {
+                alert('El CURP debe tener exactamente 18 caracteres');
+                curpInput.focus();
+                return;
+            }
+            
+            // Store current form data in sessionStorage before redirecting
+            const formData = {
+                curp: curp,
+                // Store other form fields that might be filled
+                nombre: document.getElementById('nombre')?.value || '',
+                apellidoPaterno: document.getElementById('apellidoPaterno')?.value || '',
+                apellidoMaterno: document.getElementById('apellidoMaterno')?.value || '',
+                email: document.getElementById('email')?.value || '',
+                telefono: document.getElementById('telefono')?.value || '',
+                return_url: window.location.href
+            };
+            
+            sessionStorage.setItem('registryFormData', JSON.stringify(formData));
+            
+            // Redirect to CURP validation page
+            window.location.href = '/curp/validate?from=registry&curp=' + encodeURIComponent(curp);
+        }
+
+        // Function to handle return from CURP validation
+        function handleCurpValidationReturn() {
+            console.log('🔍 Checking for CURP validation return data...');
+            const urlParams = new URLSearchParams(window.location.search);
+            const verificationData = urlParams.get('verification');
+            
+            console.log('URL parameters:', window.location.search);
+            console.log('Verification data found:', !!verificationData);
+            
+            if (verificationData) {
+                console.log('Raw verification data:', verificationData);
+                
+                try {
+                    const data = JSON.parse(decodeURIComponent(verificationData));
+                    console.log('Parsed verification data:', data);
+                    
+                    if (data.success && data.data) {
+                        console.log('✅ Valid data found, auto-filling form...');
+                        console.log('Data details:', data.data.details);
+                        
+                        // Auto-fill form with verified data
+                        autoFillFormWithCurpData(data.data);
+                        
+                        // Show success message
+                        const curpMessage = document.getElementById('curpValidationMessage');
+                        if (curpMessage) {
+                            showCurpMessage('success', '<i class="fas fa-check-circle"></i> CURP verificado exitosamente - Datos auto-completados');
+                        }
+                        
+                        // Clear URL parameters
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                    } else {
+                        console.log('❌ Invalid data structure:', data);
+                    }
+                } catch (e) {
+                    console.error('❌ Error parsing verification data:', e);
+                }
+            } else {
+                console.log('ℹ️ No verification data found in URL');
+            }
+        }
+
+        // Function to auto-fill form with CURP data
+        function autoFillFormWithCurpData(data) {
+            console.log('📝 Starting auto-fill with data:', data);
+            const details = data.details || {};
+            console.log('📋 Details object:', details);
+            
+            // Fill CURP
+            const curpInput = document.querySelector('input[name="curp"]');
+            console.log('CURP input found:', !!curpInput);
+            if (curpInput && data.curp) {
+                curpInput.value = data.curp;
+                console.log('✅ CURP filled:', data.curp);
+            }
+            
+            // Fill name fields if available
+            if (details.nombres) {
+                const nombreInput = document.querySelector('input[name="nombres"]');
+                console.log('Nombres input found:', !!nombreInput);
+                if (nombreInput && !nombreInput.value) {
+                    nombreInput.value = details.nombres;
+                    console.log('✅ Nombres filled:', details.nombres);
+                }
+            }
+            
+            if (details.primerApellido) {
+                const apellidoPaternoInput = document.querySelector('input[name="apellido_paterno"]');
+                console.log('Apellido paterno input found:', !!apellidoPaternoInput);
+                if (apellidoPaternoInput && !apellidoPaternoInput.value) {
+                    apellidoPaternoInput.value = details.primerApellido;
+                    console.log('✅ Apellido paterno filled:', details.primerApellido);
+                }
+            }
+            
+            if (details.segundoApellido) {
+                const apellidoMaternoInput = document.querySelector('input[name="apellido_materno"]');
+                console.log('Apellido materno input found:', !!apellidoMaternoInput);
+                if (apellidoMaternoInput && !apellidoMaternoInput.value) {
+                    apellidoMaternoInput.value = details.segundoApellido;
+                    console.log('✅ Apellido materno filled:', details.segundoApellido);
+                }
+            }
+            
+            // Fill birth date if available
+            if (details.fechaNacimiento) {
+                const fechaNacimientoInput = document.querySelector('input[name="fecha_nacimiento"]');
+                console.log('Fecha nacimiento input found:', !!fechaNacimientoInput);
+                if (fechaNacimientoInput && !fechaNacimientoInput.value) {
+                    fechaNacimientoInput.value = details.fechaNacimiento;
+                    console.log('✅ Fecha nacimiento filled:', details.fechaNacimiento);
+                }
+            }
+            
+            // Fill gender if available
+            if (details.sexo) {
+                const sexoSelect = document.querySelector('select[name="sexo"]');
+                console.log('Sexo select found:', !!sexoSelect);
+                if (sexoSelect && !sexoSelect.value) {
+                    const sexoValue = details.sexo.toLowerCase().includes('masculino') ? 'masculino' : 
+                                     details.sexo.toLowerCase().includes('femenino') ? 'femenino' : '';
+                    if (sexoValue) {
+                        sexoSelect.value = sexoValue;
+                        console.log('✅ Sexo filled:', sexoValue);
+                    }
+                }
+            }
+            
+            // Fill state of birth if available
+            if (details.entidadNacimiento) {
+                const estadoNacimientoInput = document.querySelector('input[name="estado_nacimiento"]');
+                console.log('Estado nacimiento input found:', !!estadoNacimientoInput);
+                if (estadoNacimientoInput && !estadoNacimientoInput.value) {
+                    estadoNacimientoInput.value = details.entidadNacimiento;
+                    console.log('✅ Estado nacimiento filled:', details.entidadNacimiento);
+                }
+            }
+            
+            console.log('📝 Auto-fill process completed');
+        }
+
+        // Initialize return handler when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            handleCurpValidationReturn();
         });
     </script>
 </body>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Button Fix</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .success { border-color: green; background: #f0f9f0; }
+        .error { border-color: red; background: #ffeaea; }
+    </style>
+</head>
+<body>
+    <h1>🔧 CURP Button Fix Test</h1>
+    
+    <div class="test-section">
+        <h2>Problem Identified:</h2>
+        <p><strong>Issue:</strong> "Completar Registro con Datos Verificados" button not working</p>
+        <p><strong>Root Cause:</strong> Function <code>returnToRegistrationWithData()</code> was scoped inside DOMContentLoaded event</p>
+    </div>
+    
+    <div class="test-section success">
+        <h2>✅ Fix Applied:</h2>
+        <ul>
+            <li>✅ Moved function to global scope</li>
+            <li>✅ Created global variables: <code>window.fromRegistry</code> and <code>window.validatedCurpData</code></li>
+            <li>✅ Updated function references to use global variables</li>
+            <li>✅ Added console.log for debugging</li>
+        </ul>
+    </div>
+    
+    <div class="test-section">
+        <h2>🧪 Test Steps:</h2>
+        <ol>
+            <li><strong>Go to registration:</strong> <a href="http://localhost:8000/registro" target="_blank">http://localhost:8000/registro</a></li>
+            <li><strong>Enter CURP:</strong> RICJ830716HTSSNN05</li>
+            <li><strong>Click "Validar CURP"</strong> (should redirect to validation page)</li>
+            <li><strong>Click "Validar CURP"</strong> on validation page (should show results)</li>
+            <li><strong>Check console</strong> for debug messages</li>
+            <li><strong>Click green "Completar Registro con Datos Verificados"</strong> button</li>
+            <li><strong>Verify</strong> it redirects back to registration with data</li>
+        </ol>
+    </div>
+    
+    <div class="test-section">
+        <h2>🔍 Debug Information:</h2>
+        <p>Open browser console to see:</p>
+        <ul>
+            <li><code>Return button clicked. Validated data: ...</code></li>
+            <li><code>Redirecting to registration with data: ...</code></li>
+            <li><code>Storing validated data: ...</code></li>
+        </ul>
+    </div>
+    
+    <div class="test-section">
+        <h2>Expected Behavior:</h2>
+        <p><strong>After clicking the green button:</strong></p>
+        <ul>
+            <li>✅ Console shows debug messages</li>
+            <li>✅ Page redirects to <code>/registro?verification=...</code></li>
+            <li>✅ Registration form auto-fills with CURP data</li>
+            <li>✅ Success message appears</li>
+        </ul>
+    </div>
+    
+    <script>
+        console.log('Test page loaded. You can now test the CURP validation flow.');
+        console.log('Expected flow: Registration → Validation → Auto-fill Registration');
+    </script>
+</body>
+</html>

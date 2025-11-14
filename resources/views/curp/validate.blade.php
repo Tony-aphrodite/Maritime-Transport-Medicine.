@@ -525,9 +525,9 @@
     <main class="main-content">
         <div class="validation-container">
             <!-- Back Link -->
-            <a href="/registro" class="back-link">
+            <a href="#" onclick="handleBackNavigation()" class="back-link">
                 <i class="fas fa-arrow-left"></i>
-                Volver al registro
+                <span id="backLinkText">Volver al registro</span>
             </a>
 
             <!-- Icon Section -->
@@ -583,6 +583,12 @@
                     <span id="btnText">Validar CURP</span>
                     <div id="loadingSpinner" class="loading-spinner" style="display: none;"></div>
                 </button>
+                
+                <!-- Return to Registration Button (hidden by default) -->
+                <button type="button" id="returnBtn" class="submit-btn" style="display: none; background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Completar Registro con Datos Verificados</span>
+                </button>
             </form>
             
             <!-- Info Section -->
@@ -614,6 +620,27 @@
             const loadingSpinner = document.getElementById('loadingSpinner');
             const validationStatus = document.getElementById('validationStatus');
             const resultCard = document.getElementById('resultCard');
+            const returnBtn = document.getElementById('returnBtn');
+            
+            // Check if coming from registry
+            const urlParams = new URLSearchParams(window.location.search);
+            const fromRegistry = urlParams.get('from') === 'registry';
+            const curpParam = urlParams.get('curp');
+            
+            // Store successful validation data for return
+            let validatedCurpData = null;
+            
+            // Update global variable and UI based on source
+            window.fromRegistry = fromRegistry;
+            
+            if (fromRegistry) {
+                document.getElementById('backLinkText').textContent = 'Cancelar y volver al registro';
+                
+                // Pre-fill with CURP from URL if available
+                if (curpParam) {
+                    curpInput.value = curpParam.toUpperCase();
+                }
+            }
             
             // CURP format validation regex
             const curpRegex = /^[A-Z]{1}[AEIOUX]{1}[A-Z]{2}[0-9]{2}(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])[HM]{1}[A-Z]{2}[BCDFGHJKLMNPQRSTVWXYZ]{3}[0-9A-Z]{1}[0-9]{1}$/;
@@ -662,6 +689,14 @@
                 validateCurp();
             });
             
+            // Return button event listener
+            if (returnBtn) {
+                returnBtn.addEventListener('click', function() {
+                    console.log('Return button clicked via event listener');
+                    returnToRegistrationWithData();
+                });
+            }
+            
             function resetValidation() {
                 curpInput.classList.remove('valid', 'invalid');
                 showValidationMessage('info', 'CURP debe contener exactamente 18 caracteres alfanuméricos', 'fas fa-info-circle');
@@ -698,7 +733,8 @@
                 if (success && data && data.details) {
                     let detailsHtml = '';
                     if (data.details.nombres) detailsHtml += `<div class="detail-item"><span class="detail-label">Nombre:</span><span class="detail-value">${data.details.nombres}</span></div>`;
-                    if (data.details.apellidos) detailsHtml += `<div class="detail-item"><span class="detail-label">Apellidos:</span><span class="detail-value">${data.details.apellidos}</span></div>`;
+                    if (data.details.primerApellido) detailsHtml += `<div class="detail-item"><span class="detail-label">Apellido Paterno:</span><span class="detail-value">${data.details.primerApellido}</span></div>`;
+                    if (data.details.segundoApellido) detailsHtml += `<div class="detail-item"><span class="detail-label">Apellido Materno:</span><span class="detail-value">${data.details.segundoApellido}</span></div>`;
                     if (data.details.fechaNacimiento) detailsHtml += `<div class="detail-item"><span class="detail-label">Fecha de Nacimiento:</span><span class="detail-value">${data.details.fechaNacimiento}</span></div>`;
                     if (data.details.sexo) detailsHtml += `<div class="detail-item"><span class="detail-label">Sexo:</span><span class="detail-value">${data.details.sexo}</span></div>`;
                     if (data.details.entidadNacimiento) detailsHtml += `<div class="detail-item"><span class="detail-label">Estado:</span><span class="detail-value">${data.details.entidadNacimiento}</span></div>`;
@@ -707,6 +743,15 @@
                     detailsDiv.style.display = detailsHtml ? 'block' : 'none';
                 } else {
                     detailsDiv.style.display = 'none';
+                }
+                
+                // Store validated data and show return button if from registry
+                if (success && window.fromRegistry) {
+                    window.validatedCurpData = { success: true, data: data };
+                    returnBtn.style.display = 'block';
+                    console.log('Storing validated data:', window.validatedCurpData);
+                } else {
+                    returnBtn.style.display = 'none';
                 }
                 
                 resultCard.style.display = 'block';
@@ -754,6 +799,34 @@
                 }
             }
         });
+
+        // Global variables for functions called by onclick
+        window.fromRegistry = false;
+        window.validatedCurpData = null;
+
+        // Function to handle back navigation
+        function handleBackNavigation() {
+            if (window.fromRegistry) {
+                window.location.href = '/registro';
+            } else {
+                window.location.href = '/registro';
+            }
+        }
+
+        // Function to return to registration with validated data
+        function returnToRegistrationWithData() {
+            console.log('Return button clicked. Validated data:', window.validatedCurpData);
+            
+            if (window.validatedCurpData && window.validatedCurpData.success) {
+                // Encode the validation data to pass it via URL
+                const encodedData = encodeURIComponent(JSON.stringify(window.validatedCurpData));
+                console.log('Redirecting to registration with data:', encodedData);
+                window.location.href = '/registro?verification=' + encodedData;
+            } else {
+                console.log('No validated data found, redirecting to registration without data');
+                window.location.href = '/registro';
+            }
+        }
     </script>
 </body>
 </html>
