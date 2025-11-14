@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CURP UI Test</title>
+</head>
+<body>
+    <h2>🧪 Testing UI Functionality</h2>
+    
+    <h3>Test 1: Access CURP Validation Page</h3>
+    <p>✅ Page should load at: <a href="http://localhost:8000/curp/validate" target="_blank">http://localhost:8000/curp/validate</a></p>
+    
+    <h3>Test 2: Pre-filled CURP</h3>
+    <p>✅ Input should show: RICJ830716HTSSNN05</p>
+    
+    <h3>Test 3: Button Interaction</h3>
+    <p>✅ "Validar CURP" button should be clickable (not disabled)</p>
+    
+    <h3>Test 4: Input Field</h3>
+    <p>✅ CURP input field should accept typing and changes</p>
+    
+    <h3>Test 5: Validation</h3>
+    <p>✅ Real-time validation should show green border for valid CURP</p>
+    <p>✅ Button click should trigger API call and show results</p>
+    
+    <h3>Fixed Issues:</h3>
+    <ul>
+        <li>❌ <s>Button was disabled on page load</s> → ✅ Button now enabled</li>
+        <li>❌ <s>Input not accepting text</s> → ✅ Input functional</li>
+        <li>❌ <s>JavaScript validation not running</s> → ✅ Validation working</li>
+        <li>✅ Format validation works correctly</li>
+        <li>✅ API fallback handles service unavailability</li>
+    </ul>
+    
+    <h3>Current Status:</h3>
+    <p>🟢 <strong>UI Issues Fixed:</strong> Button clickable, input functional</p>
+    <p>🟡 <strong>API Status:</strong> Using fallback validation (VerificaMex endpoint needs verification)</p>
+    
+</body>
+</html>

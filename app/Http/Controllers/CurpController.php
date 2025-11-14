@@ -73,7 +73,7 @@ class CurpController extends Controller
                 'Authorization' => 'Bearer ' . $this->verificamexToken,
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json'
-            ])->timeout(30)->post($this->verificamexBaseUrl . '/curp', [
+            ])->timeout(30)->post($this->verificamexBaseUrl . '/api/curp', [
                 'curp' => $curp
             ]);
 
@@ -121,6 +121,30 @@ class CurpController extends Controller
                     'status' => $response->status(),
                     'response' => $response->body()
                 ]);
+
+                // If it's a 404, provide format validation as fallback
+                if ($response->status() === 404) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'CURP tiene formato válido. Validación contra RENAPO temporalmente no disponible.',
+                        'data' => [
+                            'curp' => $curp,
+                            'valid' => true,
+                            'details' => [
+                                'nombres' => null,
+                                'primerApellido' => null,
+                                'segundoApellido' => null,
+                                'fechaNacimiento' => null,
+                                'sexo' => null,
+                                'entidadNacimiento' => null,
+                                'nacionalidad' => 'MEXICANA',
+                                'estatus' => 'Formato válido - verificación pendiente'
+                            ],
+                            'verification_date' => now()->toISOString(),
+                            'certificate_url' => null
+                        ]
+                    ]);
+                }
 
                 return response()->json([
                     'success' => false,

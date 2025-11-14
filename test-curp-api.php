@@ -24,7 +24,7 @@ $data = json_encode(['curp' => $testCurp]);
 $curl = curl_init();
 
 curl_setopt_array($curl, [
-    CURLOPT_URL => $baseUrl . '/curp',
+    CURLOPT_URL => $baseUrl . '/api/curp',
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_ENCODING => '',
     CURLOPT_MAXREDIRS => 10,
