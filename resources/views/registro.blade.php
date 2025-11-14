@@ -720,9 +720,23 @@
                             <div class="field-group">
                                 <label class="field-label">
                                     <i class="fas fa-id-card"></i>
-                                    CURP
+                                    CURP <span class="required">*</span>
                                 </label>
-                                <input type="text" class="form-control" name="curp" placeholder="CURP (18 caracteres)" maxlength="18">
+                                <div class="input-with-button">
+                                    <input type="text" 
+                                           class="form-control" 
+                                           id="curpInput" 
+                                           name="curp" 
+                                           placeholder="CURP (18 caracteres)" 
+                                           maxlength="18"
+                                           style="text-transform: uppercase; font-family: 'Courier New', monospace; letter-spacing: 0.5px;"
+                                           required>
+                                    <a href="/curp/validate" target="_blank" class="search-btn" style="text-decoration: none;">
+                                        <i class="fas fa-check-circle"></i>
+                                        Validar CURP
+                                    </a>
+                                </div>
+                                <div id="curpValidationMessage" style="margin-top: 0.5rem; font-size: 0.875rem; display: none;"></div>
                             </div>
                         </div>
 
@@ -957,5 +971,61 @@
             <p><i class="fas fa-sign-in-alt"></i> ¿Ya tienes una cuenta? <a href="/login">Inicia sesión aquí</a></p>
         </div>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const curpInput = document.getElementById('curpInput');
+            const curpMessage = document.getElementById('curpValidationMessage');
+            
+            // CURP format validation regex
+            const curpRegex = /^[A-Z]{1}[AEIOUX]{1}[A-Z]{2}[0-9]{2}(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])[HM]{1}[A-Z]{2}[BCDFGHJKLMNPQRSTVWXYZ]{3}[0-9A-Z]{1}[0-9]{1}$/;
+            
+            if (curpInput) {
+                curpInput.addEventListener('input', function() {
+                    let value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                    this.value = value;
+                    
+                    if (value.length === 0) {
+                        hideCurpMessage();
+                        return;
+                    }
+                    
+                    if (value.length !== 18) {
+                        showCurpMessage('error', '<i class="fas fa-exclamation-circle"></i> CURP debe tener exactamente 18 caracteres');
+                        return;
+                    }
+                    
+                    if (!curpRegex.test(value)) {
+                        showCurpMessage('error', '<i class="fas fa-times-circle"></i> Formato de CURP inválido');
+                        return;
+                    }
+                    
+                    showCurpMessage('success', '<i class="fas fa-check-circle"></i> Formato de CURP válido');
+                });
+            }
+            
+            function showCurpMessage(type, message) {
+                curpMessage.style.display = 'flex';
+                curpMessage.style.alignItems = 'center';
+                curpMessage.style.gap = '0.5rem';
+                curpMessage.innerHTML = message;
+                
+                if (type === 'success') {
+                    curpMessage.style.color = '#10B981';
+                    curpInput.style.borderColor = '#10B981';
+                    curpInput.style.backgroundColor = '#f0fdf4';
+                } else {
+                    curpMessage.style.color = '#EF4444';
+                    curpInput.style.borderColor = '#EF4444';
+                    curpInput.style.backgroundColor = '#fef2f2';
+                }
+            }
+            
+            function hideCurpMessage() {
+                curpMessage.style.display = 'none';
+                curpInput.style.borderColor = '';
+                curpInput.style.backgroundColor = '';
+            }
+        });
+    </script>
 </body>
 </html>

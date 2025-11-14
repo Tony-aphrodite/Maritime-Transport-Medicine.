@@ -59,6 +59,34 @@ The application currently uses simple route closures in `routes/web.php` that re
 - CSS and JavaScript processing through Laravel Vite plugin
 - Input files: `resources/css/app.css`, `resources/js/app.js`
 
+## CURP Validation Feature
+
+### Overview
+Complete CURP (Clave Única de Registro de Población) validation system integrated with VerificaMex API for real-time validation against RENAPO database.
+
+### Components
+- **Standalone Validation Page**: `/curp/validate` - Dedicated CURP validation interface
+- **Registration Integration**: Enhanced CURP input in registration form with real-time validation
+- **Backend API**: `CurpController` handles VerificaMex API integration
+- **Client-side Validation**: JavaScript for format validation and UX
+
+### API Configuration
+Configure VerificaMex API credentials in `.env`:
+```
+VERIFICAMEX_TOKEN=your-bearer-token-here
+VERIFICAMEX_BASE_URL=https://api.verificamex.com/v1
+```
+
+### Routes
+- `GET /curp/validate` - Show CURP validation form
+- `POST /curp/validate` - Submit CURP for validation
+- `POST /curp/validate-format` - AJAX format validation
+
+### CURP Format
+18-character alphanumeric code following official Mexican CURP structure:
+- Example: `PEGJ850415HDFRRN05`
+- Validation includes format checking and RENAPO database verification
+
 ## Key Configuration Files
 - `composer.json` - PHP dependencies and autoloading
 - `package.json` - Node.js dependencies and scripts
