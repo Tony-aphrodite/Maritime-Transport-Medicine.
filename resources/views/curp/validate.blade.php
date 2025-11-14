@@ -579,7 +579,7 @@
                     </div>
                 </div>
                 
-                <button type="submit" id="submitBtn" class="submit-btn" disabled>
+                <button type="submit" id="submitBtn" class="submit-btn">
                     <span id="btnText">Validar CURP</span>
                     <div id="loadingSpinner" class="loading-spinner" style="display: none;"></div>
                 </button>
@@ -618,10 +618,10 @@
             // CURP format validation regex
             const curpRegex = /^[A-Z]{1}[AEIOUX]{1}[A-Z]{2}[0-9]{2}(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])[HM]{1}[A-Z]{2}[BCDFGHJKLMNPQRSTVWXYZ]{3}[0-9A-Z]{1}[0-9]{1}$/;
             
-            // Real-time CURP validation
-            curpInput.addEventListener('input', function() {
-                let value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-                this.value = value;
+            // Function to validate CURP input
+            function validateCurpInput() {
+                let value = curpInput.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                curpInput.value = value;
                 
                 if (value.length === 0) {
                     resetValidation();
@@ -648,7 +648,13 @@
                 curpInput.classList.remove('invalid');
                 curpInput.classList.add('valid');
                 submitBtn.disabled = false;
-            });
+            }
+            
+            // Real-time CURP validation
+            curpInput.addEventListener('input', validateCurpInput);
+            
+            // Initialize validation for pre-filled CURP
+            validateCurpInput();
             
             // Form submission
             form.addEventListener('submit', function(e) {
@@ -675,7 +681,9 @@
             }
             
             function hideLoading() {
-                submitBtn.disabled = false;
+                // Only enable button if CURP is valid
+                const curp = curpInput.value.trim().toUpperCase();
+                submitBtn.disabled = !(curp.length === 18 && curpRegex.test(curp));
                 btnText.style.display = 'block';
                 loadingSpinner.style.display = 'none';
             }
