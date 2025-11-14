@@ -14,10 +14,9 @@ class CurpController extends Controller
 
     public function __construct()
     {
-        // Set your VerificaMex API credentials here
-        // In production, store these in .env file
-        $this->verificamexToken = env('VERIFICAMEX_TOKEN', 'your-bearer-token-here');
-        $this->verificamexBaseUrl = env('VERIFICAMEX_BASE_URL', 'https://api.verificamex.com/v1');
+        // VerificaMex API credentials
+        $this->verificamexToken = env('VERIFICAMEX_TOKEN', 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxIiwianRpIjoiYWVlNjExZWEyN2M0MzM2ZjgzOWI1NTQ1MjVlZTQ3ZTI4MTJlYTRiMGQ3MTQ3Yjk0MDdkYjdhNjhjNjFkNWYxZDhmNDgxMjBiYzdhM2FkODIiLCJpYXQiOjE3NjMwODQ3ODIuMjAwNDYxLCJuYmYiOjE3NjMwODQ3ODIuMjAwNDk5LCJleHAiOjE3OTQ2MjA3ODIuMTg2MTEsInN1YiI6IjgxNzQiLCJzY29wZXMiOltdfQ.UTZKx5J3-w1iH6z6EcwQbFgjCNL5U57rjLXQ_pLK__wva8-4icxvxikICqRVrNIzjLYu5WpETi-2wpg4Qh3W_0MbgVyma854mI2AF_Bffbaf3X6e-UfOelYwIsk6FD1iJrPzETNWZCUqSFkEYI_o9F2-g2tdtbf2pGw4-7CqGVef1n3utJPpftK9P4Q6L5t3q8rg-rY6u22enExNEO6-xAP2ZjhkWmEU1J1rzCtD4KcdWY1zOK6zgYEA-NW0Aobay67Dnhkf-m3zsTRleKK6M0CGGjV89AOlZ186bBx1nHqw3g2nVf_5cl6q9s-RraYDXoXO8ppR0U76bV3lBesoG7_9y8V4aIoZxI8uA-Wp4jYoqsCN8KdUE4lHNG4vyaiOvl23dfcoUs2ELSwe-xNK_JCqEBZV1cRF0qzF7_0V1buKMDAI_43TxPMJ2LFkVFz2nGWyVMd88uKijA-OXS-R1KgvikYJt8s3OH8XvV3SWr4PhlGp1uXiOdxgXbRVmcYbJcxmvEvlwQTk0TdEKUDSDaVvF3kJHom-4ddoA-nMiQx-mtY31l05V01346pm2-5K-sXnQxpjaSRjjIWRHhb9FG09NeHVUCtjc7ApQq7RSSeo8KuEVOHoX5kWsY5H7820D4HqFnqq_7UEyuQCGsLlgk4A2SUxRhiXq2suTc86n-k');
+        $this->verificamexBaseUrl = env('VERIFICAMEX_BASE_URL', 'https://api.verificamex.com');
     }
 
     /**
@@ -69,33 +68,46 @@ class CurpController extends Controller
                 ], 422);
             }
 
-            // Call VerificaMex API
+            // Call VerificaMex CURP API
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $this->verificamexToken,
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json'
-            ])->timeout(30)->post($this->verificamexBaseUrl . '/curp/validate', [
+            ])->timeout(30)->post($this->verificamexBaseUrl . '/curp', [
                 'curp' => $curp
             ]);
 
             if ($response->successful()) {
                 $apiData = $response->json();
                 
-                if ($apiData && isset($apiData['valid']) && $apiData['valid']) {
+                // VerificaMex API response structure
+                if ($apiData && isset($apiData['success']) && $apiData['success']) {
+                    $curpData = $apiData['data'] ?? [];
+                    
                     return response()->json([
                         'success' => true,
-                        'message' => 'CURP válido y verificado exitosamente',
+                        'message' => 'CURP válido y verificado exitosamente contra RENAPO',
                         'data' => [
                             'curp' => $curp,
                             'valid' => true,
-                            'details' => $apiData['data'] ?? null,
-                            'verification_date' => now()->toISOString()
+                            'details' => [
+                                'nombres' => $curpData['nombres'] ?? null,
+                                'primerApellido' => $curpData['primer_apellido'] ?? null,
+                                'segundoApellido' => $curpData['segundo_apellido'] ?? null,
+                                'fechaNacimiento' => $curpData['fecha_nacimiento'] ?? null,
+                                'sexo' => $curpData['sexo'] ?? null,
+                                'entidadNacimiento' => $curpData['entidad_nacimiento'] ?? null,
+                                'nacionalidad' => $curpData['nacionalidad'] ?? 'MEXICANA',
+                                'estatus' => $curpData['estatus'] ?? null
+                            ],
+                            'verification_date' => now()->toISOString(),
+                            'certificate_url' => $apiData['certificate_url'] ?? null
                         ]
                     ]);
                 } else {
                     return response()->json([
                         'success' => false,
-                        'message' => 'CURP no encontrado en la base de datos de RENAPO',
+                        'message' => $apiData['message'] ?? 'CURP no encontrado en la base de datos de RENAPO',
                         'data' => [
                             'curp' => $curp,
                             'valid' => false,
