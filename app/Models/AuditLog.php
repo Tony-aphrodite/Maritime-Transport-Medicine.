@@ -55,11 +55,14 @@ class AuditLog extends Model
     const EVENT_FACE_MATCHING_SUCCESS = 'face_matching_success';
     const EVENT_FACE_MATCHING_FAILURE = 'face_matching_failure';
     const EVENT_ACCOUNT_CREATION_COMPLETED = 'account_creation_completed';
+    const EVENT_ACCOUNT_CREATED = 'account_created';
+    const EVENT_ACCOUNT_CREATION_FAILURE = 'account_creation_failure';
     const EVENT_LOGIN_ATTEMPT = 'login_attempt';
     const EVENT_LOGIN_SUCCESS = 'login_success';
     const EVENT_LOGIN_FAILURE = 'login_failure';
     const EVENT_PASSWORD_RESET_REQUEST = 'password_reset_request';
     const EVENT_ADMIN_ACCESS = 'admin_access';
+    const EVENT_ADMIN_LOGOUT = 'admin_logout';
 
     /**
      * Status constants

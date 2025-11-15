@@ -6,23 +6,151 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Models\AuditLog;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Session;
 use Carbon\Carbon;
 
 class AdminController extends Controller
 {
     /**
-     * Display the admin dashboard
+     * Admin credentials (in production, these should be stored in database)
+     */
+    private $adminCredentials = [
+        'email' => 'AdminJuan@gmail.com',
+        'password' => 'johnson@suceess!'
+    ];
+
+    /**
+     * Show admin login form
      *
      * @return \Illuminate\View\View
      */
+    public function showLogin()
+    {
+        // If already logged in, redirect to dashboard
+        if (Session::get('admin_logged_in')) {
+            return redirect()->route('admin.dashboard');
+        }
+
+        return view('admin.login');
+    }
+
+    /**
+     * Process admin login
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function processLogin(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required|min:6'
+        ]);
+
+        $email = $request->input('email');
+        $password = $request->input('password');
+
+        // Check admin credentials
+        if ($email === $this->adminCredentials['email'] && $password === $this->adminCredentials['password']) {
+            // Login successful
+            Session::put('admin_logged_in', true);
+            Session::put('admin_email', $email);
+
+            // Log successful admin login
+            try {
+                AuditLog::logEvent(
+                    AuditLog::EVENT_LOGIN_SUCCESS,
+                    AuditLog::STATUS_SUCCESS,
+                    [
+                        'authentication_method' => 'admin_credentials',
+                        'email' => $email
+                    ],
+                    $email
+                );
+            } catch (\Exception $e) {
+                Log::warning('Failed to log admin login success: ' . $e->getMessage());
+            }
+
+            return redirect()->route('admin.dashboard')->with('success', 'Sesión iniciada correctamente');
+
+        } else {
+            // Login failed
+            try {
+                AuditLog::logEvent(
+                    AuditLog::EVENT_LOGIN_FAILURE,
+                    AuditLog::STATUS_FAILURE,
+                    [
+                        'authentication_method' => 'admin_credentials',
+                        'email' => $email,
+                        'reason' => 'invalid_credentials'
+                    ],
+                    $email
+                );
+            } catch (\Exception $e) {
+                Log::warning('Failed to log admin login failure: ' . $e->getMessage());
+            }
+
+            return back()->with('error', 'Credenciales incorrectas. Verifique su email y contraseña.');
+        }
+    }
+
+    /**
+     * Admin logout
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function logout()
+    {
+        $adminEmail = Session::get('admin_email');
+
+        // Log admin logout
+        try {
+            AuditLog::logEvent(
+                AuditLog::EVENT_ADMIN_LOGOUT,
+                AuditLog::STATUS_SUCCESS,
+                ['logout_method' => 'manual'],
+                $adminEmail
+            );
+        } catch (\Exception $e) {
+            Log::warning('Failed to log admin logout: ' . $e->getMessage());
+        }
+
+        Session::forget('admin_logged_in');
+        Session::forget('admin_email');
+
+        return redirect()->route('admin.login')->with('success', 'Sesión cerrada correctamente');
+    }
+
+    /**
+     * Check if admin is authenticated
+     *
+     * @return bool
+     */
+    private function isAdminAuthenticated()
+    {
+        return Session::get('admin_logged_in', false);
+    }
+
+    /**
+     * Display the admin dashboard
+     *
+     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
+     */
     public function dashboard()
     {
+        // Check authentication
+        if (!$this->isAdminAuthenticated()) {
+            return redirect()->route('login')->with('error', 'Debe iniciar sesión para acceder al panel administrativo');
+        }
+
         // Log admin access
         try {
             AuditLog::logEvent(
                 AuditLog::EVENT_ADMIN_ACCESS,
                 AuditLog::STATUS_SUCCESS,
-                ['accessed_page' => 'dashboard']
+                ['accessed_page' => 'dashboard'],
+                Session::get('admin_email')
             );
         } catch (\Exception $e) {
             Log::warning('Failed to log admin access: ' . $e->getMessage());
@@ -35,10 +163,15 @@ class AdminController extends Controller
      * Display audit logs with filtering and pagination
      *
      * @param Request $request
-     * @return \Illuminate\View\View
+     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
      */
     public function auditLogs(Request $request)
     {
+        // Check authentication
+        if (!$this->isAdminAuthenticated()) {
+            return redirect()->route('login')->with('error', 'Debe iniciar sesión para acceder al panel administrativo');
+        }
+
         // Get filter parameters
         $eventType = $request->get('event_type');
         $status = $request->get('status');
@@ -47,7 +180,33 @@ class AdminController extends Controller
         $dateTo = $request->get('date_to');
         $search = $request->get('search');
         
-        return view('admin.audit-logs', compact('eventType', 'status', 'userId', 'dateFrom', 'dateTo', 'search'));
+        // Get statistics for the audit logs page
+        $statistics = AuditLog::getStatistics();
+        
+        return view('admin.audit-logs', compact('eventType', 'status', 'userId', 'dateFrom', 'dateTo', 'search', 'statistics'));
+    }
+
+    /**
+     * Get individual audit log details
+     */
+    public function getAuditLogDetails($id)
+    {
+        // Check authentication
+        if (!$this->isAdminAuthenticated()) {
+            return response()->json(['error' => 'Authentication required'], 401);
+        }
+
+        try {
+            $log = AuditLog::findOrFail($id);
+            
+            return response()->json($log);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Log not found',
+                'message' => $e->getMessage()
+            ], 404);
+        }
     }
 
     /**
@@ -57,6 +216,13 @@ class AdminController extends Controller
      */
     public function getDashboardStats(): JsonResponse
     {
+        // Check authentication for API endpoints
+        if (!$this->isAdminAuthenticated()) {
+            return response()->json([
+                'error' => 'Authentication required',
+                'message' => 'Admin authentication required for this action'
+            ], 401);
+        }
         try {
             // Get real data from database
             $today = Carbon::today();
@@ -136,6 +302,13 @@ class AdminController extends Controller
      */
     public function getAuditLogsData(Request $request): JsonResponse
     {
+        // Check authentication for API endpoints
+        if (!$this->isAdminAuthenticated()) {
+            return response()->json([
+                'error' => 'Authentication required',
+                'message' => 'Admin authentication required for this action'
+            ], 401);
+        }
         try {
             $query = AuditLog::query();
 
@@ -190,7 +363,7 @@ class AdminController extends Controller
                                  'status' => $log->status,
                                  'ip_address' => $log->ip_address,
                                  'user_agent' => $log->user_agent,
-                                 'event_data' => json_decode($log->event_data, true),
+                                 'event_data' => $log->event_data,
                                  'session_id' => $log->session_id,
                                  'request_method' => $log->request_method,
                                  'request_url' => $log->request_url,
@@ -387,6 +560,12 @@ class AdminController extends Controller
                 return 'Nueva cuenta creada exitosamente';
             case AuditLog::EVENT_ADMIN_ACCESS:
                 return 'Acceso al panel de administración';
+            case AuditLog::EVENT_LOGIN_SUCCESS:
+                return 'Inicio de sesión administrativo exitoso';
+            case AuditLog::EVENT_LOGIN_FAILURE:
+                return 'Intento de inicio de sesión fallido';
+            case AuditLog::EVENT_ADMIN_LOGOUT:
+                return 'Cierre de sesión administrativo';
             default:
                 return ucfirst(str_replace('_', ' ', $eventType));
         }

@@ -799,45 +799,28 @@
             <p style="color: #64748b; font-size: 0.85rem; margin-top: 0.5rem;">
                 <i class="fas fa-info-circle"></i> Complete todos los campos requeridos para continuar
             </p>
-        </div>
-
-        <!-- Registration Method Selection -->
-        <div class="registration-methods" id="registrationMethods">
-            <div class="methods-header">
-                <h2 class="methods-title">Seleccione su método de registro</h2>
-                <p class="methods-subtitle">Elija cómo desea verificar su identidad</p>
-            </div>
             
-            <div class="method-options">
-                <button type="button" class="method-option traditional-method" onclick="selectRegistrationMethod('traditional')">
-                    <div class="method-icon">
-                        <i class="fas fa-envelope"></i>
+            @if($errors->any())
+                <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 1rem; margin: 1rem 0; color: #991b1b;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; font-weight: 600; margin-bottom: 0.5rem;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Error en el registro
                     </div>
-                    <div class="method-content">
-                        <span class="method-title">Registro Tradicional</span>
-                        <span class="method-description">Complete manualmente todos los campos del formulario</span>
-                    </div>
-                    <div class="method-status">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                </button>
-                
-                <button type="button" class="method-option curp-method" onclick="selectRegistrationMethod('curp')">
-                    <div class="method-icon">
-                        <i class="fas fa-id-card"></i>
-                    </div>
-                    <div class="method-content">
-                        <span class="method-title">Registro con CURP</span>
-                        <span class="method-description">Verificar identidad y auto-completar datos con CURP oficial</span>
-                    </div>
-                    <div class="method-status">
-                        <i class="fas fa-arrow-right"></i>
-                    </div>
-                </button>
-            </div>
+                    <ul style="margin: 0; padding-left: 1.5rem;">
+                        @foreach($errors->all() as $error)
+                            <li style="margin: 0.25rem 0;">{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
         </div>
 
-        <form action="#" method="POST" id="registryForm" style="display: none;">
+        <!-- Registration Method Selection - COMPLETELY REMOVED - Always show form directly -->
+
+        <form action="{{ route('registro.submit', [], request()->isSecure()) }}" method="POST" id="registryForm" style="display: block;">
+            @csrf
+            <input type="hidden" name="face_verified" id="faceVerifiedInput" value="">
+            <input type="hidden" name="face_verification_confidence" id="faceConfidenceInput" value="">
             <!-- Section 1 - General Information -->
             <div class="form-section">
                 <div class="section-header">
@@ -939,6 +922,28 @@
                                 Correo Electrónico Alternativo
                             </label>
                             <input type="email" class="form-control" name="email_alternativo" placeholder="correo.alternativo@ejemplo.com">
+                        </div>
+
+                        <div class="two-columns">
+                            <div class="field-group">
+                                <label class="field-label">
+                                    <i class="fas fa-lock"></i>
+                                    Contraseña <span class="required">*</span>
+                                </label>
+                                <input type="password" class="form-control" name="password" placeholder="Mínimo 8 caracteres" minlength="8" required>
+                                <div style="font-size: 0.8rem; color: #64748b; margin-top: 0.25rem;">
+                                    <i class="fas fa-info-circle"></i> Al menos 8 caracteres, incluya mayúsculas, minúsculas y números
+                                </div>
+                            </div>
+
+                            <div class="field-group">
+                                <label class="field-label">
+                                    <i class="fas fa-lock"></i>
+                                    Confirmar Contraseña <span class="required">*</span>
+                                </label>
+                                <input type="password" class="form-control" name="password_confirmation" placeholder="Confirme su contraseña" minlength="8" required>
+                                <div id="passwordMatchMessage" style="margin-top: 0.5rem; font-size: 0.875rem; display: none;"></div>
+                            </div>
                         </div>
 
                         <div class="three-columns">
@@ -1169,10 +1174,14 @@
                                         Para completar su registro, debe verificar su identidad comparando una selfie con la fotografía de su INE/IFE. 
                                         Este proceso garantiza la seguridad y autenticidad de su cuenta.
                                     </p>
-                                    <a href="/face-verification" class="btn btn-primary" style="font-size: 1.1rem; padding: 1rem 2rem;">
+                                    <button type="button" onclick="saveFormDataAndRedirect()" class="btn btn-primary" style="font-size: 1.1rem; padding: 1rem 2rem; margin-right: 1rem;">
                                         <i class="fas fa-camera"></i>
                                         Iniciar Verificación Facial
-                                    </a>
+                                    </button>
+                                    <button type="button" onclick="simulateVerification()" class="btn btn-secondary" style="font-size: 1rem; padding: 1rem 1.5rem;">
+                                        <i class="fas fa-code"></i>
+                                        Simular Verificación (Test)
+                                    </button>
                                 </div>
                                 
                                 <div id="verificationComplete" style="display: none;">
@@ -1224,6 +1233,9 @@
         document.addEventListener('DOMContentLoaded', function() {
             const curpInput = document.getElementById('curpInput');
             const curpMessage = document.getElementById('curpValidationMessage');
+            const passwordInput = document.querySelector('input[name="password"]');
+            const confirmPasswordInput = document.querySelector('input[name="password_confirmation"]');
+            const passwordMatchMessage = document.getElementById('passwordMatchMessage');
             
             // CURP format validation regex
             const curpRegex = /^[A-Z]{1}[AEIOUX]{1}[A-Z]{2}[0-9]{2}(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])[HM]{1}[A-Z]{2}[BCDFGHJKLMNPQRSTVWXYZ]{3}[0-9A-Z]{1}[0-9]{1}$/;
@@ -1250,6 +1262,102 @@
                     
                     showCurpMessage('success', '<i class="fas fa-check-circle"></i> Formato de CURP válido');
                 });
+            }
+
+            // Password validation
+            if (passwordInput) {
+                passwordInput.addEventListener('input', validatePassword);
+            }
+            
+            if (confirmPasswordInput) {
+                confirmPasswordInput.addEventListener('input', validatePasswordMatch);
+            }
+            
+            function validatePassword() {
+                const password = passwordInput.value;
+                const hasUpperCase = /[A-Z]/.test(password);
+                const hasLowerCase = /[a-z]/.test(password);
+                const hasNumber = /[0-9]/.test(password);
+                const minLength = password.length >= 8;
+                
+                let strength = 0;
+                let message = '';
+                let color = '';
+                
+                if (password.length === 0) {
+                    passwordInput.style.borderColor = '';
+                    passwordInput.style.backgroundColor = '';
+                    return;
+                }
+                
+                if (minLength) strength++;
+                if (hasUpperCase) strength++;
+                if (hasLowerCase) strength++;
+                if (hasNumber) strength++;
+                
+                if (strength >= 4) {
+                    message = '<i class="fas fa-check-circle"></i> Contraseña segura';
+                    color = '#10B981';
+                    passwordInput.style.borderColor = '#10B981';
+                    passwordInput.style.backgroundColor = '#f0fdf4';
+                } else if (strength >= 2) {
+                    message = '<i class="fas fa-exclamation-triangle"></i> Contraseña débil - incluya mayúsculas, minúsculas y números';
+                    color = '#f59e0b';
+                    passwordInput.style.borderColor = '#f59e0b';
+                    passwordInput.style.backgroundColor = '#fffbeb';
+                } else {
+                    message = '<i class="fas fa-times-circle"></i> Contraseña muy débil';
+                    color = '#ef4444';
+                    passwordInput.style.borderColor = '#ef4444';
+                    passwordInput.style.backgroundColor = '#fef2f2';
+                }
+                
+                // Update password hint
+                const passwordHint = passwordInput.nextElementSibling;
+                if (passwordHint) {
+                    passwordHint.innerHTML = message;
+                    passwordHint.style.color = color;
+                }
+                
+                // Revalidate password match if confirm field has value
+                if (confirmPasswordInput && confirmPasswordInput.value) {
+                    validatePasswordMatch();
+                }
+            }
+            
+            function validatePasswordMatch() {
+                const password = passwordInput.value;
+                const confirmPassword = confirmPasswordInput.value;
+                
+                if (confirmPassword.length === 0) {
+                    passwordMatchMessage.style.display = 'none';
+                    confirmPasswordInput.style.borderColor = '';
+                    confirmPasswordInput.style.backgroundColor = '';
+                    return;
+                }
+                
+                if (password === confirmPassword) {
+                    showPasswordMatchMessage('success', '<i class="fas fa-check-circle"></i> Las contraseñas coinciden');
+                } else {
+                    showPasswordMatchMessage('error', '<i class="fas fa-times-circle"></i> Las contraseñas no coinciden');
+                }
+            }
+            
+            function showPasswordMatchMessage(type, message) {
+                passwordMatchMessage.style.display = 'flex';
+                passwordMatchMessage.style.alignItems = 'center';
+                passwordMatchMessage.style.gap = '0.5rem';
+                passwordMatchMessage.innerHTML = message;
+                
+                if (type === 'success') {
+                    passwordMatchMessage.style.color = '#10B981';
+                    confirmPasswordInput.style.borderColor = '#10B981';
+                    confirmPasswordInput.style.backgroundColor = '#f0fdf4';
+                } else {
+                    passwordMatchMessage.style.color = '#EF4444';
+                    confirmPasswordInput.style.borderColor = '#EF4444';
+                    confirmPasswordInput.style.backgroundColor = '#fef2f2';
+                }
             }
             
             function showCurpMessage(type, message) {
@@ -1309,6 +1417,200 @@
             
             // Redirect to CURP validation page
             window.location.href = '/curp/validate?from=registry&curp=' + encodeURIComponent(curp);
+        }
+
+        // Function to simulate face verification for testing
+        function simulateVerification() {
+            console.log('🧪 Simulating face verification for testing...');
+            
+            // Show verified status
+            document.getElementById('verificationPending').style.display = 'none';
+            document.getElementById('verificationComplete').style.display = 'block';
+            
+            // Set confidence to 95%
+            document.getElementById('verificationConfidence').textContent = '95';
+            
+            // Enable final submit button
+            const submitBtn = document.getElementById('finalSubmitBtn');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Completar Registro';
+            submitBtn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+            
+            // Store verification status in sessionStorage
+            sessionStorage.setItem('faceVerificationComplete', 'true');
+            sessionStorage.setItem('faceVerificationConfidence', '95');
+            
+            // Update hidden form inputs
+            document.getElementById('faceVerifiedInput').value = 'true';
+            document.getElementById('faceConfidenceInput').value = '95';
+            
+            console.log('✅ Face verification simulated - registration can proceed');
+            
+            // Show success message
+            const message = document.createElement('div');
+            message.style.cssText = 'background: #f0fdf4; border: 1px solid #22c55e; border-radius: 8px; padding: 1rem; margin: 1rem 0; color: #166534; text-align: center;';
+            message.innerHTML = `
+                <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; font-weight: 600;">
+                    <i class="fas fa-check-circle"></i>
+                    Verificación Facial Simulada (Test Mode)
+                </div>
+                <p style="font-size: 0.9rem; margin: 0.5rem 0 0 0;">Ahora puede completar el registro usando el botón "Completar Registro".</p>
+            `;
+            
+            const verificationSection = document.getElementById('faceVerificationStatus');
+            verificationSection.appendChild(message);
+            
+            // Remove message after 5 seconds
+            setTimeout(() => {
+                if (message.parentNode) {
+                    message.parentNode.removeChild(message);
+                }
+            }, 5000);
+        }
+
+        // Function to save form data before face verification
+        function saveFormDataAndRedirect() {
+            console.log('💾 Saving form data before face verification...');
+            
+            try {
+                const formData = collectFormData();
+                sessionStorage.setItem('registrationFormData', JSON.stringify(formData));
+                console.log('✅ Form data saved successfully:', formData);
+                
+                // Redirect to face verification with return URL
+                window.location.href = '/face-verification?return_to=' + encodeURIComponent(window.location.href);
+                
+            } catch (error) {
+                console.error('❌ Error saving form data:', error);
+                // Still allow redirect even if save fails
+                window.location.href = '/face-verification';
+            }
+        }
+
+        // Function to collect all form data
+        function collectFormData() {
+            const form = document.getElementById('registryForm');
+            const formData = {};
+            
+            // Get all form inputs
+            const inputs = form.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => {
+                if (input.name && input.value) {
+                    if (input.type === 'radio') {
+                        if (input.checked) {
+                            formData[input.name] = input.value;
+                        }
+                    } else if (input.type === 'checkbox') {
+                        formData[input.name] = input.checked;
+                    } else {
+                        formData[input.name] = input.value;
+                    }
+                }
+            });
+            
+            console.log('📋 Collected form data fields:', Object.keys(formData));
+            return formData;
+        }
+
+        // Function to restore form data
+        function restoreFormData() {
+            console.log('🔄 Attempting to restore form data...');
+            
+            try {
+                const savedData = sessionStorage.getItem('registrationFormData');
+                if (!savedData) {
+                    console.log('ℹ️ No saved form data found');
+                    return false;
+                }
+                
+                const formData = JSON.parse(savedData);
+                console.log('📥 Found saved form data:', formData);
+                
+                // Restore each field
+                Object.keys(formData).forEach(fieldName => {
+                    const value = formData[fieldName];
+                    const field = document.querySelector(`[name="${fieldName}"]`);
+                    
+                    if (field) {
+                        if (field.type === 'radio') {
+                            const radioOption = document.querySelector(`[name="${fieldName}"][value="${value}"]`);
+                            if (radioOption) {
+                                radioOption.checked = true;
+                                console.log(`✅ Restored radio field: ${fieldName} = ${value}`);
+                            }
+                        } else if (field.type === 'checkbox') {
+                            field.checked = value;
+                            console.log(`✅ Restored checkbox field: ${fieldName} = ${value}`);
+                        } else {
+                            field.value = value;
+                            console.log(`✅ Restored field: ${fieldName} = ${value}`);
+                            
+                            // Trigger validation for special fields
+                            if (fieldName === 'curp') {
+                                field.dispatchEvent(new Event('input'));
+                            } else if (fieldName === 'password') {
+                                field.dispatchEvent(new Event('input'));
+                            } else if (fieldName === 'password_confirmation') {
+                                field.dispatchEvent(new Event('input'));
+                            } else if (fieldName === 'estado') {
+                                // Trigger state change to update municipalities
+                                updateMunicipalities();
+                            }
+                        }
+                    } else {
+                        console.log(`⚠️ Field not found: ${fieldName}`);
+                    }
+                });
+                
+                console.log('✅ Form data restoration completed');
+                
+                // Show success message
+                showFormDataRestoredMessage();
+                
+                return true;
+                
+            } catch (error) {
+                console.error('❌ Error restoring form data:', error);
+                return false;
+            }
+        }
+
+        // Function to show form data restored message
+        function showFormDataRestoredMessage() {
+            const message = document.createElement('div');
+            message.style.cssText = 'background: #f0fdf4; border: 1px solid #22c55e; border-radius: 8px; padding: 1rem; margin: 1rem 0; color: #166534; text-align: center;';
+            message.innerHTML = `
+                <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; font-weight: 600;">
+                    <i class="fas fa-check-circle"></i>
+                    Datos del formulario restaurados
+                </div>
+                <p style="font-size: 0.9rem; margin: 0.5rem 0 0 0;">Sus datos anteriores han sido recuperados automáticamente.</p>
+            `;
+            
+            // Insert message at the top of the form
+            const form = document.getElementById('registryForm');
+            if (form) {
+                form.insertBefore(message, form.firstChild);
+                
+                // Remove message after 5 seconds
+                setTimeout(() => {
+                    if (message.parentNode) {
+                        message.parentNode.removeChild(message);
+                    }
+                }, 5000);
+            }
+        }
+
+        // Function to clear saved form data
+        function clearSavedFormData() {
+            try {
+                sessionStorage.removeItem('registrationFormData');
+                sessionStorage.removeItem('faceVerificationComplete');
+                sessionStorage.removeItem('faceVerificationConfidence');
+                console.log('🗑️ Cleared saved form data and verification status');
+            } catch (error) {
+                console.error('❌ Error clearing saved form data:', error);
+            }
         }
 
         // Function to handle return from CURP validation
@@ -1379,77 +1681,251 @@
             const details = data.details || {};
             console.log('📋 Details object:', details);
             
-            // Fill CURP
-            const curpInput = document.querySelector('input[name="curp"]');
-            console.log('CURP input found:', !!curpInput);
-            if (curpInput && data.curp) {
-                curpInput.value = data.curp;
-                console.log('✅ CURP filled:', data.curp);
+            // Helper function to make field read-only with visual indicators
+            function makeFieldReadOnly(input, value, fieldName) {
+                if (input && value && !input.value) {
+                    input.value = value;
+                    input.readOnly = true;
+                    input.style.backgroundColor = '#f0fdf4';
+                    input.style.borderColor = '#10B981';
+                    input.style.color = '#065f46';
+                    input.style.fontWeight = '600';
+                    input.setAttribute('data-curp-verified', 'true');
+                    
+                    // Add verification icon
+                    const container = input.parentElement;
+                    if (container && !container.querySelector('.curp-verified-icon')) {
+                        const icon = document.createElement('span');
+                        icon.className = 'curp-verified-icon';
+                        icon.innerHTML = '<i class="fas fa-shield-check" style="color: #10B981; margin-left: 8px; font-size: 0.9rem;"></i>';
+                        icon.title = 'Dato verificado con CURP - No modificable';
+                        container.style.position = 'relative';
+                        container.appendChild(icon);
+                        
+                        // Position icon
+                        icon.style.position = 'absolute';
+                        icon.style.right = '10px';
+                        icon.style.top = '50%';
+                        icon.style.transform = 'translateY(-50%)';
+                        icon.style.pointerEvents = 'none';
+                    }
+                    
+                    console.log(`✅ ${fieldName} filled and locked:`, value);
+                    return true;
+                }
+                return false;
             }
             
-            // Fill name fields if available
+            // Helper function for select elements
+            function makeSelectReadOnly(select, value, fieldName) {
+                if (select && value && !select.value) {
+                    select.value = value;
+                    // Use pointer-events: none instead of disabled to ensure form submission includes the value
+                    select.style.pointerEvents = 'none';
+                    select.style.backgroundColor = '#f0fdf4';
+                    select.style.borderColor = '#10B981';
+                    select.style.color = '#065f46';
+                    select.style.fontWeight = '600';
+                    select.setAttribute('data-curp-verified', 'true');
+                    select.setAttribute('readonly', 'true');
+                    
+                    // Add verification icon for select
+                    const container = select.parentElement;
+                    if (container && !container.querySelector('.curp-verified-icon')) {
+                        const icon = document.createElement('span');
+                        icon.className = 'curp-verified-icon';
+                        icon.innerHTML = '<i class="fas fa-shield-check" style="color: #10B981; margin-left: 8px; font-size: 0.9rem;"></i>';
+                        icon.title = 'Dato verificado con CURP - No modificable';
+                        container.style.position = 'relative';
+                        container.appendChild(icon);
+                        
+                        // Position icon
+                        icon.style.position = 'absolute';
+                        icon.style.right = '30px';
+                        icon.style.top = '50%';
+                        icon.style.transform = 'translateY(-50%)';
+                        icon.style.pointerEvents = 'none';
+                    }
+                    
+                    console.log(`✅ ${fieldName} filled and locked:`, value);
+                    return true;
+                }
+                return false;
+            }
+            
+            // Fill and lock CURP
+            const curpInput = document.querySelector('input[name="curp"]');
+            makeFieldReadOnly(curpInput, data.curp, 'CURP');
+            
+            // Fill and lock name fields if available
             if (details.nombres) {
                 const nombreInput = document.querySelector('input[name="nombres"]');
-                console.log('Nombres input found:', !!nombreInput);
-                if (nombreInput && !nombreInput.value) {
-                    nombreInput.value = details.nombres;
-                    console.log('✅ Nombres filled:', details.nombres);
-                }
+                makeFieldReadOnly(nombreInput, details.nombres, 'Nombres');
             }
             
             if (details.primerApellido) {
                 const apellidoPaternoInput = document.querySelector('input[name="apellido_paterno"]');
-                console.log('Apellido paterno input found:', !!apellidoPaternoInput);
-                if (apellidoPaternoInput && !apellidoPaternoInput.value) {
-                    apellidoPaternoInput.value = details.primerApellido;
-                    console.log('✅ Apellido paterno filled:', details.primerApellido);
-                }
+                makeFieldReadOnly(apellidoPaternoInput, details.primerApellido, 'Apellido Paterno');
             }
             
             if (details.segundoApellido) {
                 const apellidoMaternoInput = document.querySelector('input[name="apellido_materno"]');
-                console.log('Apellido materno input found:', !!apellidoMaternoInput);
-                if (apellidoMaternoInput && !apellidoMaternoInput.value) {
-                    apellidoMaternoInput.value = details.segundoApellido;
-                    console.log('✅ Apellido materno filled:', details.segundoApellido);
-                }
+                makeFieldReadOnly(apellidoMaternoInput, details.segundoApellido, 'Apellido Materno');
             }
             
-            // Fill birth date if available
+            // Fill and lock birth date if available
             if (details.fechaNacimiento) {
                 const fechaNacimientoInput = document.querySelector('input[name="fecha_nacimiento"]');
-                console.log('Fecha nacimiento input found:', !!fechaNacimientoInput);
-                if (fechaNacimientoInput && !fechaNacimientoInput.value) {
-                    fechaNacimientoInput.value = details.fechaNacimiento;
-                    console.log('✅ Fecha nacimiento filled:', details.fechaNacimiento);
-                }
+                makeFieldReadOnly(fechaNacimientoInput, details.fechaNacimiento, 'Fecha de Nacimiento');
             }
             
-            // Fill gender if available
+            // Fill and lock gender if available
             if (details.sexo) {
                 const sexoSelect = document.querySelector('select[name="sexo"]');
-                console.log('Sexo select found:', !!sexoSelect);
-                if (sexoSelect && !sexoSelect.value) {
-                    const sexoValue = details.sexo.toLowerCase().includes('masculino') ? 'masculino' : 
-                                     details.sexo.toLowerCase().includes('femenino') ? 'femenino' : '';
-                    if (sexoValue) {
-                        sexoSelect.value = sexoValue;
-                        console.log('✅ Sexo filled:', sexoValue);
-                    }
+                const sexoValue = details.sexo.toLowerCase().includes('masculino') ? 'masculino' : 
+                                 details.sexo.toLowerCase().includes('femenino') ? 'femenino' : '';
+                if (sexoValue) {
+                    makeSelectReadOnly(sexoSelect, sexoValue, 'Sexo');
                 }
             }
             
-            // Fill state of birth if available
+            // Fill and lock state of birth if available
             if (details.entidadNacimiento) {
                 const estadoNacimientoInput = document.querySelector('input[name="estado_nacimiento"]');
-                console.log('Estado nacimiento input found:', !!estadoNacimientoInput);
-                if (estadoNacimientoInput && !estadoNacimientoInput.value) {
-                    estadoNacimientoInput.value = details.entidadNacimiento;
-                    console.log('✅ Estado nacimiento filled:', details.entidadNacimiento);
-                }
+                makeFieldReadOnly(estadoNacimientoInput, details.entidadNacimiento, 'Estado de Nacimiento');
             }
             
-            console.log('📝 Auto-fill process completed');
+            // Show verification notification
+            showCurpVerificationNotification();
+            
+            console.log('📝 Auto-fill process completed with read-only fields');
+        }
+        
+        // Function to show CURP verification notification
+        function showCurpVerificationNotification() {
+            const existingNotification = document.querySelector('.curp-verification-notification');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+            
+            const notification = document.createElement('div');
+            notification.className = 'curp-verification-notification';
+            notification.style.cssText = `
+                background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+                border: 1px solid #10B981;
+                border-radius: 12px;
+                padding: 1rem 1.5rem;
+                margin: 1rem 0;
+                color: #065f46;
+                font-size: 0.9rem;
+                box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.1);
+            `;
+            notification.innerHTML = `
+                <div style="display: flex; align-items: flex-start; gap: 1rem;">
+                    <div style="flex-shrink: 0;">
+                        <i class="fas fa-shield-check" style="color: #10B981; font-size: 1.2rem; margin-top: 2px;"></i>
+                    </div>
+                    <div style="flex-grow: 1;">
+                        <div style="font-weight: 600; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                            Datos Verificados con CURP
+                            <span style="background: #10B981; color: white; padding: 0.1rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 500;">OFICIAL</span>
+                        </div>
+                        <p style="margin: 0; line-height: 1.4;">
+                            Los campos marcados con <i class="fas fa-shield-check" style="color: #10B981; font-size: 0.8rem;"></i> 
+                            han sido verificados contra la base de datos oficial de RENAPO y no pueden modificarse. 
+                            Complete los campos restantes para finalizar su registro.
+                        </p>
+                    </div>
+                </div>
+            `;
+            
+            // Insert notification at the top of the form
+            const form = document.querySelector('.registration-form');
+            if (form) {
+                form.insertBefore(notification, form.firstChild);
+            }
+        }
+        
+        // Function to validate CURP-verified fields haven't been tampered with
+        function validateCurpVerifiedFields(event) {
+            const curpVerifiedFields = document.querySelectorAll('[data-curp-verified="true"]');
+            if (curpVerifiedFields.length === 0) {
+                return true; // No CURP-verified fields to validate
+            }
+            
+            let hasInvalidField = false;
+            const invalidFields = [];
+            
+            curpVerifiedFields.forEach(field => {
+                const fieldName = field.name || field.getAttribute('name');
+                
+                // Check if field is still marked as read-only
+                if (field.tagName.toLowerCase() === 'select') {
+                    if (field.style.pointerEvents !== 'none' || !field.hasAttribute('readonly')) {
+                        hasInvalidField = true;
+                        invalidFields.push(fieldName);
+                    }
+                } else {
+                    if (!field.readOnly) {
+                        hasInvalidField = true;
+                        invalidFields.push(fieldName);
+                    }
+                }
+                
+                // Check if field styling has been removed
+                if (field.style.backgroundColor !== 'rgb(240, 253, 244)') {
+                    hasInvalidField = true;
+                    invalidFields.push(fieldName);
+                }
+            });
+            
+            if (hasInvalidField) {
+                event.preventDefault();
+                
+                // Show security alert
+                const alertDiv = document.createElement('div');
+                alertDiv.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: #fef2f2;
+                    border: 1px solid #fecaca;
+                    border-radius: 8px;
+                    padding: 1rem 1.5rem;
+                    color: #991b1b;
+                    z-index: 10000;
+                    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+                    max-width: 400px;
+                    text-align: center;
+                `;
+                alertDiv.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; font-weight: 600; margin-bottom: 0.5rem;">
+                        <i class="fas fa-shield-slash"></i>
+                        Error de Seguridad
+                    </div>
+                    <p style="margin: 0; font-size: 0.9rem;">
+                        Los campos verificados con CURP han sido modificados. Por favor, recargue la página e inicie el proceso nuevamente.
+                    </p>
+                    <button onclick="this.parentElement.remove(); window.location.reload();" 
+                            style="margin-top: 1rem; background: #dc2626; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem;">
+                        Recargar Página
+                    </button>
+                `;
+                document.body.appendChild(alertDiv);
+                
+                // Remove alert after 10 seconds
+                setTimeout(() => {
+                    if (alertDiv && alertDiv.parentElement) {
+                        alertDiv.remove();
+                    }
+                }, 10000);
+                
+                console.error('❌ CURP verification security check failed. Modified fields:', invalidFields);
+                return false;
+            }
+            
+            return true;
         }
 
         // Function to handle registration method selection
@@ -1717,15 +2193,25 @@
             const faceVerified = urlParams.get('face_verified');
             const confidence = urlParams.get('confidence');
             
-            console.log('🔍 Checking face verification status:', { faceVerified, confidence });
+            // Also check sessionStorage for persistent verification status
+            const storedVerification = sessionStorage.getItem('faceVerificationComplete');
+            const storedConfidence = sessionStorage.getItem('faceVerificationConfidence');
             
-            if (faceVerified === 'true') {
+            console.log('🔍 Checking face verification status:', { 
+                faceVerified, 
+                confidence, 
+                storedVerification, 
+                storedConfidence 
+            });
+            
+            if (faceVerified === 'true' || storedVerification === 'true') {
                 // Show verified status
                 document.getElementById('verificationPending').style.display = 'none';
                 document.getElementById('verificationComplete').style.display = 'block';
                 
-                if (confidence) {
-                    document.getElementById('verificationConfidence').textContent = confidence;
+                const displayConfidence = confidence || storedConfidence;
+                if (displayConfidence) {
+                    document.getElementById('verificationConfidence').textContent = displayConfidence;
                 }
                 
                 // Enable final submit button
@@ -1733,6 +2219,21 @@
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Completar Registro';
                 submitBtn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+                
+                // Store verification status in sessionStorage (only if from URL)
+                if (faceVerified === 'true') {
+                    sessionStorage.setItem('faceVerificationComplete', 'true');
+                    if (confidence) {
+                        sessionStorage.setItem('faceVerificationConfidence', confidence);
+                    }
+                }
+                
+                // Update hidden form inputs
+                document.getElementById('faceVerifiedInput').value = 'true';
+                const finalConfidence = confidence || storedConfidence;
+                if (finalConfidence) {
+                    document.getElementById('faceConfidenceInput').value = finalConfidence;
+                }
                 
                 console.log('✅ Face verification confirmed, registration can proceed');
                 
@@ -1751,11 +2252,26 @@
 
         // Form submission validation
         function validateRegistrationForm(event) {
+            // Check if face verification is complete by looking at the button state
+            const submitBtn = document.getElementById('finalSubmitBtn');
+            const isVerificationComplete = submitBtn && !submitBtn.disabled && 
+                (submitBtn.innerHTML.includes('Completar Registro') || submitBtn.innerHTML.includes('check-circle'));
+            
+            // Also check URL parameters and sessionStorage as backup
             const urlParams = new URLSearchParams(window.location.search);
             const faceVerified = urlParams.get('face_verified');
+            const storedVerification = sessionStorage.getItem('faceVerificationComplete');
             
             // Check if face verification is complete
-            if (faceVerified !== 'true') {
+            console.log('🔍 Form validation check:', {
+                isVerificationComplete,
+                faceVerified,
+                storedVerification,
+                submitBtnHtml: submitBtn ? submitBtn.innerHTML : 'not found'
+            });
+            
+            if (!isVerificationComplete && faceVerified !== 'true' && storedVerification !== 'true') {
+                console.log('❌ Form submission prevented - face verification not complete');
                 event.preventDefault();
                 
                 // Show alert
@@ -1789,20 +2305,133 @@
                 return false;
             }
             
+            console.log('✅ Form validation passed - proceeding with submission');
+            return true;
+        }
+
+        // Auto-save form data periodically
+        function setupAutoSave() {
+            const form = document.getElementById('registryForm');
+            if (!form) return;
+            
+            // Save form data when user types in any field
+            const inputs = form.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => {
+                input.addEventListener('input', debounce(autoSaveFormData, 1000));
+                input.addEventListener('change', autoSaveFormData);
+            });
+            
+            console.log('🔄 Auto-save functionality enabled');
+        }
+        
+        // Auto-save function with debouncing
+        function autoSaveFormData() {
+            try {
+                const formData = collectFormData();
+                if (Object.keys(formData).length > 0) {
+                    sessionStorage.setItem('registrationFormData', JSON.stringify(formData));
+                    console.log('💾 Auto-saved form data');
+                }
+            } catch (error) {
+                console.error('❌ Error auto-saving form data:', error);
+            }
+        }
+        
+        // Debounce function to limit auto-save frequency
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // ALWAYS skip method selection and show form directly
+        function checkDirectRegistration() {
+            console.log('📝 Always showing registration form directly - method selection disabled');
+            
+            // ALWAYS hide method selection and show form (with null checks)
+            const methodsElement = document.getElementById('registrationMethods');
+            if (methodsElement) {
+                methodsElement.style.display = 'none';
+            }
+            
+            const formElement = document.getElementById('registryForm');
+            if (formElement) {
+                formElement.style.display = 'block';
+            }
+            
+            // Update page title to indicate direct registration
+            const pageTitle = document.querySelector('.page-title');
+            if (pageTitle) {
+                pageTitle.textContent = 'Crear Nueva Cuenta';
+            }
+            
+            const pageSubtitle = document.querySelector('.page-subtitle');
+            if (pageSubtitle) {
+                pageSubtitle.textContent = 'Complete el formulario para registrarse';
+            }
+            
+            // Update progress bar to show we're already in the form step
+            const progressFill = document.querySelector('.progress-fill');
+            if (progressFill) {
+                progressFill.style.width = '60%';
+            }
+            
             return true;
         }
 
         // Initialize handlers when page loads
         document.addEventListener('DOMContentLoaded', function() {
+            // Check if this is direct registration first
+            const isDirect = checkDirectRegistration();
+            
+            // First check for returns from other pages
             checkCurpReturn();
             handleCurpValidationReturn();
+            
+            // Initialize form functionality
             initializeStateMunicipalityRelationship();
             checkFaceVerificationStatus();
             
-            // Add form submission validation
+            // Try to restore saved form data
+            const restored = restoreFormData();
+            if (!restored) {
+                console.log('ℹ️ No previous form data to restore');
+            }
+            
+            // Setup auto-save after restoration
+            setupAutoSave();
+            
+            // Add form submission validation and cleanup
             const form = document.getElementById('registryForm');
             if (form) {
-                form.addEventListener('submit', validateRegistrationForm);
+                form.addEventListener('submit', function(event) {
+                    // Validate CURP-verified fields haven't been tampered with
+                    if (!validateCurpVerifiedFields(event)) {
+                        return false;
+                    }
+                    
+                    const isValid = validateRegistrationForm(event);
+                    if (isValid) {
+                        // Clear saved data on successful submission
+                        clearSavedFormData();
+                    }
+                });
+            }
+            
+            // If direct registration, scroll to form
+            if (isDirect) {
+                setTimeout(() => {
+                    document.getElementById('registryForm').scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'start' 
+                    });
+                }, 100);
             }
         });
     </script>

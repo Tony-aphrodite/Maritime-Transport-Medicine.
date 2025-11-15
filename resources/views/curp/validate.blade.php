@@ -705,6 +705,7 @@
                 });
             }
             
+            
             function resetValidation() {
                 curpInput.classList.remove('valid', 'invalid');
                 showValidationMessage('info', 'CURP debe contener exactamente 18 caracteres alfanuméricos', 'fas fa-info-circle');
@@ -812,6 +813,7 @@
                     hideLoading();
                 }
             }
+            
         });
 
         // Global variables for functions called by onclick
@@ -821,11 +823,11 @@
         // Function to handle back navigation
         function handleBackNavigation() {
             if (window.fromRegistry) {
-                window.location.href = '/registro';
+                window.location.href = '/registro?from=login';
             } else if (window.fromLogin) {
                 window.location.href = '/login';
             } else {
-                window.location.href = '/registro';
+                window.location.href = '/registro?from=login';
             }
         }
 
@@ -839,21 +841,18 @@
                 console.log('Redirecting with data:', encodedData);
                 
                 if (window.fromLogin) {
-                    // For login flow, go to registration with CURP data
+                    // For login flow, go to registration with CURP data and skip method selection
                     console.log('Login flow: redirecting to registration with CURP data');
-                    window.location.href = '/registro?verification=' + encodedData + '&source=curp';
+                    window.location.href = '/registro?verification=' + encodedData + '&source=curp&from=login';
                 } else {
-                    // For registry flow, return to registration with data
+                    // For registry flow, return to registration with data and skip method selection
                     console.log('Registry flow: returning to registration with data');
-                    window.location.href = '/registro?verification=' + encodedData;
+                    window.location.href = '/registro?verification=' + encodedData + '&from=login';
                 }
             } else {
                 console.log('No validated data found, redirecting without data');
-                if (window.fromLogin) {
-                    window.location.href = '/registro';
-                } else {
-                    window.location.href = '/registro';
-                }
+                // Always skip method selection when returning from CURP validation
+                window.location.href = '/registro?from=login';
             }
         }
     </script>

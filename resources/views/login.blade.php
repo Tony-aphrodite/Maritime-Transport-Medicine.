@@ -528,21 +528,58 @@
             </div>
             
             <!-- Login Form -->
-            <form action="/dashboard" method="GET">
+            <form action="{{ route('login.submit') }}" method="POST">
+                @csrf
+                
+                @if (session('registration_success'))
+                    <div style="background: #dcfce7; color: #16a34a; padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 0.9rem;">
+                        <i class="fas fa-check-circle"></i>
+                        {{ session('registration_success') }}
+                    </div>
+                @endif
+
+                @if ($errors->any())
+                    <div style="background: #fee2e2; color: #dc2626; padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 0.9rem;">
+                        <i class="fas fa-exclamation-circle"></i>
+                        {{ $errors->first() }}
+                    </div>
+                @endif
+
+                @if (session('success'))
+                    <div style="background: #dcfce7; color: #16a34a; padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 0.9rem;">
+                        <i class="fas fa-check-circle"></i>
+                        {{ session('success') }}
+                    </div>
+                @endif
+
                 <div class="form-group">
                     <label class="form-label" for="email">Correo electrónico</label>
                     <div class="input-container">
                         <i class="fas fa-envelope input-icon"></i>
-                        <input type="email" id="email" class="form-input" placeholder="ejemplo@marina.gob.mx" required>
+                        <input type="email" id="email" name="email" class="form-input" 
+                               value="{{ old('email') }}" 
+                               placeholder="ejemplo@marina.gob.mx" required>
                     </div>
+                    @error('email')
+                        <div style="color: #dc2626; font-size: 0.8rem; margin-top: 4px;">{{ $message }}</div>
+                    @enderror
                 </div>
                 
                 <div class="form-group">
                     <label class="form-label" for="password">Contraseña</label>
                     <div class="input-container">
                         <i class="fas fa-lock input-icon"></i>
-                        <input type="password" id="password" class="form-input" placeholder="Ingresa tu contraseña" required>
+                        <input type="password" id="password" name="password" class="form-input" 
+                               placeholder="Ingresa tu contraseña" required>
                     </div>
+                    @error('password')
+                        <div style="color: #dc2626; font-size: 0.8rem; margin-top: 4px;">{{ $message }}</div>
+                    @enderror
+                </div>
+                
+                <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 12px; margin: 16px 0; font-size: 0.85rem; color: #0369a1;">
+                    <i class="fas fa-info-circle" style="margin-right: 6px;"></i>
+                    <strong>Para acceso administrativo:</strong> Use las credenciales de administrador proporcionadas.
                 </div>
                 
                 <div class="form-options">
@@ -564,7 +601,7 @@
             
             <div class="register-section">
                 <p class="register-text">¿Eres nuevo en el sistema?</p>
-                <a href="/registro" class="register-link">Crear nueva cuenta</a>
+                <a href="/registro?from=login" class="register-link">Crear nueva cuenta</a>
             </div>
         </div>
     </main>

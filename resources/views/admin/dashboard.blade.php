@@ -17,20 +17,35 @@
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: #f8fafc;
-            color: #1f2937;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #2d3748;
             line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
         }
 
         /* Admin Header */
         .admin-header {
-            background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+            background: linear-gradient(135deg, #0F4C75 0%, #3282B8 100%);
             color: white;
-            padding: 1rem 2rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            padding: 1.5rem 2rem;
+            box-shadow: 0 8px 32px rgba(15, 76, 117, 0.3);
             position: sticky;
             top: 0;
             z-index: 100;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .admin-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="0.5" fill="%23ffffff" opacity="0.03"/><circle cx="75" cy="75" r="0.5" fill="%23ffffff" opacity="0.03"/><circle cx="50" cy="10" r="0.3" fill="%23ffffff" opacity="0.02"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            pointer-events: none;
         }
 
         .admin-header-content {
@@ -39,6 +54,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: relative;
+            z-index: 1;
         }
 
         .admin-logo {
@@ -49,12 +66,17 @@
 
         .admin-logo i {
             font-size: 1.5rem;
-            color: #60a5fa;
+            background: linear-gradient(135deg, #BBE1FA 0%, #ffffff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
         }
 
         .admin-title {
             font-size: 1.25rem;
             font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
         .admin-nav {
@@ -65,14 +87,25 @@
         .admin-nav a {
             color: white;
             text-decoration: none;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            transition: all 0.2s;
+            padding: 0.75rem 1.25rem;
+            border-radius: 12px;
+            transition: all 0.3s ease;
             font-weight: 500;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .admin-nav a:hover, .admin-nav a.active {
-            background: rgba(255,255,255,0.1);
+        .admin-nav a:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .admin-nav a.active {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
         }
 
         /* Main Layout */
@@ -93,17 +126,31 @@
 
         /* Stats Cards */
         .stats-card {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            border: 1px solid #e5e7eb;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
             transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #0F4C75, #3282B8, #0F4C75);
         }
 
         .stats-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            background: rgba(255, 255, 255, 0.95);
         }
 
         .stats-card-header {
@@ -163,11 +210,24 @@
         }
 
         .chart-card {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            border: 1px solid #e5e7eb;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+            border: 1px solid rgba(255,255,255,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #0F4C75, #3282B8, #0F4C75);
         }
 
         .chart-card-title {
@@ -238,11 +298,24 @@
 
         /* Data Table */
         .data-table-container {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            border: 1px solid #e5e7eb;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+            border: 1px solid rgba(255,255,255,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .data-table-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #0F4C75, #3282B8, #0F4C75);
         }
 
         .table-header {
@@ -278,21 +351,30 @@
         }
 
         .btn-primary {
-            background: #3b82f6;
+            background: linear-gradient(135deg, #0F4C75, #3282B8);
             color: white;
+            border: none;
+            box-shadow: 0 4px 15px rgba(15, 76, 117, 0.3);
         }
 
         .btn-primary:hover {
-            background: #2563eb;
+            background: linear-gradient(135deg, #0d3e5f, #2a6ba0);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(15, 76, 117, 0.4);
         }
 
         .btn-secondary {
-            background: #f3f4f6;
+            background: rgba(255, 255, 255, 0.8);
             color: #374151;
+            border: 2px solid rgba(15, 76, 117, 0.2);
+            backdrop-filter: blur(5px);
         }
 
         .btn-secondary:hover {
-            background: #e5e7eb;
+            background: rgba(255, 255, 255, 0.95);
+            border-color: rgba(15, 76, 117, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
         .data-table {
@@ -421,7 +503,8 @@
                 <a href="/admin/audit-logs"><i class="fas fa-clipboard-list"></i> Audit Logs</a>
                 <a href="/admin/users"><i class="fas fa-users"></i> Usuarios</a>
                 <a href="/admin/settings"><i class="fas fa-cog"></i> Configuración</a>
-                <a href="/registro"><i class="fas fa-arrow-left"></i> Volver</a>
+                <a href="/admin/logout" style="background: rgba(239, 68, 68, 0.2); color: #fca5a5;"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a>
+                <a href="/"><i class="fas fa-arrow-left"></i> Volver</a>
             </nav>
         </div>
     </header>
@@ -613,9 +696,25 @@
         async function loadDashboardStats() {
             try {
                 const response = await fetch('/admin/api/dashboard-stats');
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        // Authentication error - redirect to login
+                        alert('Sesión expirada. Redirigiendo al login...');
+                        window.location.href = '/login';
+                        return;
+                    }
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
                 const data = await response.json();
                 
                 if (data.error) {
+                    if (data.error === 'Authentication required') {
+                        alert('Sesión expirada. Redirigiendo al login...');
+                        window.location.href = '/login';
+                        return;
+                    }
                     throw new Error(data.error);
                 }
                 
@@ -689,7 +788,24 @@
         async function loadRecentActivities() {
             try {
                 const response = await fetch('/admin/api/dashboard-stats');
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        console.log('Authentication error in recent activities - already handled by main stats');
+                        return;
+                    }
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
                 const data = await response.json();
+                
+                if (data.error) {
+                    if (data.error === 'Authentication required') {
+                        console.log('Authentication error in recent activities - already handled by main stats');
+                        return;
+                    }
+                    throw new Error(data.error);
+                }
                 
                 if (data.recent_activities) {
                     displayRecentActivities(data.recent_activities);

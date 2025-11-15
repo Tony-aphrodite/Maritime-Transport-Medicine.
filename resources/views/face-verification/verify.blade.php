@@ -958,14 +958,37 @@
             // Get verification results
             const confidence = document.getElementById('confidenceValue').textContent;
             
-            // Redirect back to registration with verification confirmed
+            // Check if there's a return URL in the query parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const returnTo = urlParams.get('return_to');
+            
+            // Prepare verification result parameters
             const params = new URLSearchParams();
             params.set('face_verified', 'true');
             if (confidence && confidence !== '0') {
                 params.set('confidence', confidence);
             }
             
-            window.location.href = '/registro?' + params.toString();
+            // Determine redirect URL
+            let redirectUrl;
+            if (returnTo) {
+                // If there's a return URL, use it and add verification parameters
+                console.log('📤 Returning to:', returnTo);
+                const returnUrl = new URL(returnTo, window.location.origin);
+                
+                // Add verification parameters to the return URL
+                params.forEach((value, key) => {
+                    returnUrl.searchParams.set(key, value);
+                });
+                
+                redirectUrl = returnUrl.toString();
+            } else {
+                // Default fallback to registration page
+                redirectUrl = '/registro?' + params.toString();
+            }
+            
+            console.log('🔄 Redirecting to:', redirectUrl);
+            window.location.href = redirectUrl;
         }
 
         function showAlert(message, type) {
