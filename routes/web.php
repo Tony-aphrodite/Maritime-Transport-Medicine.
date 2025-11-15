@@ -21,13 +21,21 @@ Route::get('/hello', function () {
     return view('hello');
 });
 
-Route::get('/login', function () {
-    return view('login');
+Route::get('/login', [App\Http\Controllers\LoginController::class, 'showLogin'])->name('login');
+Route::post('/login', [App\Http\Controllers\LoginController::class, 'processLogin'])->name('login.submit');
+
+// Login help page
+Route::get('/login-help', function() {
+    return view('login-help');
 });
 
-Route::get('/registro', function () {
-    return view('registro');
+// Browser security help
+Route::get('/browser-help', function() {
+    return view('browser-help');
 });
+
+Route::get('/registro', [App\Http\Controllers\RegistrationController::class, 'showRegistrationForm'])->name('registro');
+Route::post('/registro', [App\Http\Controllers\RegistrationController::class, 'processRegistration'])->name('registro.submit');
 
 Route::get('/dashboard', function () {
     return view('dashboard');
@@ -54,6 +62,15 @@ Route::get('/face-verification/status', [App\Http\Controllers\FaceVerificationCo
 
 // Admin Routes
 Route::prefix('admin')->group(function () {
+    // Redirect /admin to main login
+    Route::get('/', function() {
+        return redirect()->route('login');
+    });
+    
+    // Admin logout
+    Route::get('/logout', [App\Http\Controllers\LoginController::class, 'logout'])->name('admin.logout');
+    
+    // Protected Admin Routes
     Route::get('/dashboard', [App\Http\Controllers\AdminController::class, 'dashboard'])->name('admin.dashboard');
     Route::get('/audit-logs', [App\Http\Controllers\AdminController::class, 'auditLogs'])->name('admin.audit.logs');
     Route::get('/audit-logs/export', [App\Http\Controllers\AdminController::class, 'exportAuditLogs'])->name('admin.audit.export');
@@ -62,6 +79,7 @@ Route::prefix('admin')->group(function () {
     Route::prefix('api')->group(function () {
         Route::get('/dashboard-stats', [App\Http\Controllers\AdminController::class, 'getDashboardStats'])->name('admin.api.dashboard.stats');
         Route::get('/audit-logs-data', [App\Http\Controllers\AdminController::class, 'getAuditLogsData'])->name('admin.api.audit.data');
+        Route::get('/audit-log/{id}', [App\Http\Controllers\AdminController::class, 'getAuditLogDetails'])->name('admin.api.audit.details');
     });
     
     // Test route for creating sample audit logs (FOR TESTING ONLY)
@@ -78,5 +96,41 @@ Route::prefix('admin')->group(function () {
                 'message' => 'Error: ' . $e->getMessage()
             ]);
         }
+    });
+    
+    // Test login credentials (FOR TESTING ONLY - REMOVE IN PRODUCTION)  
+    Route::get('/test-credentials', function() {
+        $adminCredentials = [
+            'email' => 'AdminJuan@gmail.com',
+            'password' => 'johnson@suceess!'
+        ];
+        
+        return response()->json([
+            'expected_credentials' => $adminCredentials,
+            'message' => 'Use these credentials to login'
+        ]);
+    });
+    
+    // Test login page (FOR TESTING ONLY)
+    Route::get('/test-login', function() {
+        return view('admin.test-login');
+    });
+    
+    // Admin status check (FOR TESTING ONLY)
+    Route::get('/admin-status', function() {
+        $isLoggedIn = Session::get('admin_logged_in', false);
+        $adminEmail = Session::get('admin_email', 'Not logged in');
+        
+        return response()->json([
+            'admin_logged_in' => $isLoggedIn,
+            'admin_email' => $adminEmail,
+            'session_id' => session()->getId(),
+            'expected_credentials' => [
+                'email' => 'AdminJuan@gmail.com',
+                'password' => 'johnson@suceess!'
+            ],
+            'login_url' => url('/admin/login'),
+            'dashboard_url' => url('/admin/dashboard')
+        ]);
     });
 });

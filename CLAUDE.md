@@ -34,20 +34,27 @@ This is a Laravel 10 web application for Maritime Transport Medicine. The projec
 ## Architecture
 
 ### Directory Structure
-- `app/Models/` - Eloquent models (currently has User model)
-- `app/Http/Controllers/` - Controllers (currently using route closures)
-- `resources/views/` - Blade templates (login.blade.php, registro.blade.php, dashboard.blade.php, hello.blade.php)
-- `routes/web.php` - Web routes (simple view routes for auth flow)
+- `app/Models/` - Eloquent models (User, AuditLog)
+- `app/Http/Controllers/` - Controllers (Login, Registration, Admin, CURP, FaceVerification)
+- `resources/views/` - Blade templates with admin subdirectory for admin panel
+- `routes/web.php` - Web routes with proper controller-based routing
 - `database/migrations/` - Database schema migrations
 - `resources/css/` and `resources/js/` - Frontend assets compiled by Vite
 
-### Current Implementation
-The application currently uses simple route closures in `routes/web.php` that return views directly:
-- `/` - Redirects to login
-- `/login` - Login view
-- `/registro` - Registration view  
-- `/dashboard` - Dashboard view
-- `/hello` - Hello view
+### Key Features
+The application has evolved from simple view routes to a feature-rich system:
+- **User Registration/Login**: Full authentication flow with LoginController and RegistrationController
+- **CURP Validation**: Mexican ID validation using VerificaMex API integration
+- **Face Verification**: Facial recognition for identity verification 
+- **Admin Panel**: Complete admin dashboard with audit logging and statistics
+- **Audit System**: Comprehensive logging system tracking all user interactions
+
+### Routing Structure
+- Authentication routes (`/login`, `/registro`) handled by dedicated controllers
+- CURP validation routes (`/curp/validate`) with API integration
+- Face verification routes (`/face-verification/*`) for biometric validation
+- Admin routes (`/admin/*`) with authentication middleware and dashboard
+- API endpoints for admin statistics and audit log data
 
 ### Authentication
 - Uses Laravel's built-in authentication with User model
@@ -77,6 +84,50 @@ VERIFICAMEX_TOKEN=your-bearer-token-here
 VERIFICAMEX_BASE_URL=https://api.verificamex.com/v1
 ```
 
+## Admin System
+
+### Overview
+Comprehensive admin panel for monitoring user registrations, verification processes, and system health.
+
+### Admin Authentication
+- Admin credentials are hardcoded in AdminController (for development)
+- Session-based authentication for admin access
+- Default credentials: `AdminJuan@gmail.com` / `johnson@suceess!`
+
+### Admin Features
+- **Dashboard**: Real-time statistics and analytics
+- **Audit Logs**: Complete event tracking with filtering and export
+- **User Monitoring**: Track registration flows and verification status
+- **Data Export**: CSV export functionality for audit logs
+
+### Admin Routes
+- `GET /admin/dashboard` - Main admin dashboard with statistics
+- `GET /admin/audit-logs` - Audit log viewer with advanced filtering
+- `GET /admin/audit-logs/export` - Export audit logs to CSV
+- `GET /admin/api/dashboard-stats` - JSON API for dashboard statistics
+- `GET /admin/api/audit-logs-data` - JSON API for audit log data (DataTables compatible)
+
+## Audit System
+
+### AuditLog Model
+Central logging system tracking all user interactions and system events:
+
+### Event Types
+- Registration events (started, completed, failed)
+- CURP verification attempts and results
+- Face verification with confidence scores
+- Account creation events
+- Admin access and authentication events
+
+### Audit Data Structure
+Each audit log captures:
+- Event type and status
+- User identifier and session data
+- IP address and user agent
+- Request details (method, URL)
+- Custom event data (JSON)
+- Verification IDs and confidence scores
+
 ### Routes
 - `GET /curp/validate` - Show CURP validation form
 - `POST /curp/validate` - Submit CURP for validation
@@ -87,9 +138,45 @@ VERIFICAMEX_BASE_URL=https://api.verificamex.com/v1
 - Example: `PEGJ850415HDFRRN05`
 - Validation includes format checking and RENAPO database verification
 
+## Face Verification System
+
+### Overview
+Biometric facial recognition system for identity verification using face matching technology.
+
+### Components
+- **Face Verification Controller**: Handles image comparison and verification logic
+- **Client-side Integration**: Camera access and image capture functionality
+- **Confidence Scoring**: Returns match confidence percentages
+- **Audit Integration**: All verification attempts logged in audit system
+
+### Routes
+- `GET /face-verification` - Face verification interface
+- `POST /face-verification/compare` - Compare uploaded images
+- `GET /face-verification/status` - Check verification status
+
+## Development Notes
+
+### Database Considerations
+- Application includes graceful handling for database unavailability
+- Audit system falls back to Laravel logs if database connection fails
+- Admin dashboard shows appropriate messaging when database is offline
+- Use `php artisan migrate` to set up required database tables
+
+### Security Considerations
+- Admin credentials are hardcoded for development (should be moved to database in production)
+- CURP data is partially masked in audit logs for privacy
+- All API integrations include proper error handling and logging
+- Session-based admin authentication with proper logout functionality
+
+### Testing Routes
+The application includes several test routes for development:
+- `/admin/test-credentials` - Shows expected admin login credentials
+- `/admin/create-test-data` - Generates sample audit log data
+- `/admin/admin-status` - Shows current admin authentication status
+
 ## Key Configuration Files
 - `composer.json` - PHP dependencies and autoloading
-- `package.json` - Node.js dependencies and scripts
+- `package.json` - Node.js dependencies and scripts  
 - `vite.config.js` - Vite configuration for asset compilation
 - `phpunit.xml` - PHPUnit testing configuration
 - `.env` - Environment configuration (not in repository)
