@@ -63,4 +63,20 @@ Route::prefix('admin')->group(function () {
         Route::get('/dashboard-stats', [App\Http\Controllers\AdminController::class, 'getDashboardStats'])->name('admin.api.dashboard.stats');
         Route::get('/audit-logs-data', [App\Http\Controllers\AdminController::class, 'getAuditLogsData'])->name('admin.api.audit.data');
     });
+    
+    // Test route for creating sample audit logs (FOR TESTING ONLY)
+    Route::get('/create-test-data', function() {
+        try {
+            $result = App\Models\AuditLog::createTestData();
+            return response()->json([
+                'success' => $result,
+                'message' => $result ? 'Test audit log data created successfully!' : 'Failed to create test data (database may be unavailable)'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ]);
+        }
+    });
 });

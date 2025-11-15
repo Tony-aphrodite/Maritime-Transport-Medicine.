@@ -47,17 +47,89 @@ class AdminController extends Controller
         $dateTo = $request->get('date_to');
         $search = $request->get('search');
         
-        // Since we can't run actual database queries, return simulated data
-        $auditLogs = $this->getSimulatedAuditLogs($eventType, $status, $userId, $dateFrom, $dateTo, $search);
-        
-        // Get statistics
-        $statistics = AuditLog::getStatistics();
-        
-        return view('admin.audit-logs', compact('auditLogs', 'statistics', 'eventType', 'status', 'userId', 'dateFrom', 'dateTo', 'search'));
+        return view('admin.audit-logs', compact('eventType', 'status', 'userId', 'dateFrom', 'dateTo', 'search'));
     }
 
     /**
-     * Get audit logs data as JSON for DataTables
+     * Get dashboard statistics (REAL DATA)
+     *
+     * @return JsonResponse
+     */
+    public function getDashboardStats(): JsonResponse
+    {
+        try {
+            // Get real data from database
+            $today = Carbon::today();
+            $thisWeek = Carbon::now()->startOfWeek();
+            $thisMonth = Carbon::now()->startOfMonth();
+
+            $stats = [
+                'total_registrations_today' => AuditLog::where('event_type', AuditLog::EVENT_REGISTRATION_STARTED)
+                    ->whereDate('created_at', $today)->count(),
+                'total_registrations_week' => AuditLog::where('event_type', AuditLog::EVENT_REGISTRATION_STARTED)
+                    ->where('created_at', '>=', $thisWeek)->count(),
+                'total_registrations_month' => AuditLog::where('event_type', AuditLog::EVENT_REGISTRATION_STARTED)
+                    ->where('created_at', '>=', $thisMonth)->count(),
+            ];
+
+            // Calculate success rates
+            $curpSuccess = AuditLog::where('event_type', AuditLog::EVENT_CURP_VERIFICATION_SUCCESS)->count();
+            $curpTotal = AuditLog::whereIn('event_type', [
+                AuditLog::EVENT_CURP_VERIFICATION_SUCCESS,
+                AuditLog::EVENT_CURP_VERIFICATION_FAILURE
+            ])->count();
+            $stats['curp_verification_success_rate'] = $curpTotal > 0 ? round(($curpSuccess / $curpTotal) * 100, 1) : 0;
+
+            $faceSuccess = AuditLog::where('event_type', AuditLog::EVENT_FACE_MATCHING_SUCCESS)->count();
+            $faceTotal = AuditLog::whereIn('event_type', [
+                AuditLog::EVENT_FACE_MATCHING_SUCCESS,
+                AuditLog::EVENT_FACE_MATCHING_FAILURE
+            ])->count();
+            $stats['face_verification_success_rate'] = $faceTotal > 0 ? round(($faceSuccess / $faceTotal) * 100, 1) : 0;
+
+            $stats['total_failed_attempts_today'] = AuditLog::where('status', AuditLog::STATUS_FAILURE)
+                ->whereDate('created_at', $today)->count();
+
+            $stats['recent_activities'] = $this->getRealRecentActivities();
+            $stats['hourly_registrations'] = $this->getRealHourlyRegistrationData();
+            $stats['verification_breakdown'] = [
+                'curp_success' => AuditLog::where('event_type', AuditLog::EVENT_CURP_VERIFICATION_SUCCESS)->count(),
+                'curp_failure' => AuditLog::where('event_type', AuditLog::EVENT_CURP_VERIFICATION_FAILURE)->count(),
+                'face_success' => AuditLog::where('event_type', AuditLog::EVENT_FACE_MATCHING_SUCCESS)->count(),
+                'face_failure' => AuditLog::where('event_type', AuditLog::EVENT_FACE_MATCHING_FAILURE)->count(),
+                'account_completed' => AuditLog::where('event_type', AuditLog::EVENT_ACCOUNT_CREATION_COMPLETED)->count()
+            ];
+
+            return response()->json($stats);
+
+        } catch (\Exception $e) {
+            Log::warning('Database unavailable, using empty data: ' . $e->getMessage());
+            
+            // Return empty data if database is not available
+            return response()->json([
+                'total_registrations_today' => 0,
+                'total_registrations_week' => 0,
+                'total_registrations_month' => 0,
+                'curp_verification_success_rate' => 0,
+                'face_verification_success_rate' => 0,
+                'total_failed_attempts_today' => 0,
+                'recent_activities' => [],
+                'hourly_registrations' => [],
+                'verification_breakdown' => [
+                    'curp_success' => 0,
+                    'curp_failure' => 0,
+                    'face_success' => 0,
+                    'face_failure' => 0,
+                    'account_completed' => 0
+                ],
+                'database_status' => 'unavailable',
+                'message' => 'No real audit data available. Please ensure database connection is working.'
+            ]);
+        }
+    }
+
+    /**
+     * Get audit logs data for DataTables (REAL DATA)
      *
      * @param Request $request
      * @return JsonResponse
@@ -65,46 +137,94 @@ class AdminController extends Controller
     public function getAuditLogsData(Request $request): JsonResponse
     {
         try {
-            $draw = $request->get('draw');
-            $start = $request->get('start', 0);
-            $length = $request->get('length', 25);
+            $query = AuditLog::query();
+
+            // Apply filters
+            if ($request->filled('event_type')) {
+                $query->where('event_type', $request->get('event_type'));
+            }
+
+            if ($request->filled('status')) {
+                $query->where('status', $request->get('status'));
+            }
+
+            if ($request->filled('user_id')) {
+                $query->where('user_id', 'like', '%' . $request->get('user_id') . '%');
+            }
+
+            if ($request->filled('date_from')) {
+                $query->whereDate('created_at', '>=', $request->get('date_from'));
+            }
+
+            if ($request->filled('date_to')) {
+                $query->whereDate('created_at', '<=', $request->get('date_to'));
+            }
+
+            // Handle DataTables search
             $search = $request->get('search')['value'] ?? '';
+            if (!empty($search)) {
+                $query->where(function($q) use ($search) {
+                    $q->where('user_id', 'like', '%' . $search . '%')
+                      ->orWhere('event_type', 'like', '%' . $search . '%')
+                      ->orWhere('status', 'like', '%' . $search . '%')
+                      ->orWhere('ip_address', 'like', '%' . $search . '%');
+                });
+            }
+
+            $totalRecords = AuditLog::count();
+            $filteredRecords = $query->count();
+
+            // Apply pagination
+            $start = intval($request->get('start', 0));
+            $length = intval($request->get('length', 10));
             
-            // Get filter parameters
-            $eventType = $request->get('event_type');
-            $status = $request->get('status');
-            $userId = $request->get('user_id');
-            
-            // Simulate audit logs data
-            $auditLogs = $this->getSimulatedAuditLogs($eventType, $status, $userId, null, null, $search);
-            
-            // Paginate results
-            $totalRecords = count($auditLogs);
-            $filteredRecords = $totalRecords; // In real implementation, this would be filtered count
-            $paginatedLogs = array_slice($auditLogs, $start, $length);
-            
+            $data = $query->orderBy('created_at', 'desc')
+                         ->skip($start)
+                         ->take($length)
+                         ->get()
+                         ->map(function($log) {
+                             return [
+                                 'id' => $log->id,
+                                 'event_type' => $log->event_type,
+                                 'user_id' => $log->user_id,
+                                 'status' => $log->status,
+                                 'ip_address' => $log->ip_address,
+                                 'user_agent' => $log->user_agent,
+                                 'event_data' => json_decode($log->event_data, true),
+                                 'session_id' => $log->session_id,
+                                 'request_method' => $log->request_method,
+                                 'request_url' => $log->request_url,
+                                 'verification_id' => $log->verification_id,
+                                 'confidence_score' => $log->confidence_score,
+                                 'created_at' => $log->created_at->format('Y-m-d H:i:s'),
+                                 'updated_at' => $log->updated_at->format('Y-m-d H:i:s')
+                             ];
+                         });
+
             return response()->json([
-                'draw' => intval($draw),
+                'draw' => intval($request->get('draw', 0)),
                 'recordsTotal' => $totalRecords,
                 'recordsFiltered' => $filteredRecords,
-                'data' => $paginatedLogs
+                'data' => $data,
+                'database_status' => 'connected'
             ]);
-            
+
         } catch (\Exception $e) {
-            Log::error('Error fetching audit logs data: ' . $e->getMessage());
+            Log::warning('Database unavailable for audit logs: ' . $e->getMessage());
             
             return response()->json([
-                'draw' => intval($request->get('draw')),
+                'draw' => intval($request->get('draw', 0)),
                 'recordsTotal' => 0,
                 'recordsFiltered' => 0,
                 'data' => [],
-                'error' => 'Error fetching audit logs'
+                'database_status' => 'unavailable',
+                'message' => 'No real audit data available. Please ensure database connection is working.'
             ]);
         }
     }
 
     /**
-     * Export audit logs to CSV
+     * Export audit logs to CSV (REAL DATA)
      *
      * @param Request $request
      * @return \Symfony\Component\HttpFoundation\StreamedResponse
@@ -118,223 +238,157 @@ class AdminController extends Controller
             
             // CSV Headers
             fputcsv($handle, [
-                'ID',
-                'Event Type',
-                'User ID',
-                'Status',
-                'IP Address',
-                'Timestamp',
-                'User Agent',
-                'Session ID',
-                'Request Method',
-                'Request URL',
-                'Verification ID',
-                'Confidence Score',
-                'Event Data'
+                'ID', 'Event Type', 'User ID', 'Status', 'IP Address', 
+                'User Agent', 'Event Data', 'Session ID', 'Request Method', 
+                'Request URL', 'Verification ID', 'Confidence Score', 
+                'Created At', 'Updated At'
             ]);
-            
-            // Get simulated data
-            $auditLogs = $this->getSimulatedAuditLogs();
-            
-            foreach ($auditLogs as $log) {
-                fputcsv($handle, [
-                    $log['id'],
-                    $log['event_type'],
-                    $log['user_id'],
-                    $log['status'],
-                    $log['ip_address'],
-                    $log['created_at'],
-                    $log['user_agent'],
-                    $log['session_id'],
-                    $log['request_method'],
-                    $log['request_url'],
-                    $log['verification_id'],
-                    $log['confidence_score'],
-                    json_encode($log['event_data'])
-                ]);
+
+            try {
+                // Get real audit logs
+                $query = AuditLog::query();
+                
+                // Apply any filters from request
+                if ($request->filled('event_type')) {
+                    $query->where('event_type', $request->get('event_type'));
+                }
+                if ($request->filled('status')) {
+                    $query->where('status', $request->get('status'));
+                }
+                if ($request->filled('user_id')) {
+                    $query->where('user_id', 'like', '%' . $request->get('user_id') . '%');
+                }
+                if ($request->filled('date_from')) {
+                    $query->whereDate('created_at', '>=', $request->get('date_from'));
+                }
+                if ($request->filled('date_to')) {
+                    $query->whereDate('created_at', '<=', $request->get('date_to'));
+                }
+
+                // Export in chunks for large datasets
+                $query->orderBy('created_at', 'desc')->chunk(100, function($logs) use ($handle) {
+                    foreach ($logs as $log) {
+                        fputcsv($handle, [
+                            $log->id,
+                            $log->event_type,
+                            $log->user_id,
+                            $log->status,
+                            $log->ip_address,
+                            $log->user_agent,
+                            json_encode($log->event_data),
+                            $log->session_id,
+                            $log->request_method,
+                            $log->request_url,
+                            $log->verification_id,
+                            $log->confidence_score,
+                            $log->created_at,
+                            $log->updated_at
+                        ]);
+                    }
+                });
+
+            } catch (\Exception $e) {
+                // If database is unavailable, add a note
+                fputcsv($handle, ['No data available', 'Database connection error', '', '', '', '', '', '', '', '', '', '', '', '']);
+                Log::warning('Cannot export audit logs, database unavailable: ' . $e->getMessage());
             }
-            
+
             fclose($handle);
         }, $filename, [
             'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ]);
     }
 
     /**
-     * Get dashboard statistics
-     *
-     * @return JsonResponse
+     * Get real recent activities from database
      */
-    public function getDashboardStats(): JsonResponse
+    private function getRealRecentActivities()
     {
         try {
-            $stats = [
-                'total_registrations_today' => 23,
-                'total_registrations_week' => 156,
-                'total_registrations_month' => 687,
-                'curp_verification_success_rate' => 94.2,
-                'face_verification_success_rate' => 89.7,
-                'total_failed_attempts_today' => 8,
-                'recent_activities' => $this->getRecentActivities(),
-                'hourly_registrations' => $this->getHourlyRegistrationData(),
-                'verification_breakdown' => [
-                    'curp_success' => 456,
-                    'curp_failure' => 28,
-                    'face_success' => 398,
-                    'face_failure' => 45,
-                    'account_completed' => 387
-                ]
-            ];
-            
-            return response()->json($stats);
-            
+            return AuditLog::orderBy('created_at', 'desc')
+                ->take(10)
+                ->get()
+                ->map(function($log) {
+                    $message = $this->getEventMessage($log->event_type, $log->status, $log->event_data);
+                    
+                    return [
+                        'type' => $log->event_type,
+                        'user_id' => $log->user_id,
+                        'status' => $log->status,
+                        'timestamp' => $log->created_at->format('H:i'),
+                        'message' => $message
+                    ];
+                });
         } catch (\Exception $e) {
-            Log::error('Error fetching dashboard stats: ' . $e->getMessage());
-            return response()->json(['error' => 'Error fetching statistics'], 500);
+            return [];
         }
     }
 
     /**
-     * Get simulated audit logs data
-     *
-     * @param string|null $eventType
-     * @param string|null $status
-     * @param string|null $userId
-     * @param string|null $dateFrom
-     * @param string|null $dateTo
-     * @param string|null $search
-     * @return array
+     * Get real hourly registration data from database
      */
-    private function getSimulatedAuditLogs($eventType = null, $status = null, $userId = null, $dateFrom = null, $dateTo = null, $search = null): array
+    private function getRealHourlyRegistrationData()
     {
-        $logs = [];
-        
-        // Generate simulated audit log entries
-        $events = [
-            ['type' => 'registration_started', 'status' => 'in_progress', 'user' => 'RICJ830716HTSSNN05'],
-            ['type' => 'curp_verification_success', 'status' => 'success', 'user' => 'RICJ830716HTSSNN05'],
-            ['type' => 'face_matching_success', 'status' => 'success', 'user' => 'RICJ830716HTSSNN05'],
-            ['type' => 'account_creation_completed', 'status' => 'success', 'user' => 'RICJ830716HTSSNN05'],
-            ['type' => 'registration_started', 'status' => 'in_progress', 'user' => 'MAGR920315HMCRNS02'],
-            ['type' => 'curp_verification_failure', 'status' => 'failure', 'user' => 'MAGR920315HMCRNS02'],
-            ['type' => 'face_matching_failure', 'status' => 'failure', 'user' => 'PEDR850925MPLRZN05'],
-            ['type' => 'login_attempt', 'status' => 'success', 'user' => 'RICJ830716HTSSNN05'],
-            ['type' => 'admin_access', 'status' => 'success', 'user' => 'admin@marina.gob.mx'],
-            ['type' => 'password_reset_request', 'status' => 'success', 'user' => 'LOPZ900101HDFPZR01'],
-        ];
-        
-        for ($i = 0; $i < 50; $i++) {
-            $event = $events[array_rand($events)];
-            $timestamp = now()->subMinutes(rand(1, 1440))->format('Y-m-d H:i:s');
+        try {
+            $today = Carbon::today();
+            $data = [];
             
-            $log = [
-                'id' => $i + 1,
-                'event_type' => $event['type'],
-                'user_id' => $event['user'],
-                'status' => $event['status'],
-                'ip_address' => '192.168.' . rand(1, 255) . '.' . rand(1, 255),
-                'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                'event_data' => [
-                    'registration_method' => rand(0, 1) ? 'traditional' : 'curp',
-                    'confidence_score' => $event['type'] === 'face_matching_success' ? rand(80, 98) : null
-                ],
-                'session_id' => 'sess_' . uniqid(),
-                'request_method' => rand(0, 1) ? 'GET' : 'POST',
-                'request_url' => '/registro',
-                'verification_id' => 'ver_' . uniqid(),
-                'confidence_score' => $event['type'] === 'face_matching_success' ? rand(80, 98) : null,
-                'created_at' => $timestamp,
-                'updated_at' => $timestamp,
-            ];
-            
-            // Apply filters
-            $includeLog = true;
-            
-            if ($eventType && $log['event_type'] !== $eventType) {
-                $includeLog = false;
+            for ($hour = 0; $hour < 24; $hour++) {
+                $hourStart = $today->copy()->addHours($hour);
+                $hourEnd = $hourStart->copy()->addHour();
+                
+                $registrations = AuditLog::where('event_type', AuditLog::EVENT_REGISTRATION_STARTED)
+                    ->whereBetween('created_at', [$hourStart, $hourEnd])
+                    ->count();
+                    
+                $successful = AuditLog::where('status', AuditLog::STATUS_SUCCESS)
+                    ->whereBetween('created_at', [$hourStart, $hourEnd])
+                    ->count();
+                    
+                $failed = AuditLog::where('status', AuditLog::STATUS_FAILURE)
+                    ->whereBetween('created_at', [$hourStart, $hourEnd])
+                    ->count();
+                
+                $data[] = [
+                    'hour' => sprintf('%02d:00', $hour),
+                    'registrations' => $registrations,
+                    'successful' => $successful,
+                    'failed' => $failed
+                ];
             }
             
-            if ($status && $log['status'] !== $status) {
-                $includeLog = false;
-            }
-            
-            if ($userId && strpos($log['user_id'], $userId) === false) {
-                $includeLog = false;
-            }
-            
-            if ($search && stripos(json_encode($log), $search) === false) {
-                $includeLog = false;
-            }
-            
-            if ($includeLog) {
-                $logs[] = $log;
-            }
+            return $data;
+        } catch (\Exception $e) {
+            return [];
         }
-        
-        // Sort by timestamp (newest first)
-        usort($logs, function($a, $b) {
-            return strtotime($b['created_at']) - strtotime($a['created_at']);
-        });
-        
-        return $logs;
     }
 
     /**
-     * Get recent activities for dashboard
-     *
-     * @return array
+     * Generate event message for display
      */
-    private function getRecentActivities(): array
+    private function getEventMessage($eventType, $status, $eventData)
     {
-        return [
-            [
-                'type' => 'account_creation_completed',
-                'user_id' => 'RICJ830716HTSSNN05',
-                'status' => 'success',
-                'timestamp' => now()->subMinutes(5)->format('H:i'),
-                'message' => 'Nueva cuenta creada exitosamente'
-            ],
-            [
-                'type' => 'face_matching_failure',
-                'user_id' => 'MAGR920315HMCRNS02',
-                'status' => 'failure',
-                'timestamp' => now()->subMinutes(12)->format('H:i'),
-                'message' => 'Verificación facial falló (confianza: 65%)'
-            ],
-            [
-                'type' => 'curp_verification_success',
-                'user_id' => 'PEDR850925MPLRZN05',
-                'status' => 'success',
-                'timestamp' => now()->subMinutes(18)->format('H:i'),
-                'message' => 'CURP verificado correctamente'
-            ],
-            [
-                'type' => 'admin_access',
-                'user_id' => 'admin@marina.gob.mx',
-                'status' => 'success',
-                'timestamp' => now()->subMinutes(25)->format('H:i'),
-                'message' => 'Acceso al panel de administración'
-            ]
-        ];
-    }
-
-    /**
-     * Get hourly registration data for charts
-     *
-     * @return array
-     */
-    private function getHourlyRegistrationData(): array
-    {
-        $data = [];
-        for ($hour = 0; $hour < 24; $hour++) {
-            $data[] = [
-                'hour' => sprintf('%02d:00', $hour),
-                'registrations' => rand(0, 15),
-                'successful' => rand(0, 12),
-                'failed' => rand(0, 3)
-            ];
+        $eventData = is_string($eventData) ? json_decode($eventData, true) : $eventData;
+        
+        switch ($eventType) {
+            case AuditLog::EVENT_REGISTRATION_STARTED:
+                return 'Usuario inició proceso de registro';
+            case AuditLog::EVENT_CURP_VERIFICATION_SUCCESS:
+                return 'CURP verificado correctamente';
+            case AuditLog::EVENT_CURP_VERIFICATION_FAILURE:
+                return 'Error en verificación de CURP';
+            case AuditLog::EVENT_FACE_MATCHING_SUCCESS:
+                $confidence = $eventData['confidence'] ?? 'N/A';
+                return "Verificación facial exitosa (confianza: {$confidence}%)";
+            case AuditLog::EVENT_FACE_MATCHING_FAILURE:
+                $confidence = $eventData['confidence'] ?? 'N/A';
+                return "Verificación facial falló (confianza: {$confidence}%)";
+            case AuditLog::EVENT_ACCOUNT_CREATION_COMPLETED:
+                return 'Nueva cuenta creada exitosamente';
+            case AuditLog::EVENT_ADMIN_ACCESS:
+                return 'Acceso al panel de administración';
+            default:
+                return ucfirst(str_replace('_', ' ', $eventType));
         }
-        return $data;
     }
 }
