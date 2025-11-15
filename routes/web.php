@@ -51,3 +51,16 @@ Route::post('/curp/validate-format', [App\Http\Controllers\CurpController::class
 Route::get('/face-verification', [App\Http\Controllers\FaceVerificationController::class, 'index'])->name('face.verification');
 Route::post('/face-verification/compare', [App\Http\Controllers\FaceVerificationController::class, 'compareFaces'])->name('face.verification.compare');
 Route::get('/face-verification/status', [App\Http\Controllers\FaceVerificationController::class, 'getVerificationStatus'])->name('face.verification.status');
+
+// Admin Routes
+Route::prefix('admin')->group(function () {
+    Route::get('/dashboard', [App\Http\Controllers\AdminController::class, 'dashboard'])->name('admin.dashboard');
+    Route::get('/audit-logs', [App\Http\Controllers\AdminController::class, 'auditLogs'])->name('admin.audit.logs');
+    Route::get('/audit-logs/export', [App\Http\Controllers\AdminController::class, 'exportAuditLogs'])->name('admin.audit.export');
+    
+    // API Routes for admin
+    Route::prefix('api')->group(function () {
+        Route::get('/dashboard-stats', [App\Http\Controllers\AdminController::class, 'getDashboardStats'])->name('admin.api.dashboard.stats');
+        Route::get('/audit-logs-data', [App\Http\Controllers\AdminController::class, 'getAuditLogsData'])->name('admin.api.audit.data');
+    });
+});
