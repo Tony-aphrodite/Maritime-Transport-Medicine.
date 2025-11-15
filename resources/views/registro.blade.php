@@ -57,6 +57,145 @@
             scrollbar-width: none;
         }
 
+        /* Registration Methods Section */
+        .registration-methods {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(15, 76, 117, 0.08);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(15, 76, 117, 0.1);
+        }
+
+        .methods-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .methods-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #0F4C75;
+            margin-bottom: 0.5rem;
+        }
+
+        .methods-subtitle {
+            color: #64748b;
+            font-size: 0.95rem;
+            margin: 0;
+        }
+
+        .method-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .method-option {
+            display: flex;
+            align-items: center;
+            padding: 1.5rem;
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            text-decoration: none;
+        }
+
+        .method-option:hover {
+            border-color: #0F4C75;
+            background: #f1f8ff;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(15, 76, 117, 0.15);
+        }
+
+        .method-option.selected {
+            border-color: #0F4C75;
+            background: linear-gradient(135deg, #f1f8ff, #e6f3ff);
+            box-shadow: 0 8px 20px rgba(15, 76, 117, 0.2);
+        }
+
+        .method-icon {
+            width: 56px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            margin-right: 1rem;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .traditional-method .method-icon {
+            background: linear-gradient(135deg, #3B82F6, #1D4ED8);
+            color: white;
+        }
+
+        .curp-method .method-icon {
+            background: linear-gradient(135deg, #0F4C75, #3282B8);
+            color: white;
+        }
+
+        .method-content {
+            flex: 1;
+        }
+
+        .method-title {
+            display: block;
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .method-description {
+            display: block;
+            font-size: 0.9rem;
+            color: #64748b;
+            line-height: 1.4;
+        }
+
+        .method-status {
+            color: #64748b;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .method-option:hover .method-status {
+            color: #0F4C75;
+            transform: translateX(4px);
+        }
+
+        .method-option.selected .method-status {
+            color: #10B981;
+        }
+
+        /* Responsive for method selection */
+        @media (max-width: 768px) {
+            .method-options {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .method-option {
+                padding: 1.25rem;
+            }
+            
+            .method-icon {
+                width: 48px;
+                height: 48px;
+                font-size: 1.25rem;
+            }
+            
+            .methods-title {
+                font-size: 1.3rem;
+            }
+        }
+
         /* Header */
         .main-header {
             background: linear-gradient(135deg, #0F4C75 0%, #3282B8 100%);
@@ -662,7 +801,43 @@
             </p>
         </div>
 
-        <form action="#" method="POST" id="registryForm">
+        <!-- Registration Method Selection -->
+        <div class="registration-methods" id="registrationMethods">
+            <div class="methods-header">
+                <h2 class="methods-title">Seleccione su método de registro</h2>
+                <p class="methods-subtitle">Elija cómo desea verificar su identidad</p>
+            </div>
+            
+            <div class="method-options">
+                <button type="button" class="method-option traditional-method" onclick="selectRegistrationMethod('traditional')">
+                    <div class="method-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div class="method-content">
+                        <span class="method-title">Registro Tradicional</span>
+                        <span class="method-description">Complete manualmente todos los campos del formulario</span>
+                    </div>
+                    <div class="method-status">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                </button>
+                
+                <button type="button" class="method-option curp-method" onclick="selectRegistrationMethod('curp')">
+                    <div class="method-icon">
+                        <i class="fas fa-id-card"></i>
+                    </div>
+                    <div class="method-content">
+                        <span class="method-title">Registro con CURP</span>
+                        <span class="method-description">Verificar identidad y auto-completar datos con CURP oficial</span>
+                    </div>
+                    <div class="method-status">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                </button>
+            </div>
+        </div>
+
+        <form action="#" method="POST" id="registryForm" style="display: none;">
             <!-- Section 1 - General Information -->
             <div class="form-section">
                 <div class="section-header">
@@ -882,13 +1057,40 @@
                                     <i class="fas fa-map"></i>
                                     Estado <span class="required">*</span>
                                 </label>
-                                <select class="form-select" name="estado" required>
-                                    <option value="">Seleccione...</option>
-                                    <option value="cdmx">Ciudad de México</option>
+                                <select class="form-select" name="estado" id="estadoSelect" required>
+                                    <option value="">Seleccione un estado...</option>
+                                    <option value="aguascalientes">Aguascalientes</option>
+                                    <option value="baja_california">Baja California</option>
+                                    <option value="baja_california_sur">Baja California Sur</option>
+                                    <option value="campeche">Campeche</option>
+                                    <option value="coahuila">Coahuila</option>
+                                    <option value="colima">Colima</option>
+                                    <option value="chiapas">Chiapas</option>
+                                    <option value="chihuahua">Chihuahua</option>
+                                    <option value="ciudad_de_mexico">Ciudad de México</option>
+                                    <option value="durango">Durango</option>
+                                    <option value="guanajuato">Guanajuato</option>
+                                    <option value="guerrero">Guerrero</option>
+                                    <option value="hidalgo">Hidalgo</option>
                                     <option value="jalisco">Jalisco</option>
+                                    <option value="estado_de_mexico">Estado de México</option>
+                                    <option value="michoacan">Michoacán</option>
+                                    <option value="morelos">Morelos</option>
+                                    <option value="nayarit">Nayarit</option>
                                     <option value="nuevo_leon">Nuevo León</option>
+                                    <option value="oaxaca">Oaxaca</option>
+                                    <option value="puebla">Puebla</option>
+                                    <option value="queretaro">Querétaro</option>
+                                    <option value="quintana_roo">Quintana Roo</option>
+                                    <option value="san_luis_potosi">San Luis Potosí</option>
+                                    <option value="sinaloa">Sinaloa</option>
+                                    <option value="sonora">Sonora</option>
+                                    <option value="tabasco">Tabasco</option>
+                                    <option value="tamaulipas">Tamaulipas</option>
+                                    <option value="tlaxcala">Tlaxcala</option>
                                     <option value="veracruz">Veracruz</option>
-                                    <option value="otro">Otro</option>
+                                    <option value="yucatan">Yucatán</option>
+                                    <option value="zacatecas">Zacatecas</option>
                                 </select>
                             </div>
 
@@ -897,7 +1099,9 @@
                                     <i class="fas fa-city"></i>
                                     Municipio <span class="required">*</span>
                                 </label>
-                                <input type="text" class="form-control" name="municipio" placeholder="Municipio" required>
+                                <select class="form-select" name="municipio" id="municipioSelect" required disabled>
+                                    <option value="">Primero seleccione un estado...</option>
+                                </select>
                             </div>
                         </div>
 
@@ -948,13 +1152,58 @@
                 </div>
             </div>
 
+            <!-- Section 4 - Face Verification -->
+            <div class="form-section">
+                <div class="section-header">
+                    <i class="fas fa-shield-check"></i>
+                    Sección 4 – Verificación de Identidad Facial
+                </div>
+                <div class="section-content">
+                    <div class="field-grid">
+                        <div class="field-group" id="faceVerificationStatus">
+                            <div style="text-align: center; padding: 2rem;">
+                                <div id="verificationPending" style="display: block;">
+                                    <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #f59e0b; margin-bottom: 1rem;"></i>
+                                    <h3 style="color: #92400e; margin-bottom: 1rem;">Verificación Facial Requerida</h3>
+                                    <p style="color: #64748b; margin-bottom: 2rem; max-width: 500px; margin-left: auto; margin-right: auto;">
+                                        Para completar su registro, debe verificar su identidad comparando una selfie con la fotografía de su INE/IFE. 
+                                        Este proceso garantiza la seguridad y autenticidad de su cuenta.
+                                    </p>
+                                    <a href="/face-verification" class="btn btn-primary" style="font-size: 1.1rem; padding: 1rem 2rem;">
+                                        <i class="fas fa-camera"></i>
+                                        Iniciar Verificación Facial
+                                    </a>
+                                </div>
+                                
+                                <div id="verificationComplete" style="display: none;">
+                                    <i class="fas fa-check-circle" style="font-size: 3rem; color: #10b981; margin-bottom: 1rem;"></i>
+                                    <h3 style="color: #065f46; margin-bottom: 1rem;">Verificación Facial Completada</h3>
+                                    <p style="color: #64748b; margin-bottom: 1rem;">
+                                        Su identidad ha sido verificada exitosamente. Puede continuar con el registro.
+                                    </p>
+                                    <div style="background: #f0fdf4; padding: 1rem; border-radius: 8px; border: 1px solid #bbf7d0; margin-top: 1rem;">
+                                        <div style="display: flex; align-items: center; gap: 0.5rem; color: #166534; font-weight: 600;">
+                                            <i class="fas fa-shield-check"></i>
+                                            Estado: Verificado
+                                        </div>
+                                        <div style="font-size: 0.9rem; color: #16a34a; margin-top: 0.5rem;">
+                                            Confianza: <span id="verificationConfidence">--</span>%
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Action Buttons -->
             <div class="form-actions">
                 <button type="button" class="btn btn-secondary">
                     <i class="fas fa-edit"></i>
                     Modificar
                 </button>
-                <button type="submit" class="btn btn-primary">
+                <button type="submit" class="btn btn-primary" id="finalSubmitBtn">
                     <i class="fas fa-arrow-right"></i>
                     Continuar
                 </button>
@@ -1067,9 +1316,11 @@
             console.log('🔍 Checking for CURP validation return data...');
             const urlParams = new URLSearchParams(window.location.search);
             const verificationData = urlParams.get('verification');
+            const source = urlParams.get('source');
             
             console.log('URL parameters:', window.location.search);
             console.log('Verification data found:', !!verificationData);
+            console.log('Source:', source);
             
             if (verificationData) {
                 console.log('Raw verification data:', verificationData);
@@ -1088,7 +1339,25 @@
                         // Show success message
                         const curpMessage = document.getElementById('curpValidationMessage');
                         if (curpMessage) {
-                            showCurpMessage('success', '<i class="fas fa-check-circle"></i> CURP verificado exitosamente - Datos auto-completados');
+                            if (source === 'curp') {
+                                showCurpMessage('success', '<i class="fas fa-check-circle"></i> CURP verificado desde login - Cuenta creada automáticamente con datos oficiales');
+                            } else {
+                                showCurpMessage('success', '<i class="fas fa-check-circle"></i> CURP verificado exitosamente - Datos auto-completados');
+                            }
+                        }
+                        
+                        // For CURP-based registration from login, show welcome message
+                        if (source === 'curp') {
+                            const welcomeMessage = document.createElement('div');
+                            welcomeMessage.style.cssText = 'background: #f0fdf4; border: 1px solid #10B981; border-radius: 8px; padding: 1rem; margin: 1rem 0; color: #065f46;';
+                            welcomeMessage.innerHTML = `
+                                <div style="display: flex; align-items: center; gap: 0.5rem; font-weight: 600; margin-bottom: 0.5rem;">
+                                    <i class="fas fa-shield-check"></i>
+                                    ¡Bienvenido al sistema MARINA!
+                                </div>
+                                <p style="font-size: 0.9rem; margin: 0;">Su identidad ha sido verificada con CURP. Complete los campos restantes para finalizar su registro.</p>
+                            `;
+                            document.querySelector('.registration-form').prepend(welcomeMessage);
                         }
                         
                         // Clear URL parameters
@@ -1183,9 +1452,326 @@
             console.log('📝 Auto-fill process completed');
         }
 
-        // Initialize return handler when page loads
+        // Function to handle registration method selection
+        function selectRegistrationMethod(method) {
+            const methodsSection = document.getElementById('registrationMethods');
+            const form = document.getElementById('registryForm');
+            
+            if (method === 'traditional') {
+                // Hide method selection and show form
+                methodsSection.style.display = 'none';
+                form.style.display = 'block';
+                
+                // Scroll to form
+                form.scrollIntoView({ behavior: 'smooth' });
+            } else if (method === 'curp') {
+                // Redirect to CURP validation
+                window.location.href = '/curp/validate?from=login';
+            }
+        }
+
+        // Function to check if user came from CURP validation
+        function checkCurpReturn() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const verification = urlParams.get('verification');
+            const source = urlParams.get('source');
+            
+            if (verification && source === 'curp') {
+                // User came from CURP validation, hide method selection and show form
+                document.getElementById('registrationMethods').style.display = 'none';
+                document.getElementById('registryForm').style.display = 'block';
+            }
+        }
+
+        // State-Municipality relationship data
+        const municipalitiesData = {
+            'aguascalientes': [
+                'Aguascalientes', 'Asientos', 'Calvillo', 'Cosío', 'Jesús María',
+                'Pabellón de Arteaga', 'Rincón de Romos', 'San José de Gracia', 'Tepezalá', 'El Llano'
+            ],
+            'baja_california': [
+                'Tijuana', 'Mexicali', 'Ensenada', 'Tecate', 'Playas de Rosarito'
+            ],
+            'baja_california_sur': [
+                'La Paz', 'Los Cabos', 'Loreto', 'Comondú', 'Mulegé'
+            ],
+            'campeche': [
+                'Campeche', 'Carmen', 'Champotón', 'Escárcega', 'Hecelchakán',
+                'Hopelchén', 'Palizada', 'Tenabo', 'Calakmul', 'Candelaria'
+            ],
+            'coahuila': [
+                'Saltillo', 'Torreón', 'Monclova', 'Piedras Negras', 'Acuña',
+                'Sabinas', 'Matamoros', 'San Pedro', 'Frontera', 'Múzquiz'
+            ],
+            'colima': [
+                'Colima', 'Manzanillo', 'Tecomán', 'Armería', 'Comala',
+                'Coquimatlán', 'Cuauhtémoc', 'Ixtlahuacán', 'Minatitlán', 'Villa de Álvarez'
+            ],
+            'chiapas': [
+                'Tuxtla Gutiérrez', 'Tapachula', 'San Cristóbal de las Casas', 'Comitán', 'Palenque',
+                'Tonalá', 'Villaflores', 'Pichucalco', 'Ocosingo', 'Arriaga'
+            ],
+            'chihuahua': [
+                'Chihuahua', 'Ciudad Juárez', 'Delicias', 'Parral', 'Cuauhtémoc',
+                'Nuevo Casas Grandes', 'Camargo', 'Jiménez', 'Bocoyna', 'Meoqui'
+            ],
+            'ciudad_de_mexico': [
+                'Álvaro Obregón', 'Azcapotzalco', 'Benito Juárez', 'Coyoacán', 'Cuajimalpa',
+                'Gustavo A. Madero', 'Iztacalco', 'Iztapalapa', 'Miguel Hidalgo', 'Tlalpan',
+                'Venustiano Carranza', 'Xochimilco', 'Milpa Alta', 'Cuauhtémoc', 'Tláhuac', 'Magdalena Contreras'
+            ],
+            'durango': [
+                'Durango', 'Gómez Palacio', 'Lerdo', 'Santiago Papasquiaro', 'Guadalupe Victoria',
+                'Canatlán', 'Nombre de Dios', 'Mezquital', 'Tlahualilo', 'Rodeo'
+            ],
+            'guanajuato': [
+                'León', 'Irapuato', 'Celaya', 'Salamanca', 'Guanajuato',
+                'Silao', 'Pénjamo', 'San Miguel de Allende', 'Acámbaro', 'Dolores Hidalgo'
+            ],
+            'guerrero': [
+                'Acapulco', 'Chilpancingo', 'Iguala', 'Taxco', 'Zihuatanejo',
+                'Tlapa', 'Ayutla de los Libres', 'Ometepec', 'Petatlán', 'Arcelia'
+            ],
+            'hidalgo': [
+                'Pachuca', 'Tulancingo', 'Huejutla', 'Ixmiquilpan', 'Tizayuca',
+                'Actopan', 'Tepeapulco', 'Mineral de la Reforma', 'Tula', 'Apan'
+            ],
+            'jalisco': [
+                'Guadalajara', 'Zapopan', 'Tlaquepaque', 'Tonalá', 'Puerto Vallarta',
+                'Tlajomulco de Zúñiga', 'El Salto', 'Chapala', 'Lagos de Moreno', 'Tepatitlán',
+                'Ocotlán', 'Arandas', 'La Barca', 'Ameca', 'Autlán'
+            ],
+            'estado_de_mexico': [
+                'Ecatepec', 'Nezahualcóyotl', 'Naucalpan', 'Tlalnepantla', 'Chimalhuacán',
+                'Toluca', 'Atizapán de Zaragoza', 'Cuautitlán Izcalli', 'Ixtapaluca', 'Tultitlán',
+                'Chalco', 'Texcoco', 'Metepec', 'La Paz', 'Coacalco'
+            ],
+            'michoacan': [
+                'Morelia', 'Uruapan', 'Lázaro Cárdenas', 'Zamora', 'Apatzingán',
+                'Pátzcuaro', 'Sahuayo', 'Zitácuaro', 'Hidalgo', 'La Piedad'
+            ],
+            'morelos': [
+                'Cuernavaca', 'Jiutepec', 'Temixco', 'Cuautla', 'Emiliano Zapata',
+                'Yautepec', 'Xochitepec', 'Zacatepec', 'Jojutla', 'Tepoztlán'
+            ],
+            'nayarit': [
+                'Tepic', 'Bahía de Banderas', 'Santiago Ixcuintla', 'Tuxpan', 'Compostela',
+                'Ixtlán del Río', 'Acaponeta', 'Rosamorada', 'Ruiz', 'Tecuala'
+            ],
+            'nuevo_leon': [
+                'Monterrey', 'Guadalupe', 'San Nicolás de los Garza', 'Apodaca', 'Santa Catarina',
+                'San Pedro Garza García', 'Escobedo', 'Cadereyta Jiménez', 'Juárez', 'García',
+                'Linares', 'Montemorelos', 'Sabinas Hidalgo', 'Cerralvo', 'China'
+            ],
+            'oaxaca': [
+                'Oaxaca de Juárez', 'Salina Cruz', 'Tuxtepec', 'Juchitán', 'Huajuapan',
+                'Ixtepec', 'Pochutla', 'Tehuantepec', 'Pinotepa Nacional', 'Miahuatlán'
+            ],
+            'puebla': [
+                'Puebla', 'Tehuacán', 'San Martín Texmelucan', 'Atlixco', 'San Pedro Cholula',
+                'Huauchinango', 'Amozoc', 'Teziutlán', 'Cuautlancingo', 'Zacatlán'
+            ],
+            'queretaro': [
+                'Querétaro', 'San Juan del Río', 'Corregidora', 'El Marqués', 'Cadereyta',
+                'Tequisquiapan', 'Pedro Escobedo', 'Amealco', 'Jalpan', 'Landa de Matamoros'
+            ],
+            'quintana_roo': [
+                'Cancún', 'Chetumal', 'Playa del Carmen', 'Cozumel', 'Felipe Carrillo Puerto',
+                'José María Morelos', 'Lázaro Cárdenas', 'Othón P. Blanco', 'Solidaridad', 'Tulum'
+            ],
+            'san_luis_potosi': [
+                'San Luis Potosí', 'Soledad de Graciano Sánchez', 'Ciudad Valles', 'Matehuala', 'Rioverde',
+                'Tamazunchale', 'Cárdenas', 'Ebano', 'Guadalcázar', 'Mexquitic'
+            ],
+            'sinaloa': [
+                'Culiacán', 'Mazatlán', 'Los Mochis', 'Guasave', 'Navolato',
+                'El Fuerte', 'Escuinapa', 'Salvador Alvarado', 'Angostura', 'Mocorito',
+                'Choix', 'Elota', 'Concordia', 'Rosario', 'Cosalá'
+            ],
+            'sonora': [
+                'Hermosillo', 'Ciudad Obregón', 'Nogales', 'San Luis Río Colorado', 'Navojoa',
+                'Guaymas', 'Agua Prieta', 'Caborca', 'Puerto Peñasco', 'Cananea'
+            ],
+            'tabasco': [
+                'Villahermosa', 'Cárdenas', 'Comalcalco', 'Huimanguillo', 'Macuspana',
+                'Teapa', 'Jalpa de Méndez', 'Cunduacán', 'Balancán', 'Emiliano Zapata'
+            ],
+            'tamaulipas': [
+                'Reynosa', 'Matamoros', 'Nuevo Laredo', 'Tampico', 'Victoria',
+                'Altamira', 'Río Bravo', 'Valle Hermoso', 'Ciudad Madero', 'Miguel Alemán'
+            ],
+            'tlaxcala': [
+                'Tlaxcala', 'Apizaco', 'Huamantla', 'Zacatelco', 'Santa Ana Chiautempan',
+                'Calpulalpan', 'Panotla', 'San Pablo del Monte', 'Chiautempan', 'Tetla'
+            ],
+            'veracruz': [
+                'Veracruz', 'Xalapa', 'Coatzacoalcos', 'Córdoba', 'Poza Rica', 
+                'Minatitlán', 'Orizaba', 'Boca del Río', 'Tuxpan', 'Papantla',
+                'Martínez de la Torre', 'San Andrés Tuxtla', 'Acayucan', 'Tantoyuca', 'Perote'
+            ],
+            'yucatan': [
+                'Mérida', 'Kanasín', 'Valladolid', 'Progreso', 'Tizimín',
+                'Motul', 'Uman', 'Tekax', 'Izamal', 'Hunucmá'
+            ],
+            'zacatecas': [
+                'Zacatecas', 'Fresnillo', 'Guadalupe', 'Jerez', 'Río Grande',
+                'Sombrerete', 'Ojocaliente', 'Tlaltenango', 'Juchipila', 'Nochistlán'
+            ]
+        };
+
+        // Function to update municipalities based on selected state
+        function updateMunicipalities() {
+            const estadoSelect = document.getElementById('estadoSelect');
+            const municipioSelect = document.getElementById('municipioSelect');
+            
+            if (!estadoSelect || !municipioSelect) {
+                console.log('❌ Estado or Municipio select not found');
+                return;
+            }
+            
+            const selectedState = estadoSelect.value;
+            console.log('🔍 Selected state:', selectedState);
+            
+            // Clear current options
+            municipioSelect.innerHTML = '';
+            
+            if (!selectedState) {
+                municipioSelect.disabled = true;
+                municipioSelect.innerHTML = '<option value="">Primero seleccione un estado...</option>';
+                console.log('ℹ️ No state selected, municipality disabled');
+                return;
+            }
+            
+            // Get municipalities for selected state
+            const municipalities = municipalitiesData[selectedState];
+            console.log('🏛️ Municipalities found:', municipalities ? municipalities.length : 0);
+            
+            if (municipalities && municipalities.length > 0) {
+                municipioSelect.disabled = false;
+                municipioSelect.innerHTML = '<option value="">Seleccione un municipio...</option>';
+                
+                municipalities.forEach(municipality => {
+                    const option = document.createElement('option');
+                    option.value = municipality.toLowerCase().replace(/\s+/g, '_').replace(/ñ/g, 'n');
+                    option.textContent = municipality;
+                    municipioSelect.appendChild(option);
+                });
+                
+                console.log('✅ Municipalities loaded successfully for:', selectedState);
+            } else {
+                // This should not happen now as we have all states
+                console.log('❌ No municipalities found for state:', selectedState);
+                municipioSelect.disabled = false;
+                municipioSelect.innerHTML = `
+                    <option value="">Seleccione un municipio...</option>
+                    <option value="otro">Otro municipio</option>
+                `;
+            }
+        }
+
+        // Initialize state-municipality functionality
+        function initializeStateMunicipalityRelationship() {
+            const estadoSelect = document.getElementById('estadoSelect');
+            
+            if (estadoSelect) {
+                estadoSelect.addEventListener('change', updateMunicipalities);
+                console.log('✅ State-Municipality relationship initialized');
+            }
+        }
+
+        // Face verification status checking
+        function checkFaceVerificationStatus() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const faceVerified = urlParams.get('face_verified');
+            const confidence = urlParams.get('confidence');
+            
+            console.log('🔍 Checking face verification status:', { faceVerified, confidence });
+            
+            if (faceVerified === 'true') {
+                // Show verified status
+                document.getElementById('verificationPending').style.display = 'none';
+                document.getElementById('verificationComplete').style.display = 'block';
+                
+                if (confidence) {
+                    document.getElementById('verificationConfidence').textContent = confidence;
+                }
+                
+                // Enable final submit button
+                const submitBtn = document.getElementById('finalSubmitBtn');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Completar Registro';
+                submitBtn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+                
+                console.log('✅ Face verification confirmed, registration can proceed');
+                
+                // Clean URL parameters
+                window.history.replaceState({}, document.title, window.location.pathname);
+            } else {
+                // Disable submit button until verification is complete
+                const submitBtn = document.getElementById('finalSubmitBtn');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Verificación Facial Requerida';
+                submitBtn.style.background = 'linear-gradient(135deg, #64748b, #475569)';
+                
+                console.log('⚠️ Face verification required before registration completion');
+            }
+        }
+
+        // Form submission validation
+        function validateRegistrationForm(event) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const faceVerified = urlParams.get('face_verified');
+            
+            // Check if face verification is complete
+            if (faceVerified !== 'true') {
+                event.preventDefault();
+                
+                // Show alert
+                const alertDiv = document.createElement('div');
+                alertDiv.style.cssText = 'background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 1rem; margin: 1rem 0; color: #991b1b;';
+                alertDiv.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 0.5rem; font-weight: 600;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Verificación Facial Requerida
+                    </div>
+                    <p style="margin: 0.5rem 0 0 0;">Debe completar la verificación facial antes de enviar el registro.</p>
+                `;
+                
+                // Insert alert before form actions
+                const formActions = document.querySelector('.form-actions');
+                formActions.parentNode.insertBefore(alertDiv, formActions);
+                
+                // Scroll to face verification section
+                document.getElementById('faceVerificationStatus').scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'center' 
+                });
+                
+                // Remove alert after 5 seconds
+                setTimeout(() => {
+                    if (alertDiv.parentNode) {
+                        alertDiv.parentNode.removeChild(alertDiv);
+                    }
+                }, 5000);
+                
+                return false;
+            }
+            
+            return true;
+        }
+
+        // Initialize handlers when page loads
         document.addEventListener('DOMContentLoaded', function() {
+            checkCurpReturn();
             handleCurpValidationReturn();
+            initializeStateMunicipalityRelationship();
+            checkFaceVerificationStatus();
+            
+            // Add form submission validation
+            const form = document.getElementById('registryForm');
+            if (form) {
+                form.addEventListener('submit', validateRegistrationForm);
+            }
         });
     </script>
 </body>
