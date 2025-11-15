@@ -587,7 +587,7 @@
                 <!-- Return to Registration Button (hidden by default) -->
                 <button type="button" id="returnBtn" class="submit-btn" style="display: none; background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);">
                     <i class="fas fa-arrow-left"></i>
-                    <span>Completar Registro con Datos Verificados</span>
+                    <span id="returnBtnText">Completar Registro con Datos Verificados</span>
                 </button>
             </form>
             
@@ -622,16 +622,18 @@
             const resultCard = document.getElementById('resultCard');
             const returnBtn = document.getElementById('returnBtn');
             
-            // Check if coming from registry
+            // Check if coming from registry or login
             const urlParams = new URLSearchParams(window.location.search);
             const fromRegistry = urlParams.get('from') === 'registry';
+            const fromLogin = urlParams.get('from') === 'login';
             const curpParam = urlParams.get('curp');
             
             // Store successful validation data for return
             let validatedCurpData = null;
             
-            // Update global variable and UI based on source
+            // Update global variables and UI based on source
             window.fromRegistry = fromRegistry;
+            window.fromLogin = fromLogin;
             
             if (fromRegistry) {
                 document.getElementById('backLinkText').textContent = 'Cancelar y volver al registro';
@@ -640,6 +642,12 @@
                 if (curpParam) {
                     curpInput.value = curpParam.toUpperCase();
                 }
+            } else if (fromLogin) {
+                document.getElementById('backLinkText').textContent = 'Volver al login';
+                
+                // Update page title and description for login flow
+                document.querySelector('.page-title').textContent = 'Registro con CURP';
+                document.querySelector('.page-subtitle').textContent = 'Ingrese su CURP para verificar su identidad y crear una nueva cuenta';
             }
             
             // CURP format validation regex
@@ -745,10 +753,16 @@
                     detailsDiv.style.display = 'none';
                 }
                 
-                // Store validated data and show return button if from registry
-                if (success && window.fromRegistry) {
+                // Store validated data and show return button if from registry or login
+                if (success && (window.fromRegistry || window.fromLogin)) {
                     window.validatedCurpData = { success: true, data: data };
                     returnBtn.style.display = 'block';
+                    
+                    // Update button text based on source
+                    if (window.fromLogin) {
+                        document.getElementById('returnBtnText').textContent = 'Crear Cuenta con CURP Verificado';
+                    }
+                    
                     console.log('Storing validated data:', window.validatedCurpData);
                 } else {
                     returnBtn.style.display = 'none';
@@ -808,6 +822,8 @@
         function handleBackNavigation() {
             if (window.fromRegistry) {
                 window.location.href = '/registro';
+            } else if (window.fromLogin) {
+                window.location.href = '/login';
             } else {
                 window.location.href = '/registro';
             }
@@ -820,11 +836,24 @@
             if (window.validatedCurpData && window.validatedCurpData.success) {
                 // Encode the validation data to pass it via URL
                 const encodedData = encodeURIComponent(JSON.stringify(window.validatedCurpData));
-                console.log('Redirecting to registration with data:', encodedData);
-                window.location.href = '/registro?verification=' + encodedData;
+                console.log('Redirecting with data:', encodedData);
+                
+                if (window.fromLogin) {
+                    // For login flow, go to registration with CURP data
+                    console.log('Login flow: redirecting to registration with CURP data');
+                    window.location.href = '/registro?verification=' + encodedData + '&source=curp';
+                } else {
+                    // For registry flow, return to registration with data
+                    console.log('Registry flow: returning to registration with data');
+                    window.location.href = '/registro?verification=' + encodedData;
+                }
             } else {
-                console.log('No validated data found, redirecting to registration without data');
-                window.location.href = '/registro';
+                console.log('No validated data found, redirecting without data');
+                if (window.fromLogin) {
+                    window.location.href = '/registro';
+                } else {
+                    window.location.href = '/registro';
+                }
             }
         }
     </script>
