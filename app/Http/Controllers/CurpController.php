@@ -59,9 +59,35 @@ class CurpController extends Controller
             }
 
             $curp = strtoupper(trim($request->curp));
+            $verificationId = 'curp_' . uniqid();
+
+            // Log CURP verification attempt
+            try {
+                AuditLog::logEvent(
+                    AuditLog::EVENT_CURP_VERIFICATION_ATTEMPT,
+                    AuditLog::STATUS_IN_PROGRESS,
+                    ['curp_format_validation' => 'started'],
+                    $curp,
+                    $verificationId
+                );
+            } catch (\Exception $e) {
+                Log::warning('Failed to log CURP verification attempt: ' . $e->getMessage());
+            }
 
             // Validate CURP format
             if (!$this->validateCurpFormat($curp)) {
+                // Log format validation failure
+                try {
+                    AuditLog::logCurpVerification(
+                        $curp,
+                        AuditLog::STATUS_FAILURE,
+                        ['error' => 'Invalid CURP format', 'step' => 'format_validation'],
+                        $verificationId
+                    );
+                } catch (\Exception $e) {
+                    Log::warning('Failed to log CURP format failure: ' . $e->getMessage());
+                }
+
                 return response()->json([
                     'success' => false,
                     'message' => 'Formato de CURP inválido. Verificar estructura del código.',
@@ -84,6 +110,22 @@ class CurpController extends Controller
                 // VerificaMex API response structure
                 if ($apiData && isset($apiData['success']) && $apiData['success']) {
                     $curpData = $apiData['data'] ?? [];
+                    
+                    // Log successful CURP verification
+                    try {
+                        AuditLog::logCurpVerification(
+                            $curp,
+                            AuditLog::STATUS_SUCCESS,
+                            [
+                                'verification_method' => 'verificamex_api',
+                                'has_details' => !empty($curpData),
+                                'api_response_time' => now()->toISOString()
+                            ],
+                            $verificationId
+                        );
+                    } catch (\Exception $e) {
+                        Log::warning('Failed to log CURP verification success: ' . $e->getMessage());
+                    }
                     
                     return response()->json([
                         'success' => true,
