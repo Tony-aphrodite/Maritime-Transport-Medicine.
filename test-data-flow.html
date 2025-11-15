@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Data Flow</title>
+    <script>
+        // Simulate the data that should be passed from validation to registration
+        const mockValidatedData = {
+            "success": true,
+            "data": {
+                "curp": "RICJ830716HTSSNN05",
+                "valid": true,
+                "details": {
+                    "nombres": "RICARDO JAVIER",
+                    "primerApellido": "RIVERA",
+                    "segundoApellido": "CASTRO",
+                    "fechaNacimiento": "1983-07-16",
+                    "sexo": "MASCULINO",
+                    "entidadNacimiento": "SINALOA",
+                    "nacionalidad": "MEXICANA",
+                    "estatus": "Formato válido - verificación pendiente"
+                },
+                "verification_date": "2024-11-14T14:53:06.602Z",
+                "certificate_url": null
+            }
+        };
+        
+        function testRegistrationFlow() {
+            // Encode the data just like the validation page does
+            const encodedData = encodeURIComponent(JSON.stringify(mockValidatedData));
+            const testUrl = `http://localhost:8000/registro?verification=${encodedData}`;
+            
+            console.log('Test data:', mockValidatedData);
+            console.log('Encoded data length:', encodedData.length);
+            console.log('Test URL:', testUrl);
+            
+            // Open the test URL
+            window.open(testUrl, '_blank');
+        }
+        
+        function showDataStructure() {
+            document.getElementById('dataStructure').innerHTML = 
+                '<pre>' + JSON.stringify(mockValidatedData, null, 2) + '</pre>';
+        }
+    </script>
+</head>
+<body style="font-family: Arial, sans-serif; padding: 20px;">
+    <h1>🧪 CURP Data Flow Test</h1>
+    
+    <h2>Expected Data Structure:</h2>
+    <div id="dataStructure"></div>
+    
+    <h2>Tests:</h2>
+    <button onclick="testRegistrationFlow()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
+        🔗 Test Registration Auto-Fill
+    </button>
+    
+    <button onclick="showDataStructure()" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; margin-left: 10px;">
+        📋 Show Data Structure
+    </button>
+    
+    <h2>Expected Results:</h2>
+    <ul>
+        <li>✅ Registration page should open with auto-filled data</li>
+        <li>✅ CURP: RICJ830716HTSSNN05</li>
+        <li>✅ Nombres: RICARDO JAVIER</li>
+        <li>✅ Apellido Paterno: RIVERA</li>
+        <li>✅ Apellido Materno: CASTRO</li>
+        <li>✅ Fecha Nacimiento: 1983-07-16</li>
+        <li>✅ Sexo: masculino</li>
+        <li>✅ Estado Nacimiento: SINALOA</li>
+        <li>✅ Success message displayed</li>
+    </ul>
+    
+    <h2>Debug Instructions:</h2>
+    <ol>
+        <li>Click "Test Registration Auto-Fill" button</li>
+        <li>Open browser console (F12)</li>
+        <li>Look for debug messages starting with 🔍</li>
+        <li>Check if form fields are being found and filled</li>
+    </ol>
+</body>
+</html>
