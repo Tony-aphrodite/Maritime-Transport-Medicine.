@@ -1457,6 +1457,9 @@
             const methodsSection = document.getElementById('registrationMethods');
             const form = document.getElementById('registryForm');
             
+            // Log registration started
+            logRegistrationStarted(method);
+            
             if (method === 'traditional') {
                 // Hide method selection and show form
                 methodsSection.style.display = 'none';
@@ -1467,6 +1470,35 @@
             } else if (method === 'curp') {
                 // Redirect to CURP validation
                 window.location.href = '/curp/validate?from=login';
+            }
+        }
+        
+        // Function to log registration started
+        function logRegistrationStarted(method) {
+            try {
+                // This would normally make an AJAX call to log the event
+                // For demonstration purposes, we'll log to console
+                console.log('📝 Registration started:', {
+                    method: method,
+                    timestamp: new Date().toISOString(),
+                    session: 'sess_' + Math.random().toString(36).substr(2, 9)
+                });
+                
+                // In a real implementation, you would make an API call like:
+                // fetch('/api/log-audit-event', {
+                //     method: 'POST',
+                //     headers: {
+                //         'Content-Type': 'application/json',
+                //         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                //     },
+                //     body: JSON.stringify({
+                //         event_type: 'registration_started',
+                //         status: 'in_progress',
+                //         event_data: { registration_method: method }
+                //     })
+                // });
+            } catch (error) {
+                console.warn('Failed to log registration started:', error);
             }
         }
 

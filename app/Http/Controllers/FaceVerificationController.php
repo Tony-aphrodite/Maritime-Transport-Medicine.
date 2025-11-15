@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use App\Models\AuditLog;
 use Exception;
 
 class FaceVerificationController extends Controller
@@ -30,12 +31,32 @@ class FaceVerificationController extends Controller
      */
     public function compareFaces(Request $request): JsonResponse
     {
+        $verificationId = 'face_' . uniqid();
+        $userId = $request->input('user_id', 'unknown');
+        
         try {
+            // Log face verification attempt
+            try {
+                AuditLog::logEvent(
+                    AuditLog::EVENT_FACE_MATCHING_ATTEMPT,
+                    AuditLog::STATUS_IN_PROGRESS,
+                    [
+                        'has_selfie' => $request->hasFile('selfie'),
+                        'has_ine' => $request->hasFile('ine_photo')
+                    ],
+                    $userId,
+                    $verificationId
+                );
+            } catch (\Exception $e) {
+                Log::warning('Failed to log face verification attempt: ' . $e->getMessage());
+            }
+            
             Log::info('🔍 Face verification request received', [
                 'ip' => $request->ip(),
                 'user_agent' => $request->userAgent(),
                 'has_selfie' => $request->hasFile('selfie'),
-                'has_ine' => $request->hasFile('ine_photo')
+                'has_ine' => $request->hasFile('ine_photo'),
+                'verification_id' => $verificationId
             ]);
 
             // Validate request
@@ -70,23 +91,55 @@ class FaceVerificationController extends Controller
             $verificationResult = $this->callFaceVerificationAPI($selfieData, $ineData);
 
             if ($verificationResult['success']) {
+                $isMatch = $verificationResult['data']['match'];
+                $confidence = $verificationResult['data']['confidence'];
+                
                 Log::info('✅ Face verification completed', [
-                    'match' => $verificationResult['data']['match'],
-                    'confidence' => $verificationResult['data']['confidence']
+                    'match' => $isMatch,
+                    'confidence' => $confidence,
+                    'verification_id' => $verificationId
                 ]);
+
+                // Log face verification result
+                try {
+                    AuditLog::logFaceVerification(
+                        $isMatch ? AuditLog::STATUS_SUCCESS : AuditLog::STATUS_FAILURE,
+                        $userId,
+                        $confidence,
+                        $verificationId
+                    );
+                } catch (\Exception $e) {
+                    Log::warning('Failed to log face verification result: ' . $e->getMessage());
+                }
 
                 return response()->json([
                     'success' => true,
                     'message' => 'Face verification completed successfully',
                     'data' => [
-                        'match' => $verificationResult['data']['match'],
-                        'confidence' => $verificationResult['data']['confidence'],
-                        'result' => $verificationResult['data']['match'] ? 'Match' : 'No Match',
-                        'verification_id' => $verificationResult['data']['verification_id'] ?? uniqid('face_', true)
+                        'match' => $isMatch,
+                        'confidence' => $confidence,
+                        'result' => $isMatch ? 'Match' : 'No Match',
+                        'verification_id' => $verificationId
                     ]
                 ]);
             } else {
-                Log::error('❌ Face verification API failed', ['error' => $verificationResult['message']]);
+                Log::error('❌ Face verification API failed', [
+                    'error' => $verificationResult['message'],
+                    'verification_id' => $verificationId
+                ]);
+                
+                // Log face verification failure
+                try {
+                    AuditLog::logFaceVerification(
+                        AuditLog::STATUS_FAILURE,
+                        $userId,
+                        null,
+                        $verificationId
+                    );
+                } catch (\Exception $e) {
+                    Log::warning('Failed to log face verification failure: ' . $e->getMessage());
+                }
+                
                 return response()->json([
                     'success' => false,
                     'message' => $verificationResult['message'] ?? 'Face verification failed',
