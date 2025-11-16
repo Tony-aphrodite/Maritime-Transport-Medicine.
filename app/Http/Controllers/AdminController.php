@@ -537,6 +537,129 @@ class AdminController extends Controller
     }
 
     /**
+     * Get recent audit events for real-time alerts
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getRecentAuditEvents(Request $request): JsonResponse
+    {
+        // Check authentication
+        if (!$this->isAdminAuthenticated()) {
+            return response()->json(['error' => 'Authentication required'], 401);
+        }
+
+        try {
+            // Get timestamp from request (last check time)
+            $since = $request->get('since');
+            $sinceDate = $since ? Carbon::parse($since) : Carbon::now()->subMinutes(5);
+
+            // Get new events since the timestamp, focusing on registration and verification events
+            $events = AuditLog::where('created_at', '>', $sinceDate)
+                ->whereIn('event_type', [
+                    AuditLog::EVENT_REGISTRATION_STARTED,
+                    AuditLog::EVENT_ACCOUNT_CREATION_COMPLETED,
+                    AuditLog::EVENT_ACCOUNT_CREATION_FAILURE,
+                    AuditLog::EVENT_CURP_VERIFICATION_SUCCESS,
+                    AuditLog::EVENT_CURP_VERIFICATION_FAILURE,
+                    AuditLog::EVENT_FACE_MATCHING_SUCCESS,
+                    AuditLog::EVENT_FACE_MATCHING_FAILURE
+                ])
+                ->orderBy('created_at', 'desc')
+                ->take(20)
+                ->get()
+                ->map(function($log) {
+                    return [
+                        'id' => $log->id,
+                        'event_type' => $log->event_type,
+                        'user_id' => $log->user_id,
+                        'status' => $log->status,
+                        'event_data' => $log->event_data,
+                        'created_at' => $log->created_at->toISOString(),
+                        'timestamp' => $log->created_at->format('H:i:s'),
+                        'message' => $this->getEventMessage($log->event_type, $log->status, $log->event_data),
+                        'alert_type' => $this->getAlertType($log->event_type, $log->status),
+                        'alert_title' => $this->getAlertTitle($log->event_type, $log->status, $log->user_id, $log->event_data)
+                    ];
+                });
+
+            return response()->json([
+                'events' => $events,
+                'timestamp' => now()->toISOString()
+            ]);
+
+        } catch (\Exception $e) {
+            Log::warning('Error fetching recent audit events: ' . $e->getMessage());
+            return response()->json([
+                'events' => [],
+                'timestamp' => now()->toISOString(),
+                'error' => 'Database unavailable'
+            ]);
+        }
+    }
+
+    /**
+     * Get alert type for styling
+     */
+    private function getAlertType($eventType, $status)
+    {
+        if ($status === AuditLog::STATUS_SUCCESS) {
+            switch ($eventType) {
+                case AuditLog::EVENT_ACCOUNT_CREATION_COMPLETED:
+                    return 'success'; // Green alert for successful registration
+                case AuditLog::EVENT_CURP_VERIFICATION_SUCCESS:
+                case AuditLog::EVENT_FACE_MATCHING_SUCCESS:
+                    return 'info'; // Blue alert for successful verification
+                default:
+                    return 'success';
+            }
+        } else {
+            return 'error'; // Red alert for failures
+        }
+    }
+
+    /**
+     * Get alert title
+     */
+    private function getAlertTitle($eventType, $status, $userId, $eventData)
+    {
+        $eventData = is_array($eventData) ? $eventData : (is_string($eventData) ? json_decode($eventData, true) : []);
+        $maskedUserId = $this->maskUserId($userId);
+
+        switch ($eventType) {
+            case AuditLog::EVENT_ACCOUNT_CREATION_COMPLETED:
+                return "✅ Registro Exitoso - Usuario {$maskedUserId}";
+            case AuditLog::EVENT_ACCOUNT_CREATION_FAILURE:
+                return "❌ Registro Fallido - Usuario {$maskedUserId}";
+            case AuditLog::EVENT_REGISTRATION_STARTED:
+                return "📝 Nuevo Registro Iniciado - Usuario {$maskedUserId}";
+            case AuditLog::EVENT_CURP_VERIFICATION_SUCCESS:
+                return "🆔 CURP Verificado - Usuario {$maskedUserId}";
+            case AuditLog::EVENT_CURP_VERIFICATION_FAILURE:
+                return "⚠️ Error CURP - Usuario {$maskedUserId}";
+            case AuditLog::EVENT_FACE_MATCHING_SUCCESS:
+                $confidence = $eventData['confidence'] ?? 'N/A';
+                return "👤 Verificación Facial Exitosa - Usuario {$maskedUserId} ({$confidence}%)";
+            case AuditLog::EVENT_FACE_MATCHING_FAILURE:
+                $confidence = $eventData['confidence'] ?? 'N/A';
+                return "❌ Verificación Facial Fallida - Usuario {$maskedUserId} ({$confidence}%)";
+            default:
+                return "🔔 Evento del Sistema - Usuario {$maskedUserId}";
+        }
+    }
+
+    /**
+     * Mask user ID for privacy
+     */
+    private function maskUserId($userId)
+    {
+        if (!$userId || strlen($userId) < 6) {
+            return 'ID***';
+        }
+        return substr($userId, 0, 3) . '***' . substr($userId, -2);
+    }
+
+    /**
      * Generate event message for display
      */
     private function getEventMessage($eventType, $status, $eventData)

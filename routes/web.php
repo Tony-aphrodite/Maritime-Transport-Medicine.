@@ -74,12 +74,15 @@ Route::prefix('admin')->group(function () {
     Route::get('/dashboard', [App\Http\Controllers\AdminController::class, 'dashboard'])->name('admin.dashboard');
     Route::get('/audit-logs', [App\Http\Controllers\AdminController::class, 'auditLogs'])->name('admin.audit.logs');
     Route::get('/audit-logs/export', [App\Http\Controllers\AdminController::class, 'exportAuditLogs'])->name('admin.audit.export');
+    Route::get('/users', function() { return view('admin.users'); })->name('admin.users');
+    Route::get('/settings', function() { return view('admin.settings'); })->name('admin.settings');
     
     // API Routes for admin
     Route::prefix('api')->group(function () {
         Route::get('/dashboard-stats', [App\Http\Controllers\AdminController::class, 'getDashboardStats'])->name('admin.api.dashboard.stats');
         Route::get('/audit-logs-data', [App\Http\Controllers\AdminController::class, 'getAuditLogsData'])->name('admin.api.audit.data');
         Route::get('/audit-log/{id}', [App\Http\Controllers\AdminController::class, 'getAuditLogDetails'])->name('admin.api.audit.details');
+        Route::get('/recent-events', [App\Http\Controllers\AdminController::class, 'getRecentAuditEvents'])->name('admin.api.recent.events');
     });
     
     // Test route for creating sample audit logs (FOR TESTING ONLY)
