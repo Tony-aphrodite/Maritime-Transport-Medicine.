@@ -485,9 +485,12 @@
                 justify-content: center;
             }
         }
+
     </style>
 </head>
 <body>
+    @include('admin.partials.alert-system')
+
     <!-- Admin Header -->
     <header class="admin-header">
         <div class="admin-header-content">
@@ -672,6 +675,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             initializeDashboard();
             startAutoRefresh();
+            // Alert system is initialized by the shared component
         });
 
         async function initializeDashboard() {
@@ -912,11 +916,21 @@
             }, 30000);
         }
 
+        // Enhanced refresh interval
+        function startAutoRefresh() {
+            refreshInterval = setInterval(() => {
+                loadDashboardStats();
+                loadRecentActivities();
+                loadRecentAuditLogs();
+            }, 30000);
+        }
+
         // Cleanup interval on page unload
         window.addEventListener('beforeunload', function() {
             if (refreshInterval) {
                 clearInterval(refreshInterval);
             }
+            // Alert system cleanup is handled by shared component
         });
     </script>
 </body>

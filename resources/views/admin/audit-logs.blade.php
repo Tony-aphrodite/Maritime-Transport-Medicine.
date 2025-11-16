@@ -1302,6 +1302,8 @@
     </style>
 </head>
 <body>
+    @include('admin.partials.alert-system')
+
     <!-- Admin Header -->
     <header class="admin-header">
         <div class="admin-header-content">
