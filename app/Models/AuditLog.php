@@ -36,11 +36,18 @@ class AuditLog extends Model
      * @var array
      */
     protected $casts = [
-        'event_data' => 'array',
+        'event_data' => 'json', // MySQL native JSON support
         'confidence_score' => 'decimal:2',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+    /**
+     * The connection name for the model.
+     *
+     * @var string
+     */
+    protected $connection = 'mysql';
 
     /**
      * Event type constants
