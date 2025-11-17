@@ -803,9 +803,18 @@
 
         function handleSelfieUpload(event) {
             const file = event.target.files[0];
+            console.log('📸 Selfie upload event:', file);
+            
             if (file) {
+                console.log('📸 Selfie file details:', {
+                    name: file.name,
+                    size: file.size,
+                    type: file.type
+                });
+                
                 if (validateImageFile(file)) {
                     selfieFile = file;
+                    console.log('✅ Selfie file validated and stored');
                     
                     const reader = new FileReader();
                     reader.onload = function(e) {
@@ -814,11 +823,13 @@
                         document.querySelector('#selfieContainer .camera-placeholder').style.display = 'none';
                         document.querySelector('#selfieContainer .camera-instructions').style.display = 'none';
                         document.getElementById('retakeSelfie').style.display = 'inline-flex';
+                        console.log('📸 Selfie preview updated');
                     };
                     reader.readAsDataURL(file);
                     
                     checkVerificationReadiness();
                 } else {
+                    console.error('❌ Selfie file validation failed');
                     showAlert('Por favor seleccione un archivo de imagen válido (JPEG, PNG) menor a 5MB', 'error');
                 }
             }
@@ -826,7 +837,14 @@
 
         function handleIneUpload(event) {
             const file = event.target.files[0];
+            console.log('📄 INE upload event:', file);
+            
             if (file) {
+                console.log('📄 INE file details:', {
+                    name: file.name,
+                    size: file.size,
+                    type: file.type
+                });
                 processIneFile(file);
             }
         }
@@ -834,6 +852,7 @@
         function processIneFile(file) {
             if (validateImageFile(file)) {
                 ineFile = file;
+                console.log('✅ INE file validated and stored');
                 
                 const reader = new FileReader();
                 reader.onload = function(e) {
@@ -842,11 +861,13 @@
                     document.querySelector('#ineContainer .camera-placeholder').style.display = 'none';
                     document.querySelector('#ineContainer .camera-instructions').style.display = 'none';
                     document.getElementById('removeIne').style.display = 'inline-flex';
+                    console.log('📄 INE preview updated');
                 };
                 reader.readAsDataURL(file);
                 
                 checkVerificationReadiness();
             } else {
+                console.error('❌ INE file validation failed');
                 showAlert('Por favor seleccione un archivo de imagen válido (JPEG, PNG) menor a 5MB', 'error');
             }
         }
@@ -902,17 +923,28 @@
 
         function checkVerificationReadiness() {
             const ready = selfieFile && ineFile;
+            console.log('🔍 Checking verification readiness:', {
+                hasSelfie: !!selfieFile,
+                hasIne: !!ineFile,
+                ready: ready
+            });
+            
             startVerificationBtn.disabled = !ready;
             
             if (ready) {
                 startVerificationBtn.innerHTML = '<i class="fas fa-shield-check"></i> Iniciar Verificación Facial';
+                console.log('✅ Verification ready - button enabled');
             } else {
                 startVerificationBtn.innerHTML = '<i class="fas fa-shield-check"></i> Complete ambas fotografías para continuar';
+                console.log('⏳ Verification not ready - button disabled');
             }
         }
 
         async function startFaceVerification() {
+            console.log('🔍 Starting face verification...');
+            
             if (!selfieFile || !ineFile) {
+                console.warn('❌ Missing files - selfie:', !!selfieFile, 'ine:', !!ineFile);
                 showAlert('Por favor complete ambas fotografías antes de continuar', 'warning');
                 return;
             }
@@ -925,19 +957,46 @@
             formData.append('selfie', selfieFile);
             formData.append('ine_photo', ineFile);
             
-            // Add CSRF token
-            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            console.log('📋 FormData prepared with:', {
+                selfieSize: selfieFile.size,
+                ineSize: ineFile.size
+            });
+            
+            // Add CSRF token with better error handling
+            const csrfTokenElement = document.querySelector('meta[name="csrf-token"]');
+            if (!csrfTokenElement) {
+                console.error('❌ CSRF token meta tag not found');
+                processingOverlay.classList.add('hidden');
+                showAlert('Error de configuración: Token CSRF no encontrado', 'error');
+                return;
+            }
+            
+            const csrfToken = csrfTokenElement.getAttribute('content');
+            console.log('🔑 CSRF Token found:', csrfToken ? 'Yes' : 'No');
 
             try {
+                console.log('📡 Sending request to /face-verification/compare');
+                
                 const response = await fetch('/face-verification/compare', {
                     method: 'POST',
                     headers: {
-                        'X-CSRF-TOKEN': csrfToken
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
                     },
                     body: formData
                 });
 
+                console.log('📨 Response status:', response.status);
+                console.log('📨 Response headers:', Object.fromEntries(response.headers.entries()));
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('❌ Response not OK:', response.status, errorText);
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+
                 const result = await response.json();
+                console.log('✅ Response result:', result);
                 
                 // Hide processing overlay
                 processingOverlay.classList.add('hidden');
@@ -946,9 +1005,19 @@
                 displayVerificationResults(result);
                 
             } catch (error) {
-                console.error('Verification error:', error);
+                console.error('💥 Verification error:', error);
                 processingOverlay.classList.add('hidden');
-                showAlert('Error durante la verificación. Por favor intente de nuevo.', 'error');
+                
+                let errorMessage = 'Error durante la verificación. Por favor intente de nuevo.';
+                if (error.message.includes('419')) {
+                    errorMessage = 'Error de token de seguridad. Por favor recargue la página e intente de nuevo.';
+                } else if (error.message.includes('422')) {
+                    errorMessage = 'Error de validación. Verifique que las imágenes sean válidas.';
+                } else if (error.message.includes('500')) {
+                    errorMessage = 'Error del servidor. Por favor intente más tarde.';
+                }
+                
+                showAlert(errorMessage, 'error');
             }
         }
 
