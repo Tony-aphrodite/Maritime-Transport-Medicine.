@@ -663,8 +663,36 @@
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', function() {
             initializeEventListeners();
+            checkCameraSupport();
             checkVerificationReadiness();
         });
+        
+        function checkCameraSupport() {
+            const cameraButton = document.getElementById('startSelfieCamera');
+            
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                cameraButton.style.display = 'none';
+                
+                // Show a message about camera not being supported
+                const cameraInstructions = document.querySelector('#selfieContainer .camera-instructions');
+                cameraInstructions.innerHTML = `
+                    <strong>Cámara no disponible</strong><br>
+                    Su navegador no soporta acceso a la cámara.<br>
+                    Por favor use la opción "Subir Archivo" para seleccionar una foto.
+                `;
+                cameraInstructions.style.color = '#f59e0b';
+            } else if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+                cameraButton.style.display = 'none';
+                
+                const cameraInstructions = document.querySelector('#selfieContainer .camera-instructions');
+                cameraInstructions.innerHTML = `
+                    <strong>Conexión no segura</strong><br>
+                    El acceso a la cámara requiere HTTPS.<br>
+                    Por favor use la opción "Subir Archivo" para seleccionar una foto.
+                `;
+                cameraInstructions.style.color = '#f59e0b';
+            }
+        }
 
         function initializeEventListeners() {
             // Selfie camera controls
@@ -687,6 +715,16 @@
 
         async function startSelfieCamera() {
             try {
+                // Check for camera support
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    throw new Error('Su navegador no soporta acceso a la cámara. Por favor use la opción de subir archivo.');
+                }
+                
+                // Check for HTTPS requirement (except for localhost)
+                if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+                    throw new Error('El acceso a la cámara requiere una conexión segura (HTTPS).');
+                }
+                
                 selfieStream = await navigator.mediaDevices.getUserMedia({ 
                     video: { 
                         width: { ideal: 640 }, 
@@ -705,7 +743,19 @@
                 
             } catch (err) {
                 console.error('Error accessing camera:', err);
-                showAlert('Error al acceder a la cámara: ' + err.message, 'error');
+                let errorMessage = 'Error al acceder a la cámara: ';
+                
+                if (err.name === 'NotAllowedError') {
+                    errorMessage += 'Permiso de cámara denegado. Por favor permita el acceso a la cámara e intente de nuevo.';
+                } else if (err.name === 'NotFoundError') {
+                    errorMessage += 'No se encontró ninguna cámara. Por favor use la opción de subir archivo.';
+                } else if (err.name === 'NotSupportedError') {
+                    errorMessage += 'Su navegador no soporta acceso a la cámara. Por favor use la opción de subir archivo.';
+                } else {
+                    errorMessage += err.message || 'Error desconocido. Por favor use la opción de subir archivo.';
+                }
+                
+                showAlert(errorMessage, 'error');
             }
         }
 
