@@ -1338,6 +1338,19 @@
             </p>
         </div>
 
+        @if(isset($databaseStatus) && $databaseStatus === 'disconnected')
+        <!-- Database Status Warning -->
+        <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; color: #856404;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-exclamation-triangle"></i>
+                <strong>Base de datos no disponible</strong>
+            </div>
+            <p style="margin: 0.5rem 0 0 1.5rem; font-size: 0.9rem;">
+                Los datos de auditoría no están disponibles actualmente. Configurar la base de datos MySQL para ver los logs reales.
+            </p>
+        </div>
+        @endif
+
         <!-- Statistics Cards -->
         <div class="stats-grid">
             <div class="stat-card">

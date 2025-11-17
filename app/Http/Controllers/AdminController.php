@@ -180,10 +180,32 @@ class AdminController extends Controller
         $dateTo = $request->get('date_to');
         $search = $request->get('search');
         
-        // Get statistics for the audit logs page
-        $statistics = AuditLog::getStatistics();
+        // Get statistics for the audit logs page - with database connection handling
+        try {
+            $statistics = AuditLog::getStatistics();
+            $databaseStatus = 'connected';
+        } catch (\Exception $e) {
+            // Database unavailable - provide fallback statistics
+            $statistics = [
+                'total_events' => 0,
+                'today_events' => 0,
+                'success_rate' => 0,
+                'top_events' => [
+                    'curp_verification_success' => 0,
+                    'registration_started' => 0,
+                    'face_matching_success' => 0,
+                    'account_creation_completed' => 0
+                ],
+                'recent_failures' => 0,
+                'unique_users' => 0
+            ];
+            $databaseStatus = 'disconnected';
+            Log::warning('Admin audit logs page: Database connection failed', [
+                'error' => $e->getMessage()
+            ]);
+        }
         
-        return view('admin.audit-logs', compact('eventType', 'status', 'userId', 'dateFrom', 'dateTo', 'search', 'statistics'));
+        return view('admin.audit-logs', compact('eventType', 'status', 'userId', 'dateFrom', 'dateTo', 'search', 'statistics', 'databaseStatus'));
     }
 
     /**

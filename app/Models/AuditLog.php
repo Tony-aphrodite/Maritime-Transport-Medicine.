@@ -47,7 +47,7 @@ class AuditLog extends Model
      *
      * @var string
      */
-    protected $connection = 'mysql';
+    // protected $connection = 'mysql'; // Use default connection
 
     /**
      * Event type constants
@@ -141,7 +141,7 @@ class AuditLog extends Model
     /**
      * Log a face verification attempt
      */
-    public static function logFaceVerification(string $status, string $userId = null, float $confidence = null, string $verificationId = null): AuditLog
+    public static function logFaceVerification(string $status, string $userId = null, float $confidence = null, string $verificationId = null): ?AuditLog
     {
         return self::logEvent(
             $status === self::STATUS_SUCCESS ? self::EVENT_FACE_MATCHING_SUCCESS : self::EVENT_FACE_MATCHING_FAILURE,

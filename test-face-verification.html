@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Face Verification Test</title>
+</head>
+<body>
+    <h1>Test Face Verification Button</h1>
+    
+    <div>
+        <input type="file" id="selfieFile" accept="image/*">
+        <label for="selfieFile">Select Selfie</label>
+    </div>
+    
+    <div>
+        <input type="file" id="ineFile" accept="image/*">
+        <label for="ineFile">Select INE Photo</label>
+    </div>
+    
+    <button id="testButton">Test Verification</button>
+    
+    <div id="result"></div>
+    
+    <script>
+        let selfieFile = null;
+        let ineFile = null;
+        
+        document.getElementById('selfieFile').addEventListener('change', function(e) {
+            selfieFile = e.target.files[0];
+            console.log('Selfie selected:', selfieFile);
+        });
+        
+        document.getElementById('ineFile').addEventListener('change', function(e) {
+            ineFile = e.target.files[0];
+            console.log('INE selected:', ineFile);
+        });
+        
+        document.getElementById('testButton').addEventListener('click', async function() {
+            console.log('Button clicked!');
+            
+            if (!selfieFile || !ineFile) {
+                alert('Please select both files');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('selfie', selfieFile);
+            formData.append('ine_photo', ineFile);
+            
+            try {
+                // First get CSRF token
+                const tokenResponse = await fetch('/face-verification');
+                const tokenText = await tokenResponse.text();
+                const tokenMatch = tokenText.match(/name="csrf-token"\s+content="([^"]+)"/);
+                const csrfToken = tokenMatch ? tokenMatch[1] : '';
+                
+                console.log('CSRF Token:', csrfToken);
+                
+                const response = await fetch('/face-verification/compare', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    body: formData
+                });
+                
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                
+                const result = await response.json();
+                console.log('Response result:', result);
+                
+                document.getElementById('result').innerHTML = '<pre>' + JSON.stringify(result, null, 2) + '</pre>';
+                
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('result').innerHTML = 'Error: ' + error.message;
+            }
+        });
+    </script>
+</body>
+</html>
