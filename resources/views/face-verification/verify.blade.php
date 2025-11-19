@@ -907,17 +907,34 @@
         }
 
         function validateImageFile(file) {
-            const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+            console.log('🔍 Validating file:', {
+                name: file.name,
+                type: file.type,
+                size: file.size
+            });
+            
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
             const maxSize = 5 * 1024 * 1024; // 5MB
             
             if (!allowedTypes.includes(file.type)) {
+                console.error('❌ Invalid file type:', file.type);
+                showAlert(`Tipo de archivo no válido: ${file.type}. Use JPEG, PNG o JPG.`, 'error');
                 return false;
             }
             
             if (file.size > maxSize) {
+                console.error('❌ File too large:', file.size);
+                showAlert(`Archivo demasiado grande: ${(file.size / 1024 / 1024).toFixed(2)}MB. Máximo 5MB.`, 'error');
                 return false;
             }
             
+            if (file.size === 0) {
+                console.error('❌ Empty file detected');
+                showAlert('Archivo vacío detectado. Por favor seleccione un archivo válido.', 'error');
+                return false;
+            }
+            
+            console.log('✅ File validation passed');
             return true;
         }
 
@@ -943,23 +960,43 @@
         async function startFaceVerification() {
             console.log('🔍 Starting face verification...');
             
+            // Enhanced validation with detailed logging
+            console.log('🔍 File validation check:', {
+                selfieFile: selfieFile,
+                ineFile: ineFile,
+                hasSelfie: !!selfieFile,
+                hasIne: !!ineFile
+            });
+            
             if (!selfieFile || !ineFile) {
                 console.warn('❌ Missing files - selfie:', !!selfieFile, 'ine:', !!ineFile);
                 showAlert('Por favor complete ambas fotografías antes de continuar', 'warning');
                 return;
             }
 
+            // Additional file validation
+            if (!selfieFile.type || !ineFile.type) {
+                console.error('❌ Invalid file types - selfie type:', selfieFile.type, 'ine type:', ineFile.type);
+                showAlert('Error: Archivos no válidos detectados', 'error');
+                return;
+            }
+
             // Show processing overlay
             processingOverlay.classList.remove('hidden');
             
-            // Prepare form data
+            // Prepare form data with enhanced logging
             const formData = new FormData();
             formData.append('selfie', selfieFile);
             formData.append('ine_photo', ineFile);
             
-            console.log('📋 FormData prepared with:', {
+            console.log('📋 FormData prepared with detailed info:', {
                 selfieSize: selfieFile.size,
-                ineSize: ineFile.size
+                selfieType: selfieFile.type,
+                selfieName: selfieFile.name,
+                ineSize: ineFile.size,
+                ineType: ineFile.type,
+                ineName: ineFile.name,
+                formDataEntries: Array.from(formData.entries()).map(([key, value]) => [key, value instanceof File ? `File: ${value.name}` : value])
             });
             
             // Add CSRF token with better error handling
@@ -1000,6 +1037,11 @@
                 
                 // Hide processing overlay
                 processingOverlay.classList.add('hidden');
+                
+                // Check if simulation mode and warn user
+                if (result.data && result.data.simulation_mode) {
+                    console.warn('⚠️ Running in simulation mode - results are for testing only');
+                }
                 
                 // Show results
                 displayVerificationResults(result);
@@ -1044,7 +1086,11 @@
                 document.getElementById('continueRegistration').style.display = 'inline-flex';
                 document.getElementById('retryVerification').style.display = 'none';
                 
-                showAlert('Su identidad ha sido verificada exitosamente. Puede continuar con el registro.', 'success');
+                let successMessage = 'Su identidad ha sido verificada exitosamente. Puede continuar con el registro.';
+                if (result.data.simulation_mode) {
+                    successMessage += ' [MODO SIMULACIÓN - Solo para pruebas]';
+                }
+                showAlert(successMessage, 'success');
                 
             } else {
                 // Failure

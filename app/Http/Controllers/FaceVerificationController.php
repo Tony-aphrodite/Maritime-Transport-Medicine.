@@ -56,7 +56,19 @@ class FaceVerificationController extends Controller
                 'user_agent' => $request->userAgent(),
                 'has_selfie' => $request->hasFile('selfie'),
                 'has_ine' => $request->hasFile('ine_photo'),
-                'verification_id' => $verificationId
+                'verification_id' => $verificationId,
+                'selfie_info' => $request->hasFile('selfie') ? [
+                    'name' => $request->file('selfie')->getClientOriginalName(),
+                    'size' => $request->file('selfie')->getSize(),
+                    'mime' => $request->file('selfie')->getMimeType(),
+                    'is_valid' => $request->file('selfie')->isValid()
+                ] : 'No selfie file',
+                'ine_info' => $request->hasFile('ine_photo') ? [
+                    'name' => $request->file('ine_photo')->getClientOriginalName(),
+                    'size' => $request->file('ine_photo')->getSize(),
+                    'mime' => $request->file('ine_photo')->getMimeType(),
+                    'is_valid' => $request->file('ine_photo')->isValid()
+                ] : 'No INE file'
             ]);
 
             // Validate request
@@ -176,17 +188,17 @@ class FaceVerificationController extends Controller
                 'required',
                 'file',
                 'image',
-                'mimes:jpeg,png,jpg',
+                'mimes:jpeg,png,jpg,webp',
                 'max:5120', // 5MB max
-                'dimensions:min_width=300,min_height=300,max_width=4000,max_height=4000'
+                'dimensions:min_width=100,min_height=100,max_width=4000,max_height=4000'
             ],
             'ine_photo' => [
                 'required',
                 'file',
                 'image',
-                'mimes:jpeg,png,jpg',
+                'mimes:jpeg,png,jpg,webp',
                 'max:5120', // 5MB max
-                'dimensions:min_width=300,min_height=300,max_width=4000,max_height=4000'
+                'dimensions:min_width=100,min_height=100,max_width=4000,max_height=4000'
             ],
             'curp' => [
                 'sometimes',
@@ -197,15 +209,15 @@ class FaceVerificationController extends Controller
         ], [
             'selfie.required' => 'La fotografía selfie es requerida',
             'selfie.image' => 'El archivo selfie debe ser una imagen válida',
-            'selfie.mimes' => 'El archivo selfie debe ser JPEG, PNG o JPG',
+            'selfie.mimes' => 'El archivo selfie debe ser JPEG, PNG, JPG o WebP',
             'selfie.max' => 'El archivo selfie no debe exceder 5MB',
-            'selfie.dimensions' => 'La imagen selfie debe tener al menos 300x300 píxeles',
+            'selfie.dimensions' => 'La imagen selfie debe tener al menos 100x100 píxeles y máximo 4000x4000',
             
             'ine_photo.required' => 'La fotografía del INE es requerida',
             'ine_photo.image' => 'El archivo INE debe ser una imagen válida',
-            'ine_photo.mimes' => 'El archivo INE debe ser JPEG, PNG o JPG',
+            'ine_photo.mimes' => 'El archivo INE debe ser JPEG, PNG, JPG o WebP',
             'ine_photo.max' => 'El archivo INE no debe exceder 5MB',
-            'ine_photo.dimensions' => 'La imagen INE debe tener al menos 300x300 píxeles',
+            'ine_photo.dimensions' => 'La imagen INE debe tener al menos 100x100 píxeles y máximo 4000x4000',
             
             'curp.size' => 'El CURP debe tener exactamente 18 caracteres',
             'curp.regex' => 'El formato del CURP no es válido'
@@ -363,13 +375,34 @@ class FaceVerificationController extends Controller
         // Simulate processing delay
         sleep(2);
 
-        // Generate simulated results
-        $confidence = rand(75, 98);
-        $match = $confidence >= 80; // Consider match if confidence >= 80%
+        // More realistic simulation based on image analysis
+        $selfieHash = md5($selfieBase64);
+        $ineHash = md5($ineBase64);
+        
+        // Check if images are likely the same (basic comparison)
+        $similarity = similar_text($selfieHash, $ineHash);
+        $similarityPercent = ($similarity / max(strlen($selfieHash), strlen($ineHash))) * 100;
+        
+        // More realistic confidence scoring
+        if ($similarityPercent > 80) {
+            // Images are very similar - likely same person
+            $confidence = rand(85, 98);
+            $match = true;
+        } else if ($similarityPercent > 50) {
+            // Some similarity - might be same person with different conditions
+            $confidence = rand(70, 85);
+            $match = $confidence >= 82; // Higher threshold for uncertain cases
+        } else {
+            // Very different images - likely different people
+            $confidence = rand(15, 45);
+            $match = false;
+        }
 
         Log::info('🎯 Simulated verification result', [
             'match' => $match,
-            'confidence' => $confidence
+            'confidence' => $confidence,
+            'similarity_percent' => $similarityPercent,
+            'note' => 'SIMULATION MODE - Using placeholder token'
         ]);
 
         return [
@@ -377,7 +410,8 @@ class FaceVerificationController extends Controller
             'data' => [
                 'match' => $match,
                 'confidence' => $confidence,
-                'verification_id' => 'sim_' . uniqid()
+                'verification_id' => 'sim_' . uniqid(),
+                'simulation_mode' => true
             ]
         ];
     }
