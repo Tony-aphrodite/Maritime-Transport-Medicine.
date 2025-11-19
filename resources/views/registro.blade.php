@@ -853,7 +853,7 @@
                             </label>
                             <div class="input-with-button">
                                 <input type="text" class="form-control" name="expediente_medico" placeholder="Número de expediente médico">
-                                <button type="button" class="search-btn">
+                                <button type="button" onclick="searchMedicalRecord()" class="search-btn">
                                     <i class="fas fa-search"></i>
                                     Buscar Expediente Méd.
                                 </button>
@@ -1417,6 +1417,178 @@
             
             // Redirect to CURP validation page
             window.location.href = '/curp/validate?from=registry&curp=' + encodeURIComponent(curp);
+        }
+
+        // Function to search medical record
+        function searchMedicalRecord() {
+            const expedienteInput = document.querySelector('input[name="expediente_medico"]');
+            const expedienteNumber = expedienteInput.value.trim();
+            
+            if (!expedienteNumber) {
+                alert('Por favor ingrese un número de expediente médico antes de buscar');
+                expedienteInput.focus();
+                return;
+            }
+            
+            // Validate expediente format (basic validation - adjust as needed)
+            if (expedienteNumber.length < 3) {
+                alert('El número de expediente debe tener al menos 3 caracteres');
+                expedienteInput.focus();
+                return;
+            }
+            
+            // Show loading state
+            const searchBtn = event.target;
+            const originalText = searchBtn.innerHTML;
+            searchBtn.disabled = true;
+            searchBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Buscando...';
+            
+            // Simulate API call for medical record search
+            setTimeout(() => {
+                // Reset button state
+                searchBtn.disabled = false;
+                searchBtn.innerHTML = originalText;
+                
+                // For demonstration - in production this would be a real API call
+                const mockMedicalData = {
+                    'EXP123456': {
+                        nombre: 'Juan Carlos',
+                        apellido_paterno: 'García',
+                        apellido_materno: 'López',
+                        fecha_nacimiento: '1985-04-15',
+                        telefono: '5551234567',
+                        email: 'juan.garcia@email.com',
+                        found: true
+                    },
+                    'EXP789012': {
+                        nombre: 'María Elena',
+                        apellido_paterno: 'Rodríguez',
+                        apellido_materno: 'Hernández',
+                        fecha_nacimiento: '1990-08-22',
+                        telefono: '5559876543',
+                        email: 'maria.rodriguez@email.com',
+                        found: true
+                    }
+                };
+                
+                const record = mockMedicalData[expedienteNumber.toUpperCase()];
+                
+                if (record && record.found) {
+                    // Auto-fill form with found data
+                    fillFormWithMedicalData(record);
+                    
+                    // Show success message
+                    showMedicalRecordMessage('success', `
+                        <i class="fas fa-check-circle"></i> 
+                        Expediente médico encontrado. Los datos han sido cargados automáticamente.
+                    `);
+                } else {
+                    // Show not found message
+                    showMedicalRecordMessage('warning', `
+                        <i class="fas fa-exclamation-triangle"></i> 
+                        No se encontró información para el expediente "${expedienteNumber}". Puede continuar con el registro manual.
+                    `);
+                }
+            }, 1500); // Simulate network delay
+        }
+        
+        // Function to fill form with medical record data
+        function fillFormWithMedicalData(data) {
+            try {
+                // Fill basic information
+                if (data.nombre) {
+                    const nameField = document.querySelector('input[name="nombre"]');
+                    if (nameField && !nameField.value) nameField.value = data.nombre;
+                }
+                
+                if (data.apellido_paterno) {
+                    const paternalField = document.querySelector('input[name="apellido_paterno"]');
+                    if (paternalField && !paternalField.value) paternalField.value = data.apellido_paterno;
+                }
+                
+                if (data.apellido_materno) {
+                    const maternalField = document.querySelector('input[name="apellido_materno"]');
+                    if (maternalField && !maternalField.value) maternalField.value = data.apellido_materno;
+                }
+                
+                if (data.fecha_nacimiento) {
+                    const birthdateField = document.querySelector('input[name="fecha_nacimiento"]');
+                    if (birthdateField && !birthdateField.value) birthdateField.value = data.fecha_nacimiento;
+                }
+                
+                if (data.telefono) {
+                    const phoneField = document.querySelector('input[name="telefono"]');
+                    if (phoneField && !phoneField.value) phoneField.value = data.telefono;
+                }
+                
+                if (data.email) {
+                    const emailField = document.querySelector('input[name="email"]');
+                    if (emailField && !emailField.value) emailField.value = data.email;
+                }
+                
+                console.log('📋 Medical record data loaded successfully');
+                
+                // Log this as an audit event
+                console.log('🔍 Medical record search completed for expediente:', data);
+                
+            } catch (error) {
+                console.error('❌ Error filling form with medical data:', error);
+                showMedicalRecordMessage('error', '<i class="fas fa-times-circle"></i> Error al cargar los datos. Por favor, ingrese la información manualmente.');
+            }
+        }
+        
+        // Function to show medical record search messages
+        function showMedicalRecordMessage(type, message) {
+            const expedienteInput = document.querySelector('input[name="expediente_medico"]');
+            const parentDiv = expedienteInput.closest('.field-group');
+            
+            // Remove existing message
+            const existingMessage = parentDiv.querySelector('.medical-record-message');
+            if (existingMessage) {
+                existingMessage.remove();
+            }
+            
+            // Create new message
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'medical-record-message';
+            messageDiv.style.cssText = `
+                margin-top: 0.5rem; 
+                padding: 0.75rem; 
+                border-radius: 6px; 
+                font-size: 0.875rem;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            `;
+            
+            // Set message style based on type
+            switch (type) {
+                case 'success':
+                    messageDiv.style.background = '#f0fdf4';
+                    messageDiv.style.border = '1px solid #22c55e';
+                    messageDiv.style.color = '#166534';
+                    break;
+                case 'warning':
+                    messageDiv.style.background = '#fffbeb';
+                    messageDiv.style.border = '1px solid #f59e0b';
+                    messageDiv.style.color = '#92400e';
+                    break;
+                case 'error':
+                    messageDiv.style.background = '#fef2f2';
+                    messageDiv.style.border = '1px solid #ef4444';
+                    messageDiv.style.color = '#dc2626';
+                    break;
+            }
+            
+            messageDiv.innerHTML = message;
+            parentDiv.appendChild(messageDiv);
+            
+            // Auto-remove message after 8 seconds
+            setTimeout(() => {
+                if (messageDiv.parentNode) {
+                    messageDiv.parentNode.removeChild(messageDiv);
+                }
+            }, 8000);
         }
 
         // Function to simulate face verification for testing
