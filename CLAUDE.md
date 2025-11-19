@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Laravel 10 web application for Maritime Transport Medicine. The project uses PHP 8.1+ and includes basic authentication flows with views for login, registration, and dashboard pages.
+This is a Laravel 10 web application for Maritime Transport Medicine. The project uses PHP 8.1+ and includes advanced identity verification systems including CURP (Mexican ID) validation, facial recognition, and comprehensive audit logging for regulatory compliance.
 
 ## Development Commands
 
@@ -50,11 +50,11 @@ The application has evolved from simple view routes to a feature-rich system:
 - **Audit System**: Comprehensive logging system tracking all user interactions
 
 ### Routing Structure
-- Authentication routes (`/login`, `/registro`) handled by dedicated controllers
-- CURP validation routes (`/curp/validate`) with API integration
-- Face verification routes (`/face-verification/*`) for biometric validation
-- Admin routes (`/admin/*`) with authentication middleware and dashboard
-- API endpoints for admin statistics and audit log data
+- **Authentication Routes**: `/login`, `/registro` handled by LoginController and RegistrationController
+- **CURP Validation Routes**: `/curp/validate` with VerificaMex API integration via CurpController
+- **Face Verification Routes**: `/face-verification/*` for biometric validation via FaceVerificationController
+- **Admin Routes**: `/admin/*` with session-based authentication and comprehensive dashboard
+- **Admin API Routes**: `/admin/api/*` for dashboard statistics, audit logs, and real-time monitoring
 
 ### Authentication
 - Uses Laravel's built-in authentication with User model
@@ -74,15 +74,25 @@ Complete CURP (Clave Única de Registro de Población) validation system integra
 ### Components
 - **Standalone Validation Page**: `/curp/validate` - Dedicated CURP validation interface
 - **Registration Integration**: Enhanced CURP input in registration form with real-time validation
-- **Backend API**: `CurpController` handles VerificaMex API integration
-- **Client-side Validation**: JavaScript for format validation and UX
+- **Backend API**: `CurpController` handles VerificaMex API integration with comprehensive error handling
+- **Client-side Validation**: JavaScript for format validation and UX improvements
 
 ### API Configuration
 Configure VerificaMex API credentials in `.env`:
-```
+```env
 VERIFICAMEX_TOKEN=your-bearer-token-here
-VERIFICAMEX_BASE_URL=https://api.verificamex.com/v1
+VERIFICAMEX_BASE_URL=https://api.verificamex.com
 ```
+
+### Routes
+- `GET /curp/validate` - Show CURP validation form
+- `POST /curp/validate` - Submit CURP for validation
+- `POST /curp/validate-format` - AJAX format validation
+
+### CURP Format
+18-character alphanumeric code following official Mexican CURP structure:
+- Example: `PEGJ850415HDFRRN05`
+- Validation includes format checking and RENAPO database verification
 
 ## Admin System
 
@@ -168,7 +178,20 @@ Biometric facial recognition system for identity verification using face matchin
 - All API integrations include proper error handling and logging
 - Session-based admin authentication with proper logout functionality
 
-### Testing Routes
+### Environment Configuration
+Essential environment variables for external APIs:
+```env
+# VerificaMex CURP API
+VERIFICAMEX_TOKEN=your-verificamex-token
+VERIFICAMEX_BASE_URL=https://api.verificamex.com
+
+# Face Verification API (if implemented)
+FACE_VERIFY_TOKEN=your-face-verification-token
+FACE_VERIFY_BASE_URL=https://api.facecompare.com
+FACE_VERIFY_ENDPOINT=/v1/compare
+```
+
+### Testing and Development Routes
 The application includes several test routes for development:
 - `/admin/test-credentials` - Shows expected admin login credentials
 - `/admin/create-test-data` - Generates sample audit log data
