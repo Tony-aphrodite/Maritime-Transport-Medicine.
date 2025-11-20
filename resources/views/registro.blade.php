@@ -526,6 +526,59 @@
             font-size: 1rem;
         }
 
+        /* Password Toggle Button */
+        .password-toggle-btn {
+            padding: 12px 16px;
+            background: linear-gradient(135deg, #64748b, #475569);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 48px;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .password-toggle-btn:hover {
+            background: linear-gradient(135deg, #475569, #334155);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(100, 116, 139, 0.3);
+        }
+
+        .password-toggle-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(100, 116, 139, 0.2);
+        }
+
+        .password-toggle-btn i {
+            transition: all 0.2s ease;
+        }
+
+        .password-toggle-btn.showing-password {
+            background: linear-gradient(135deg, #0F4C75, #3282B8);
+        }
+
+        .password-toggle-btn.showing-password:hover {
+            background: linear-gradient(135deg, #0A3A5C, #0F4C75);
+        }
+
+        /* Ensure password inputs remain accessible during validation */
+        .input-with-button .form-control {
+            pointer-events: auto !important;
+            z-index: 1;
+            position: relative;
+        }
+
+        .input-with-button .form-control:focus {
+            outline: none;
+            border-color: #0F4C75 !important;
+            box-shadow: 0 0 0 3px rgba(15, 76, 117, 0.1) !important;
+        }
+
         /* Grid Layouts */
         .two-columns {
             display: grid;
@@ -930,7 +983,12 @@
                                     <i class="fas fa-lock"></i>
                                     Contraseña <span class="required">*</span>
                                 </label>
-                                <input type="password" class="form-control" name="password" placeholder="Mínimo 8 caracteres" minlength="8" required>
+                                <div class="input-with-button">
+                                    <input type="password" class="form-control" name="password" id="passwordField" placeholder="Mínimo 8 caracteres" minlength="8" required>
+                                    <button type="button" onclick="togglePasswordVisibility('passwordField', this)" class="password-toggle-btn" title="Mostrar contraseña">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
                                 <div style="font-size: 0.8rem; color: #64748b; margin-top: 0.25rem;">
                                     <i class="fas fa-info-circle"></i> Al menos 8 caracteres, incluya mayúsculas, minúsculas y números
                                 </div>
@@ -941,7 +999,12 @@
                                     <i class="fas fa-lock"></i>
                                     Confirmar Contraseña <span class="required">*</span>
                                 </label>
-                                <input type="password" class="form-control" name="password_confirmation" placeholder="Confirme su contraseña" minlength="8" required>
+                                <div class="input-with-button">
+                                    <input type="password" class="form-control" name="password_confirmation" id="passwordConfirmField" placeholder="Confirme su contraseña" minlength="8" required>
+                                    <button type="button" onclick="togglePasswordVisibility('passwordConfirmField', this)" class="password-toggle-btn" title="Mostrar contraseña">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
                                 <div id="passwordMatchMessage" style="margin-top: 0.5rem; font-size: 0.875rem; display: none;"></div>
                             </div>
                         </div>
@@ -1001,7 +1064,8 @@
                                     <i class="fas fa-calendar-alt"></i>
                                     Fecha de Nacimiento <span class="required">*</span>
                                 </label>
-                                <input type="date" class="form-control" name="fecha_nacimiento" required>
+                                <input type="date" class="form-control" name="fecha_nacimiento" id="birthdateField" required>
+                                <div id="ageVerificationMessage" style="margin-top: 0.5rem; font-size: 0.875rem; display: none;"></div>
                             </div>
 
                             <div class="field-group">
@@ -1157,11 +1221,91 @@
                 </div>
             </div>
 
-            <!-- Section 4 - Face Verification -->
+            <!-- Section 4 - Parental Consent (for minors under 18) -->
+            <div class="form-section" id="parentalConsentSection" style="display: none;">
+                <div class="section-header">
+                    <i class="fas fa-user-shield"></i>
+                    Sección 4 – Consentimiento Parental (Menor de 18 años)
+                </div>
+                <div class="section-content">
+                    <div class="field-grid">
+                        <div class="alert alert-info" style="background: #e0f2fe; border: 1px solid #0288d1; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                <i class="fas fa-info-circle" style="color: #0288d1; font-size: 1.2rem;"></i>
+                                <strong style="color: #01579b;">Consentimiento Parental Requerido</strong>
+                            </div>
+                            <p style="margin: 0; color: #0277bd; line-height: 1.5;">
+                                Como eres menor de 18 años, necesitamos el consentimiento de tu padre, madre o tutor legal 
+                                para completar tu registro. Por favor proporciona la información de contacto de tu 
+                                padre/madre/tutor legal.
+                            </p>
+                        </div>
+
+                        <div class="two-columns">
+                            <div class="field-group">
+                                <label class="field-label">
+                                    <i class="fas fa-user"></i>
+                                    Nombre Completo del Padre/Madre/Tutor <span class="required">*</span>
+                                </label>
+                                <input type="text" class="form-control" name="parent_full_name" id="parentFullNameField" placeholder="Nombre completo del padre/madre/tutor">
+                            </div>
+
+                            <div class="field-group">
+                                <label class="field-label">
+                                    <i class="fas fa-envelope"></i>
+                                    Correo Electrónico del Padre/Madre/Tutor <span class="required">*</span>
+                                </label>
+                                <input type="email" class="form-control" name="parent_email" id="parentEmailField" placeholder="correo.padre@ejemplo.com">
+                            </div>
+                        </div>
+
+                        <div class="two-columns">
+                            <div class="field-group">
+                                <label class="field-label">
+                                    <i class="fas fa-phone"></i>
+                                    Teléfono del Padre/Madre/Tutor
+                                </label>
+                                <input type="tel" class="form-control" name="parent_phone" id="parentPhoneField" placeholder="(555) 123-4567">
+                            </div>
+
+                            <div class="field-group">
+                                <label class="field-label">
+                                    <i class="fas fa-users"></i>
+                                    Relación <span class="required">*</span>
+                                </label>
+                                <select class="form-select" name="parent_relationship" id="parentRelationshipField">
+                                    <option value="">Seleccione...</option>
+                                    <option value="padre">Padre</option>
+                                    <option value="madre">Madre</option>
+                                    <option value="tutor_legal">Tutor Legal</option>
+                                    <option value="abuelo">Abuelo/a</option>
+                                    <option value="tio">Tío/a</option>
+                                    <option value="otro">Otro Familiar</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-warning" style="background: #fff3e0; border: 1px solid #ff9800; border-radius: 8px; padding: 1rem; margin-top: 1.5rem;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                <i class="fas fa-exclamation-triangle" style="color: #ff9800; font-size: 1.1rem;"></i>
+                                <strong style="color: #e65100;">Proceso de Consentimiento</strong>
+                            </div>
+                            <p style="margin: 0; color: #ef6c00; line-height: 1.5; font-size: 0.9rem;">
+                                • Se enviará un correo electrónico al padre/madre/tutor para solicitar consentimiento<br>
+                                • El padre/madre/tutor debe aprobar el registro en un plazo de 7 días<br>
+                                • Recibirás una notificación cuando se apruebe tu registro<br>
+                                • Tu cuenta estará pendiente hasta recibir la aprobación parental
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 5 - Face Verification -->
             <div class="form-section">
                 <div class="section-header">
                     <i class="fas fa-shield-check"></i>
-                    Sección 4 – Verificación de Identidad Facial
+                    Sección 5 – Verificación de Identidad Facial
                 </div>
                 <div class="section-content">
                     <div class="field-grid">
@@ -1236,6 +1380,8 @@
             const passwordInput = document.querySelector('input[name="password"]');
             const confirmPasswordInput = document.querySelector('input[name="password_confirmation"]');
             const passwordMatchMessage = document.getElementById('passwordMatchMessage');
+            const birthdateField = document.getElementById('birthdateField');
+            const ageVerificationMessage = document.getElementById('ageVerificationMessage');
             
             // CURP format validation regex
             const curpRegex = /^[A-Z]{1}[AEIOUX]{1}[A-Z]{2}[0-9]{2}(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])[HM]{1}[A-Z]{2}[BCDFGHJKLMNPQRSTVWXYZ]{3}[0-9A-Z]{1}[0-9]{1}$/;
@@ -1271,6 +1417,11 @@
             
             if (confirmPasswordInput) {
                 confirmPasswordInput.addEventListener('input', validatePasswordMatch);
+            }
+
+            // Age verification for parental consent
+            if (birthdateField) {
+                birthdateField.addEventListener('change', checkAgeForParentalConsent);
             }
             
             function validatePassword() {
@@ -1312,9 +1463,10 @@
                     passwordInput.style.backgroundColor = '#fef2f2';
                 }
                 
-                // Update password hint
-                const passwordHint = passwordInput.nextElementSibling;
-                if (passwordHint) {
+                // Update password hint - find the hint div after the input-with-button container
+                const passwordContainer = passwordInput.closest('.input-with-button');
+                const passwordHint = passwordContainer ? passwordContainer.nextElementSibling : passwordInput.nextElementSibling;
+                if (passwordHint && passwordHint.style !== undefined) {
                     passwordHint.innerHTML = message;
                     passwordHint.style.color = color;
                 }
@@ -1417,6 +1569,147 @@
             
             // Redirect to CURP validation page
             window.location.href = '/curp/validate?from=registry&curp=' + encodeURIComponent(curp);
+        }
+
+        // Function to toggle password visibility
+        function togglePasswordVisibility(fieldId, buttonElement) {
+            const passwordField = document.getElementById(fieldId);
+            const icon = buttonElement.querySelector('i');
+            
+            if (passwordField.type === 'password') {
+                // Show password
+                passwordField.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+                buttonElement.classList.add('showing-password');
+                buttonElement.setAttribute('title', 'Ocultar contraseña');
+            } else {
+                // Hide password
+                passwordField.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+                buttonElement.classList.remove('showing-password');
+                buttonElement.setAttribute('title', 'Mostrar contraseña');
+            }
+        }
+
+        // Function to check age for parental consent requirement
+        function checkAgeForParentalConsent() {
+            const birthdateField = document.getElementById('birthdateField');
+            const ageVerificationMessage = document.getElementById('ageVerificationMessage');
+            const parentalConsentSection = document.getElementById('parentalConsentSection');
+            
+            if (!birthdateField.value) {
+                ageVerificationMessage.style.display = 'none';
+                parentalConsentSection.style.display = 'none';
+                setParentalConsentRequired(false);
+                return;
+            }
+
+            const birthDate = new Date(birthdateField.value);
+            const today = new Date();
+            const age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+            
+            // Adjust age if birthday hasn't occurred this year
+            const actualAge = (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) ? age - 1 : age;
+            
+            console.log(`🎂 Age calculated: ${actualAge} years old`);
+            
+            if (actualAge < 18) {
+                // Show parental consent section
+                showAgeVerificationMessage('warning', `
+                    <i class="fas fa-exclamation-triangle"></i> 
+                    Menor de edad detectado (${actualAge} años). Se requiere consentimiento parental.
+                `);
+                parentalConsentSection.style.display = 'block';
+                setParentalConsentRequired(true);
+                
+                // Scroll to parental consent section
+                setTimeout(() => {
+                    parentalConsentSection.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'start' 
+                    });
+                }, 100);
+                
+                console.log('🔒 Parental consent required for minor');
+            } else {
+                // Hide parental consent section
+                showAgeVerificationMessage('success', `
+                    <i class="fas fa-check-circle"></i> 
+                    Usuario mayor de edad (${actualAge} años). No se requiere consentimiento parental.
+                `);
+                parentalConsentSection.style.display = 'none';
+                setParentalConsentRequired(false);
+                
+                console.log('✅ User is of legal age');
+            }
+        }
+
+        // Function to show age verification messages
+        function showAgeVerificationMessage(type, message) {
+            const ageVerificationMessage = document.getElementById('ageVerificationMessage');
+            
+            ageVerificationMessage.style.display = 'flex';
+            ageVerificationMessage.style.alignItems = 'center';
+            ageVerificationMessage.style.gap = '0.5rem';
+            ageVerificationMessage.innerHTML = message;
+            
+            switch (type) {
+                case 'success':
+                    ageVerificationMessage.style.color = '#10B981';
+                    ageVerificationMessage.style.background = '#f0fdf4';
+                    ageVerificationMessage.style.border = '1px solid #22c55e';
+                    break;
+                case 'warning':
+                    ageVerificationMessage.style.color = '#f59e0b';
+                    ageVerificationMessage.style.background = '#fffbeb';
+                    ageVerificationMessage.style.border = '1px solid #f59e0b';
+                    break;
+                case 'error':
+                    ageVerificationMessage.style.color = '#ef4444';
+                    ageVerificationMessage.style.background = '#fef2f2';
+                    ageVerificationMessage.style.border = '1px solid #ef4444';
+                    break;
+            }
+            
+            ageVerificationMessage.style.padding = '0.75rem';
+            ageVerificationMessage.style.borderRadius = '6px';
+            ageVerificationMessage.style.marginTop = '0.5rem';
+            
+            // Auto-hide success message after 5 seconds
+            if (type === 'success') {
+                setTimeout(() => {
+                    ageVerificationMessage.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        // Function to set parental consent requirement status
+        function setParentalConsentRequired(required) {
+            window.parentalConsentRequired = required;
+            
+            // Toggle required attribute on parental consent fields
+            const parentalFields = [
+                'parentFullNameField',
+                'parentEmailField', 
+                'parentRelationshipField'
+            ];
+            
+            parentalFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field) {
+                    if (required) {
+                        field.setAttribute('required', 'required');
+                    } else {
+                        field.removeAttribute('required');
+                        field.value = ''; // Clear values when not required
+                    }
+                }
+            });
+            
+            console.log(`🔐 Parental consent requirement set to: ${required}`);
         }
 
         // Function to search medical record
