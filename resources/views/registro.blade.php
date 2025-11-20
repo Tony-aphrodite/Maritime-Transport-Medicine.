@@ -579,6 +579,72 @@
             box-shadow: 0 0 0 3px rgba(15, 76, 117, 0.1) !important;
         }
 
+        /* RFC Input Styling */
+        .rfc-input-container {
+            display: flex;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .rfc-input-container:focus-within {
+            border-color: #0F4C75;
+            box-shadow: 0 0 0 3px rgba(15, 76, 117, 0.1);
+        }
+
+        .rfc-readonly-section {
+            background: #f8fafc;
+            border-right: 1px solid #e5e7eb;
+            padding: 0.75rem;
+            display: flex;
+            align-items: center;
+            min-width: 120px;
+        }
+
+        .rfc-readonly-text {
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            color: #374151;
+            letter-spacing: 1px;
+            font-size: 1rem;
+        }
+
+        .rfc-editable-section {
+            flex: 1;
+            position: relative;
+        }
+
+        .rfc-editable-input {
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0.75rem;
+            width: 100%;
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            letter-spacing: 1px;
+            font-size: 1rem;
+            background: white;
+        }
+
+        .rfc-editable-input:focus {
+            outline: none;
+            background: #fafbfc;
+        }
+
+        .rfc-help-text {
+            font-size: 0.8rem;
+            color: #6b7280;
+            margin-top: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .rfc-help-text i {
+            color: #9ca3af;
+        }
+
         /* Grid Layouts */
         .two-columns {
             display: grid;
@@ -899,13 +965,13 @@
                             </div>
                         </div>
 
-                        <div class="field-group">
+                        <div class="field-group" id="expedienteMedicoField" style="display: none;">
                             <label class="field-label">
                                 <i class="fas fa-folder-open"></i>
-                                Expediente Médico
+                                Expediente Médico <span class="required">*</span>
                             </label>
                             <div class="input-with-button">
-                                <input type="text" class="form-control" name="expediente_medico" placeholder="Número de expediente médico">
+                                <input type="text" class="form-control" name="expediente_medico" id="expedienteMedicoInput" placeholder="Número de expediente médico">
                                 <button type="button" onclick="searchMedicalRecord()" class="search-btn">
                                     <i class="fas fa-search"></i>
                                     Buscar Expediente Méd.
@@ -955,9 +1021,28 @@
                             <div class="field-group">
                                 <label class="field-label">
                                     <i class="fas fa-receipt"></i>
-                                    RFC
+                                    RFC <span class="required">*</span>
                                 </label>
-                                <input type="text" class="form-control" name="rfc" placeholder="RFC (13 caracteres)" maxlength="13">
+                                <div class="rfc-input-container">
+                                    <div class="rfc-readonly-section" id="rfcReadonlySection">
+                                        <span id="rfcFromCurp" class="rfc-readonly-text">--</span>
+                                    </div>
+                                    <div class="rfc-editable-section">
+                                        <input type="text" 
+                                               class="form-control rfc-editable-input" 
+                                               name="rfc_suffix" 
+                                               id="rfcSuffixInput"
+                                               placeholder="XXX" 
+                                               maxlength="3"
+                                               style="text-transform: uppercase;">
+                                        <input type="hidden" name="rfc" id="rfcHiddenInput">
+                                    </div>
+                                </div>
+                                <div class="rfc-help-text">
+                                    <i class="fas fa-info-circle"></i>
+                                    Los primeros 10 caracteres se toman del CURP validado. Solo capture los últimos 3 dígitos.
+                                </div>
+                                <div id="rfcValidationMessage" style="margin-top: 0.5rem; font-size: 0.875rem; display: none;"></div>
                             </div>
 
                             <div class="field-group">
@@ -1423,6 +1508,14 @@
             if (birthdateField) {
                 birthdateField.addEventListener('change', checkAgeForParentalConsent);
             }
+
+            // Medical record field visibility
+            const medicalRecordRadios = document.querySelectorAll('input[name="tiene_expediente"]');
+            if (medicalRecordRadios.length > 0) {
+                medicalRecordRadios.forEach(radio => {
+                    radio.addEventListener('change', toggleMedicalRecordField);
+                });
+            }
             
             function validatePassword() {
                 const password = passwordInput.value;
@@ -1590,6 +1683,48 @@
                 icon.classList.add('fa-eye');
                 buttonElement.classList.remove('showing-password');
                 buttonElement.setAttribute('title', 'Mostrar contraseña');
+            }
+        }
+
+        // Function to toggle medical record field visibility
+        function toggleMedicalRecordField() {
+            const medicalRecordField = document.getElementById('expedienteMedicoField');
+            const medicalRecordInput = document.getElementById('expedienteMedicoInput');
+            const selectedValue = document.querySelector('input[name="tiene_expediente"]:checked');
+            
+            if (selectedValue && selectedValue.value === 'si') {
+                // Show the medical record field
+                medicalRecordField.style.display = 'block';
+                
+                // Make the field required
+                medicalRecordInput.setAttribute('required', 'required');
+                
+                // Scroll to the field smoothly
+                setTimeout(() => {
+                    medicalRecordField.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'nearest' 
+                    });
+                }, 100);
+                
+                console.log('✅ Medical record field shown and made required');
+            } else {
+                // Hide the medical record field
+                medicalRecordField.style.display = 'none';
+                
+                // Remove the required attribute
+                medicalRecordInput.removeAttribute('required');
+                
+                // Clear the input value
+                medicalRecordInput.value = '';
+                
+                // Clear any existing medical record messages
+                const existingMessage = medicalRecordField.querySelector('.medical-record-message');
+                if (existingMessage) {
+                    existingMessage.remove();
+                }
+                
+                console.log('🔒 Medical record field hidden and not required');
             }
         }
 
@@ -2028,6 +2163,9 @@
                 });
                 
                 console.log('✅ Form data restoration completed');
+                
+                // Trigger medical record field visibility check after restoration
+                toggleMedicalRecordField();
                 
                 // Show success message
                 showFormDataRestoredMessage();
