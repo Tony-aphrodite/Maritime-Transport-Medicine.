@@ -137,3 +137,10 @@ Route::prefix('admin')->group(function () {
         ]);
     });
 });
+
+// Parental Consent Routes
+Route::prefix('parental-consent')->group(function () {
+    Route::get('/approve/{token}', [App\Http\Controllers\ParentalConsentController::class, 'showConsentForm'])->name('parental.consent.form');
+    Route::post('/approve/{token}', [App\Http\Controllers\ParentalConsentController::class, 'processConsent'])->name('parental.consent.process');
+    Route::get('/status/{token}', [App\Http\Controllers\ParentalConsentController::class, 'checkStatus'])->name('parental.consent.status');
+});
