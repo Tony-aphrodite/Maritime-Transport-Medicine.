@@ -527,7 +527,7 @@
                                 <i class="fas fa-camera"></i>
                             </div>
                             <p class="camera-instructions">
-                                Tome una selfie o seleccione una foto desde su dispositivo
+                                Tome una selfie usando la cámara de su dispositivo
                             </p>
                             <video id="selfieVideo" class="video-element" autoplay muted style="display: none;"></video>
                             <img id="selfiePreview" class="preview-image" style="display: none;" alt="Selfie Preview">
@@ -548,13 +548,6 @@
                                 Repetir
                             </button>
                             
-                            <div class="file-input-container">
-                                <input type="file" id="selfieUpload" accept="image/*" capture="user">
-                                <label for="selfieUpload" class="file-input-label">
-                                    <i class="fas fa-upload"></i>
-                                    Subir Archivo
-                                </label>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -678,7 +671,7 @@
                 cameraInstructions.innerHTML = `
                     <strong>Cámara no disponible</strong><br>
                     Su navegador no soporta acceso a la cámara.<br>
-                    Por favor use la opción "Subir Archivo" para seleccionar una foto.
+                    Por favor use un dispositivo con cámara compatible.
                 `;
                 cameraInstructions.style.color = '#f59e0b';
             } else if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
@@ -688,7 +681,7 @@
                 cameraInstructions.innerHTML = `
                     <strong>Conexión no segura</strong><br>
                     El acceso a la cámara requiere HTTPS.<br>
-                    Por favor use la opción "Subir Archivo" para seleccionar una foto.
+                    Por favor use una conexión segura para acceder a la cámara.
                 `;
                 cameraInstructions.style.color = '#f59e0b';
             }
@@ -701,7 +694,6 @@
             document.getElementById('retakeSelfie').addEventListener('click', retakeSelfie);
             
             // File uploads
-            document.getElementById('selfieUpload').addEventListener('change', handleSelfieUpload);
             document.getElementById('ineUpload').addEventListener('change', handleIneUpload);
             
             // INE controls
@@ -748,11 +740,11 @@
                 if (err.name === 'NotAllowedError') {
                     errorMessage += 'Permiso de cámara denegado. Por favor permita el acceso a la cámara e intente de nuevo.';
                 } else if (err.name === 'NotFoundError') {
-                    errorMessage += 'No se encontró ninguna cámara. Por favor use la opción de subir archivo.';
+                    errorMessage += 'No se encontró ninguna cámara. Por favor use un dispositivo con cámara.';
                 } else if (err.name === 'NotSupportedError') {
-                    errorMessage += 'Su navegador no soporta acceso a la cámara. Por favor use la opción de subir archivo.';
+                    errorMessage += 'Su navegador no soporta acceso a la cámara. Por favor use un navegador compatible.';
                 } else {
-                    errorMessage += err.message || 'Error desconocido. Por favor use la opción de subir archivo.';
+                    errorMessage += err.message || 'Error desconocido. Por favor intente con un dispositivo diferente.';
                 }
                 
                 showAlert(errorMessage, 'error');
@@ -799,40 +791,6 @@
             document.querySelector('#selfieContainer .camera-placeholder').style.display = 'block';
             document.querySelector('#selfieContainer .camera-instructions').style.display = 'block';
             checkVerificationReadiness();
-        }
-
-        function handleSelfieUpload(event) {
-            const file = event.target.files[0];
-            console.log('📸 Selfie upload event:', file);
-            
-            if (file) {
-                console.log('📸 Selfie file details:', {
-                    name: file.name,
-                    size: file.size,
-                    type: file.type
-                });
-                
-                if (validateImageFile(file)) {
-                    selfieFile = file;
-                    console.log('✅ Selfie file validated and stored');
-                    
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        selfiePreview.src = e.target.result;
-                        selfiePreview.style.display = 'block';
-                        document.querySelector('#selfieContainer .camera-placeholder').style.display = 'none';
-                        document.querySelector('#selfieContainer .camera-instructions').style.display = 'none';
-                        document.getElementById('retakeSelfie').style.display = 'inline-flex';
-                        console.log('📸 Selfie preview updated');
-                    };
-                    reader.readAsDataURL(file);
-                    
-                    checkVerificationReadiness();
-                } else {
-                    console.error('❌ Selfie file validation failed');
-                    showAlert('Por favor seleccione un archivo de imagen válido (JPEG, PNG) menor a 5MB', 'error');
-                }
-            }
         }
 
         function handleIneUpload(event) {
