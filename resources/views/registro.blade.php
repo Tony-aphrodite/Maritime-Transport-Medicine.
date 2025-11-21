@@ -1467,6 +1467,9 @@
             const passwordMatchMessage = document.getElementById('passwordMatchMessage');
             const birthdateField = document.getElementById('birthdateField');
             const ageVerificationMessage = document.getElementById('ageVerificationMessage');
+            const rfcFromCurp = document.getElementById('rfcFromCurp');
+            const rfcSuffixInput = document.getElementById('rfcSuffixInput');
+            const rfcHiddenInput = document.getElementById('rfcHiddenInput');
             
             // CURP format validation regex
             const curpRegex = /^[A-Z]{1}[AEIOUX]{1}[A-Z]{2}[0-9]{2}(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])[HM]{1}[A-Z]{2}[BCDFGHJKLMNPQRSTVWXYZ]{3}[0-9A-Z]{1}[0-9]{1}$/;
@@ -1492,6 +1495,9 @@
                     }
                     
                     showCurpMessage('success', '<i class="fas fa-check-circle"></i> Formato de CURP válido');
+                    
+                    // Populate RFC from validated CURP
+                    populateRfcFromCurp(value);
                 });
             }
 
@@ -1515,6 +1521,12 @@
                 medicalRecordRadios.forEach(radio => {
                     radio.addEventListener('change', toggleMedicalRecordField);
                 });
+            }
+
+            // RFC suffix input handling
+            if (rfcSuffixInput) {
+                rfcSuffixInput.addEventListener('input', updateRfcField);
+                rfcSuffixInput.addEventListener('keyup', updateRfcField);
             }
             
             function validatePassword() {
@@ -1683,6 +1695,106 @@
                 icon.classList.add('fa-eye');
                 buttonElement.classList.remove('showing-password');
                 buttonElement.setAttribute('title', 'Mostrar contraseña');
+            }
+        }
+
+        // Function to update RFC field when suffix changes
+        function updateRfcField() {
+            const rfcFromCurp = document.getElementById('rfcFromCurp');
+            const rfcSuffixInput = document.getElementById('rfcSuffixInput');
+            const rfcHiddenInput = document.getElementById('rfcHiddenInput');
+            const rfcValidationMessage = document.getElementById('rfcValidationMessage');
+            
+            const rfcPrefix = rfcFromCurp.textContent.trim();
+            const rfcSuffix = rfcSuffixInput.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+            
+            // Update the input to show only valid characters
+            rfcSuffixInput.value = rfcSuffix;
+            
+            if (rfcPrefix === '--') {
+                // CURP not validated yet
+                showRfcValidationMessage('warning', '<i class="fas fa-exclamation-triangle"></i> Primero debe validar su CURP para generar el RFC');
+                rfcHiddenInput.value = '';
+                return;
+            }
+            
+            const fullRfc = rfcPrefix + rfcSuffix;
+            rfcHiddenInput.value = fullRfc;
+            
+            if (rfcSuffix.length === 0) {
+                showRfcValidationMessage('info', '<i class="fas fa-info-circle"></i> Ingrese los últimos 3 caracteres del RFC');
+            } else if (rfcSuffix.length < 3) {
+                showRfcValidationMessage('warning', `<i class="fas fa-exclamation-triangle"></i> RFC incompleto. Faltan ${3 - rfcSuffix.length} caracteres (${fullRfc})`);
+            } else if (rfcSuffix.length === 3) {
+                showRfcValidationMessage('success', `<i class="fas fa-check-circle"></i> RFC completado: ${fullRfc}`);
+                console.log('✅ RFC completed:', fullRfc);
+            }
+        }
+        
+        // Function to show RFC validation messages
+        function showRfcValidationMessage(type, message) {
+            const rfcValidationMessage = document.getElementById('rfcValidationMessage');
+            
+            rfcValidationMessage.style.display = 'flex';
+            rfcValidationMessage.style.alignItems = 'center';
+            rfcValidationMessage.style.gap = '0.5rem';
+            rfcValidationMessage.innerHTML = message;
+            rfcValidationMessage.style.padding = '0.5rem';
+            rfcValidationMessage.style.borderRadius = '4px';
+            rfcValidationMessage.style.fontSize = '0.875rem';
+            
+            switch (type) {
+                case 'success':
+                    rfcValidationMessage.style.background = '#f0fdf4';
+                    rfcValidationMessage.style.border = '1px solid #22c55e';
+                    rfcValidationMessage.style.color = '#166534';
+                    break;
+                case 'warning':
+                    rfcValidationMessage.style.background = '#fffbeb';
+                    rfcValidationMessage.style.border = '1px solid #f59e0b';
+                    rfcValidationMessage.style.color = '#92400e';
+                    break;
+                case 'error':
+                    rfcValidationMessage.style.background = '#fef2f2';
+                    rfcValidationMessage.style.border = '1px solid #ef4444';
+                    rfcValidationMessage.style.color = '#dc2626';
+                    break;
+                case 'info':
+                    rfcValidationMessage.style.background = '#eff6ff';
+                    rfcValidationMessage.style.border = '1px solid #3b82f6';
+                    rfcValidationMessage.style.color = '#1d4ed8';
+                    break;
+            }
+        }
+
+        // Function to populate RFC from validated CURP
+        function populateRfcFromCurp(curp) {
+            const rfcFromCurp = document.getElementById('rfcFromCurp');
+            const rfcSuffixInput = document.getElementById('rfcSuffixInput');
+            
+            if (curp && curp.length >= 10) {
+                // Extract first 10 characters from CURP for RFC
+                const rfcPrefix = curp.substring(0, 10);
+                rfcFromCurp.textContent = rfcPrefix;
+                rfcFromCurp.style.color = '#059669'; // Green color to indicate it's populated
+                
+                // Clear any previous RFC suffix and trigger update
+                rfcSuffixInput.value = '';
+                rfcSuffixInput.removeAttribute('disabled');
+                rfcSuffixInput.focus();
+                
+                updateRfcField();
+                
+                console.log('📝 RFC prefix populated from CURP:', rfcPrefix);
+                
+                // Show success message
+                showRfcValidationMessage('success', `<i class="fas fa-check-circle"></i> RFC iniciado con CURP: ${rfcPrefix}. Complete los últimos 3 caracteres.`);
+            } else {
+                rfcFromCurp.textContent = '--';
+                rfcFromCurp.style.color = '#6b7280';
+                rfcSuffixInput.value = '';
+                rfcSuffixInput.setAttribute('disabled', 'disabled');
+                showRfcValidationMessage('error', '<i class="fas fa-times-circle"></i> CURP inválido para generar RFC');
             }
         }
 
@@ -2396,6 +2508,11 @@
             if (details.entidadNacimiento) {
                 const estadoNacimientoInput = document.querySelector('input[name="estado_nacimiento"]');
                 makeFieldReadOnly(estadoNacimientoInput, details.entidadNacimiento, 'Estado de Nacimiento');
+            }
+            
+            // Populate RFC from validated CURP
+            if (data.curp) {
+                populateRfcFromCurp(data.curp);
             }
             
             // Show verification notification
