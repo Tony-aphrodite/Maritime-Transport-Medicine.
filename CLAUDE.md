@@ -34,8 +34,8 @@ This is a Laravel 10 web application for Maritime Transport Medicine. The projec
 ## Architecture
 
 ### Directory Structure
-- `app/Models/` - Eloquent models (User, AuditLog)
-- `app/Http/Controllers/` - Controllers (Login, Registration, Admin, CURP, FaceVerification)
+- `app/Models/` - Eloquent models (User, AuditLog, ParentalConsent)
+- `app/Http/Controllers/` - Controllers (Login, Registration, Admin, CURP, FaceVerification, ParentalConsent)
 - `resources/views/` - Blade templates with admin subdirectory for admin panel
 - `routes/web.php` - Web routes with proper controller-based routing
 - `database/migrations/` - Database schema migrations
@@ -46,6 +46,7 @@ The application has evolved from simple view routes to a feature-rich system:
 - **User Registration/Login**: Full authentication flow with LoginController and RegistrationController
 - **CURP Validation**: Mexican ID validation using VerificaMex API integration
 - **Face Verification**: Facial recognition for identity verification 
+- **Parental Consent**: Token-based consent system for minor verification compliance
 - **Admin Panel**: Complete admin dashboard with audit logging and statistics
 - **Audit System**: Comprehensive logging system tracking all user interactions
 
@@ -53,6 +54,7 @@ The application has evolved from simple view routes to a feature-rich system:
 - **Authentication Routes**: `/login`, `/registro` handled by LoginController and RegistrationController
 - **CURP Validation Routes**: `/curp/validate` with VerificaMex API integration via CurpController
 - **Face Verification Routes**: `/face-verification/*` for biometric validation via FaceVerificationController
+- **Parental Consent Routes**: `/parental-consent/*` for handling minor verification consent via ParentalConsentController
 - **Admin Routes**: `/admin/*` with session-based authentication and comprehensive dashboard
 - **Admin API Routes**: `/admin/api/*` for dashboard statistics, audit logs, and real-time monitoring
 
@@ -126,6 +128,7 @@ Central logging system tracking all user interactions and system events:
 - Registration events (started, completed, failed)
 - CURP verification attempts and results
 - Face verification with confidence scores
+- Parental consent requests and approvals
 - Account creation events
 - Admin access and authentication events
 
@@ -137,16 +140,6 @@ Each audit log captures:
 - Request details (method, URL)
 - Custom event data (JSON)
 - Verification IDs and confidence scores
-
-### Routes
-- `GET /curp/validate` - Show CURP validation form
-- `POST /curp/validate` - Submit CURP for validation
-- `POST /curp/validate-format` - AJAX format validation
-
-### CURP Format
-18-character alphanumeric code following official Mexican CURP structure:
-- Example: `PEGJ850415HDFRRN05`
-- Validation includes format checking and RENAPO database verification
 
 ## Face Verification System
 
@@ -164,6 +157,28 @@ Biometric facial recognition system for identity verification using face matchin
 - `POST /face-verification/compare` - Compare uploaded images
 - `GET /face-verification/status` - Check verification status
 
+## Parental Consent System
+
+### Overview
+Token-based parental consent system for handling verification of minors, ensuring compliance with age verification requirements.
+
+### Components
+- **ParentalConsent Model**: Tracks consent requests, approvals, and status
+- **Token-based Authentication**: Secure token system for parent verification
+- **Status Tracking**: Real-time consent status monitoring
+- **Audit Integration**: All consent activities logged in audit system
+
+### Routes
+- `GET /parental-consent/approve/{token}` - Show consent form to parents
+- `POST /parental-consent/approve/{token}` - Process parental consent decision
+- `GET /parental-consent/status/{token}` - Check consent status via API
+
+### Workflow
+1. System generates unique token for minor's registration
+2. Parent receives secure link with token
+3. Parent reviews information and provides consent
+4. System updates consent status and continues verification process
+
 ## Development Notes
 
 ### Database Considerations
@@ -171,6 +186,11 @@ Biometric facial recognition system for identity verification using face matchin
 - Audit system falls back to Laravel logs if database connection fails
 - Admin dashboard shows appropriate messaging when database is offline
 - Use `php artisan migrate` to set up required database tables
+
+### Database Models
+- **User**: Standard Laravel user model with authentication capabilities
+- **AuditLog**: Central logging model tracking all system events and user interactions
+- **ParentalConsent**: Manages consent tokens, status, and approval workflow for minors
 
 ### Security Considerations
 - Admin credentials are hardcoded for development (should be moved to database in production)

@@ -171,4 +171,31 @@ class ParentalConsent extends Model
     {
         return $this->minor_age < 18;
     }
+
+    /**
+     * Relationship with the user (minor)
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'minor_email', 'email');
+    }
+
+    /**
+     * Log consent activity to audit system
+     */
+    public function logConsentActivity(string $action, array $data = []): void
+    {
+        AuditLog::logEvent(
+            "parental_consent_{$action}",
+            $this->status === self::STATUS_APPROVED ? AuditLog::STATUS_SUCCESS : AuditLog::STATUS_PENDING,
+            array_merge([
+                'consent_token' => $this->consent_token,
+                'minor_email' => $this->minor_email,
+                'parent_email' => $this->parent_email,
+                'action' => $action
+            ], $data),
+            $this->minor_email,
+            $this->consent_token
+        );
+    }
 }
