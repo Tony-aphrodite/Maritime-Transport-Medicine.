@@ -37,7 +37,7 @@ return new class extends Migration
             $table->index(['parent_email', 'status'], 'idx_parent_email_status');
             $table->index(['status', 'expires_at'], 'idx_status_expires');
             $table->index(['consent_token'], 'idx_consent_token');
-            $table->index(['created_at'], 'idx_created_at');
+            $table->index(['created_at'], 'idx_pc_created_at');
             
             // MySQL storage engine and charset
             $table->engine = 'InnoDB';

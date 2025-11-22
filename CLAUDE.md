@@ -16,6 +16,12 @@ This is a Laravel 10 web application for Maritime Transport Medicine. The projec
 - **Clear config cache**: `php artisan config:clear`
 - **Clear route cache**: `php artisan route:clear`
 
+### Database Setup
+- **Setup MySQL database**: Various SQL scripts available in root directory for database initialization
+- **Create database user**: `create_mysql_user.php` script for user creation
+- **Alternative database setup**: Multiple `.sql` files for different setup scenarios
+- **Note**: Database connection issues are gracefully handled - application works without database for basic functionality
+
 ### Frontend Development
 - **Start Vite dev server**: `npm run dev` (hot reloading for CSS/JS)
 - **Build for production**: `npm run build`
@@ -144,18 +150,38 @@ Each audit log captures:
 ## Face Verification System
 
 ### Overview
-Biometric facial recognition system for identity verification using face matching technology.
+Biometric facial recognition system for identity verification using face matching technology with secure AWS S3 image storage.
 
 ### Components
 - **Face Verification Controller**: Handles image comparison and verification logic
+- **AWS S3 Integration**: Secure image upload with temporary URLs for verification
 - **Client-side Integration**: Camera access and image capture functionality
 - **Confidence Scoring**: Returns match confidence percentages
 - **Audit Integration**: All verification attempts logged in audit system
+- **Automatic Cleanup**: S3 images are automatically deleted after verification
+
+### Security Features
+- **Secure Upload**: Images uploaded to private S3 bucket before verification
+- **Temporary URLs**: Pre-signed URLs with 1-hour expiration for verification API calls
+- **Automatic Cleanup**: Images deleted from S3 after verification completion
+- **Organized Storage**: Images stored in dated directories with unique verification IDs
 
 ### Routes
 - `GET /face-verification` - Face verification interface
-- `POST /face-verification/compare` - Compare uploaded images
+- `POST /face-verification/compare` - Upload images to S3 and compare via API
 - `GET /face-verification/status` - Check verification status
+
+### S3 Storage Structure
+```
+face-verification/
+├── 2025/11/22/
+│   ├── face_abc123/
+│   │   ├── selfie.jpg
+│   │   └── ine.jpg
+│   └── face_def456/
+│       ├── selfie.png
+│       └── ine.png
+```
 
 ## Parental Consent System
 
@@ -199,17 +225,34 @@ Token-based parental consent system for handling verification of minors, ensurin
 - Session-based admin authentication with proper logout functionality
 
 ### Environment Configuration
-Essential environment variables for external APIs:
+Essential environment variables for external APIs and services:
 ```env
 # VerificaMex CURP API
 VERIFICAMEX_TOKEN=your-verificamex-token
 VERIFICAMEX_BASE_URL=https://api.verificamex.com
 
-# Face Verification API (if implemented)
+# Face Verification API (if implemented)  
 FACE_VERIFY_TOKEN=your-face-verification-token
 FACE_VERIFY_BASE_URL=https://api.facecompare.com
 FACE_VERIFY_ENDPOINT=/v1/compare
+
+# AWS S3 Configuration (for secure image storage)
+AWS_ACCESS_KEY_ID=your-aws-access-key
+AWS_SECRET_ACCESS_KEY=your-aws-secret-key
+AWS_DEFAULT_REGION=us-east-1
+AWS_BUCKET=your-s3-bucket-name
+FILESYSTEM_DISK=s3
+
+# Database Configuration
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=laravel
+DB_USERNAME=root
+DB_PASSWORD=your-database-password
 ```
+
+**Important**: Copy `.env.example` to `.env` and update with your actual credentials. Never commit API tokens to version control.
 
 ### Testing and Development Routes
 The application includes several test routes for development:
