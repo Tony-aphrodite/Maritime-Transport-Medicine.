@@ -338,8 +338,19 @@ class FaceVerificationController extends Controller
                 return false;
             }
 
-            // Check if S3 driver can be created
-            Storage::disk('s3');
+            // Check if the AWS S3 package is installed
+            if (!class_exists('League\Flysystem\AwsS3V3\AwsS3V3Adapter')) {
+                Log::info('📦 S3 package not installed - falling back to local storage');
+                return false;
+            }
+
+            // Try to create S3 disk only if package exists
+            $s3Config = config('filesystems.disks.s3');
+            if (!$s3Config) {
+                Log::info('⚙️ S3 configuration missing in filesystems.php');
+                return false;
+            }
+
             Log::info('✅ S3 storage is available and configured');
             return true;
             
