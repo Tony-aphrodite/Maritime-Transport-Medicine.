@@ -105,60 +105,106 @@ class CurpController extends Controller
                     'Authorization' => 'Bearer ' . $this->verificamexToken,
                     'Content-Type' => 'application/json',
                     'Accept' => 'application/json'
-                ])->timeout(10)->post($this->verificamexBaseUrl . '/api/curp', [
+                ])->timeout(15)->post($this->verificamexBaseUrl . '/api/curp', [
                     'curp' => $curp
+                ]);
+
+                Log::info('VerificaMex API Response', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                    'successful' => $response->successful()
                 ]);
 
                 if ($response->successful()) {
                     $apiData = $response->json();
                     
-                    // VerificaMex API response structure
-                    if ($apiData && isset($apiData['success']) && $apiData['success']) {
-                        $curpData = $apiData['data'] ?? [];
+                    // Check multiple possible response structures
+                    if ($apiData) {
+                        // Handle different API response formats
+                        $curpData = null;
+                        $isValid = false;
                         
-                        // Log successful CURP verification
-                        try {
-                            AuditLog::logCurpVerification(
-                                $curp,
-                                AuditLog::STATUS_SUCCESS,
-                                [
-                                    'verification_method' => 'verificamex_api',
-                                    'has_details' => !empty($curpData),
-                                    'api_response_time' => now()->toISOString()
-                                ],
-                                $verificationId
-                            );
-                        } catch (\Exception $e) {
-                            Log::warning('Failed to log CURP verification success: ' . $e->getMessage());
+                        // Format 1: Direct success with data
+                        if (isset($apiData['success']) && $apiData['success'] && isset($apiData['data'])) {
+                            $curpData = $apiData['data'];
+                            $isValid = true;
+                        }
+                        // Format 2: Valid flag with person data
+                        elseif (isset($apiData['valid']) && $apiData['valid'] && isset($apiData['persona'])) {
+                            $curpData = $apiData['persona'];
+                            $isValid = true;
+                        }
+                        // Format 3: Status OK with results
+                        elseif (isset($apiData['status']) && $apiData['status'] === 'OK' && isset($apiData['resultado'])) {
+                            $curpData = $apiData['resultado'];
+                            $isValid = true;
+                        }
+                        // Format 4: Direct person data without wrapper
+                        elseif (isset($apiData['nombres']) || isset($apiData['nombre'])) {
+                            $curpData = $apiData;
+                            $isValid = true;
                         }
                         
-                        return response()->json([
-                            'success' => true,
-                            'message' => 'CURP válido y verificado exitosamente contra RENAPO',
-                            'data' => [
-                                'curp' => $curp,
-                                'valid' => true,
-                                'details' => [
-                                    'nombres' => $curpData['nombres'] ?? null,
-                                    'primerApellido' => $curpData['primer_apellido'] ?? null,
-                                    'segundoApellido' => $curpData['segundo_apellido'] ?? null,
-                                    'fechaNacimiento' => $curpData['fecha_nacimiento'] ?? null,
-                                    'sexo' => $curpData['sexo'] ?? null,
-                                    'entidadNacimiento' => $curpData['entidad_nacimiento'] ?? null,
-                                    'nacionalidad' => $curpData['nacionalidad'] ?? 'MEXICANA',
-                                    'estatus' => $curpData['estatus'] ?? null
-                                ],
-                                'verification_date' => now()->toISOString(),
-                                'certificate_url' => $apiData['certificate_url'] ?? null
-                            ]
-                        ]);
+                        if ($isValid && $curpData) {
+                            // Log successful CURP verification
+                            try {
+                                AuditLog::logCurpVerification(
+                                    $curp,
+                                    AuditLog::STATUS_SUCCESS,
+                                    [
+                                        'verification_method' => 'verificamex_api',
+                                        'has_details' => !empty($curpData),
+                                        'api_response_time' => now()->toISOString()
+                                    ],
+                                    $verificationId
+                                );
+                            } catch (\Exception $e) {
+                                Log::warning('Failed to log CURP verification success: ' . $e->getMessage());
+                            }
+                            
+                            // Normalize field names from different API response formats
+                            $nombres = $curpData['nombres'] ?? $curpData['nombre'] ?? $curpData['name'] ?? null;
+                            $primerApellido = $curpData['primer_apellido'] ?? $curpData['primerApellido'] ?? 
+                                            $curpData['apellido_paterno'] ?? $curpData['apellidoPaterno'] ?? null;
+                            $segundoApellido = $curpData['segundo_apellido'] ?? $curpData['segundoApellido'] ?? 
+                                             $curpData['apellido_materno'] ?? $curpData['apellidoMaterno'] ?? null;
+                            $fechaNacimiento = $curpData['fecha_nacimiento'] ?? $curpData['fechaNacimiento'] ?? 
+                                             $curpData['birth_date'] ?? null;
+                            $sexo = $curpData['sexo'] ?? $curpData['gender'] ?? $curpData['genero'] ?? null;
+                            $entidadNacimiento = $curpData['entidad_nacimiento'] ?? $curpData['entidadNacimiento'] ?? 
+                                               $curpData['estado_nacimiento'] ?? $curpData['birth_state'] ?? null;
+                            
+                            return response()->json([
+                                'success' => true,
+                                'message' => 'CURP válido y verificado exitosamente contra RENAPO',
+                                'data' => [
+                                    'curp' => $curp,
+                                    'valid' => true,
+                                    'details' => [
+                                        'nombres' => $nombres,
+                                        'primerApellido' => $primerApellido,
+                                        'segundoApellido' => $segundoApellido,
+                                        'fechaNacimiento' => $fechaNacimiento,
+                                        'sexo' => $sexo,
+                                        'entidadNacimiento' => $entidadNacimiento,
+                                        'nacionalidad' => $curpData['nacionalidad'] ?? 'MEXICANA',
+                                        'estatus' => $curpData['estatus'] ?? $curpData['status'] ?? 'VERIFICADO'
+                                    ],
+                                    'verification_date' => now()->toISOString(),
+                                    'certificate_url' => $apiData['certificate_url'] ?? null
+                                ]
+                            ]);
+                        }
                     }
                 }
             } catch (\Exception $apiError) {
-                Log::warning('VerificaMex API call failed: ' . $apiError->getMessage());
+                Log::warning('VerificaMex API call failed: ' . $apiError->getMessage(), [
+                    'curp' => $curp,
+                    'error_details' => $apiError->getTraceAsString()
+                ]);
             }
 
-            // Fallback: Always extract info from CURP format to ensure functionality works
+            // Fallback: Extract only reliable info from CURP format when API fails
             $extractedInfo = $this->extractInfoFromCurp($curp);
             
             // Log fallback verification
@@ -168,7 +214,7 @@ class CurpController extends Controller
                     AuditLog::STATUS_SUCCESS,
                     [
                         'verification_method' => 'curp_format_extraction',
-                        'note' => 'API unavailable, using format-based extraction',
+                        'note' => 'API unavailable, using format-based extraction (names not available)',
                         'api_response_time' => now()->toISOString()
                     ],
                     $verificationId
@@ -179,19 +225,19 @@ class CurpController extends Controller
             
             return response()->json([
                 'success' => true,
-                'message' => 'CURP válido. Datos extraídos del formato oficial (API de RENAPO temporalmente no disponible).',
+                'message' => 'CURP válido. Solo fecha, sexo y entidad disponibles (API de RENAPO temporalmente no disponible).',
                 'data' => [
                     'curp' => $curp,
                     'valid' => true,
                     'details' => [
-                        'nombres' => $extractedInfo['nombres'],
-                        'primerApellido' => $extractedInfo['primerApellido'],
-                        'segundoApellido' => $extractedInfo['segundoApellido'],
+                        'nombres' => null, // Names not available without RENAPO API
+                        'primerApellido' => null,
+                        'segundoApellido' => null,
                         'fechaNacimiento' => $extractedInfo['fechaNacimiento'],
                         'sexo' => $extractedInfo['sexo'],
                         'entidadNacimiento' => $extractedInfo['entidadNacimiento'],
                         'nacionalidad' => 'MEXICANA',
-                        'estatus' => 'Formato válido - datos extraídos'
+                        'estatus' => 'Formato válido - nombres requieren verificación RENAPO'
                     ],
                     'verification_date' => now()->toISOString(),
                     'certificate_url' => null
@@ -248,25 +294,9 @@ class CurpController extends Controller
         ];
         $state = $states[$stateCode] ?? 'DESCONOCIDO';
         
-        // For demo purposes, generate sample names based on CURP
-        // In real implementation, this would come from RENAPO database
-        $firstLetters = substr($curp, 0, 4);
-        $sampleNames = [
-            'RICJ' => ['nombres' => 'RICARDO JAVIER', 'primerApellido' => 'RIVERA', 'segundoApellido' => 'CASTRO'],
-            'PEGJ' => ['nombres' => 'PEDRO EDUARDO', 'primerApellido' => 'PEÑA', 'segundoApellido' => 'GONZÁLEZ'],
-            'GAMA' => ['nombres' => 'GABRIELA MARÍA', 'primerApellido' => 'GARCÍA', 'segundoApellido' => 'MARTÍNEZ']
-        ];
-        
-        $nameInfo = $sampleNames[$firstLetters] ?? [
-            'nombres' => 'NOMBRE DE EJEMPLO',
-            'primerApellido' => 'APELLIDO',
-            'segundoApellido' => 'SEGUNDO'
-        ];
-        
+        // Only return data that can be reliably extracted from CURP format
+        // Names require RENAPO database access and cannot be extracted from CURP alone
         return [
-            'nombres' => $nameInfo['nombres'],
-            'primerApellido' => $nameInfo['primerApellido'],
-            'segundoApellido' => $nameInfo['segundoApellido'],
             'fechaNacimiento' => $fullYear . '-' . $month . '-' . $day,
             'sexo' => $gender,
             'entidadNacimiento' => $state
