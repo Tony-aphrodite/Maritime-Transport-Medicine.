@@ -601,7 +601,7 @@
             
             <div class="register-section">
                 <p class="register-text">¿Eres nuevo en el sistema?</p>
-                <a href="/registro?from=login" class="register-link">Crear nueva cuenta</a>
+                <a href="{{ route('register') }}" class="register-link">Crear nueva cuenta</a>
             </div>
         </div>
     </main>
