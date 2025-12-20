@@ -2,15 +2,13 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable
+class User extends Model
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -18,34 +16,33 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
-        'email',
-        'password',
         'curp',
-        'phone_number',
-        'birth_date',
-        'gender',
+        'rfc',
+        'nombres',
+        'apellido_paterno',
+        'apellido_materno',
+        'telefono_movil',
+        'nacionalidad',
+        'sexo',
+        'fecha_nacimiento',
+        'pais_nacimiento',
+        'estado_nacimiento',
+        'estado',
+        'municipio',
+        'localidad',
+        'codigo_postal',
+        'calle',
+        'numero_exterior',
+        'numero_interior',
         'curp_verification_status',
         'face_verification_status',
-        'document_verification_status',
         'account_status',
-        'maritime_license_number',
-        'vessel_name',
-        'company_name',
-        'user_type',
+        'curp_verified_at',
+        'face_verified_at',
+        'face_verification_confidence',
         'verification_metadata',
         'registration_ip',
         'registration_user_agent',
-    ];
-
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
-    protected $hidden = [
-        'password',
-        'remember_token',
     ];
 
     /**
@@ -54,33 +51,36 @@ class User extends Authenticatable
      * @var array<string, string>
      */
     protected $casts = [
-        'email_verified_at' => 'datetime',
-        'password' => 'hashed',
-        'birth_date' => 'date',
+        'fecha_nacimiento' => 'date',
         'curp_verified_at' => 'datetime',
         'face_verified_at' => 'datetime',
-        'documents_verified_at' => 'datetime',
-        'last_verification_attempt' => 'datetime',
+        'face_verification_confidence' => 'decimal:2',
         'verification_metadata' => 'json',
     ];
 
     /**
-     * Status constants for better type safety
+     * Status constants
      */
     const VERIFICATION_STATUS_PENDING = 'pending';
     const VERIFICATION_STATUS_VERIFIED = 'verified';
     const VERIFICATION_STATUS_FAILED = 'failed';
-    const VERIFICATION_STATUS_NOT_REQUIRED = 'not_required';
-    
+
     const ACCOUNT_STATUS_ACTIVE = 'active';
     const ACCOUNT_STATUS_PENDING_VERIFICATION = 'pending_verification';
     const ACCOUNT_STATUS_SUSPENDED = 'suspended';
     const ACCOUNT_STATUS_INACTIVE = 'inactive';
-    
-    const USER_TYPE_INDIVIDUAL = 'individual';
-    const USER_TYPE_COMPANY = 'company';
-    const USER_TYPE_MARITIME_PROFESSIONAL = 'maritime_professional';
-    const USER_TYPE_MEDICAL_PROFESSIONAL = 'medical_professional';
+
+    /**
+     * Get user's full name
+     */
+    public function getFullNameAttribute(): string
+    {
+        $name = $this->nombres . ' ' . $this->apellido_paterno;
+        if ($this->apellido_materno) {
+            $name .= ' ' . $this->apellido_materno;
+        }
+        return $name;
+    }
 
     /**
      * Check if user has completed CURP verification
@@ -99,21 +99,11 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if user has completed document verification
-     */
-    public function hasDocumentsVerified(): bool
-    {
-        return $this->document_verification_status === self::VERIFICATION_STATUS_VERIFIED;
-    }
-
-    /**
      * Check if user has completed all verifications
      */
     public function isFullyVerified(): bool
     {
-        return $this->hasCurpVerified() && 
-               $this->hasFaceVerified() && 
-               $this->hasDocumentsVerified();
+        return $this->hasCurpVerified() && $this->hasFaceVerified();
     }
 
     /**
@@ -138,23 +128,18 @@ class User extends Authenticatable
     /**
      * Mark face verification as completed
      */
-    public function markFaceVerified(): bool
+    public function markFaceVerified(float $confidence = null): bool
     {
-        return $this->update([
+        $data = [
             'face_verification_status' => self::VERIFICATION_STATUS_VERIFIED,
             'face_verified_at' => now()
-        ]);
-    }
+        ];
 
-    /**
-     * Mark documents as verified
-     */
-    public function markDocumentsVerified(): bool
-    {
-        return $this->update([
-            'document_verification_status' => self::VERIFICATION_STATUS_VERIFIED,
-            'documents_verified_at' => now()
-        ]);
+        if ($confidence !== null) {
+            $data['face_verification_confidence'] = $confidence;
+        }
+
+        return $this->update($data);
     }
 
     /**
@@ -173,10 +158,10 @@ class User extends Authenticatable
      */
     public function getAgeAttribute(): ?int
     {
-        if (!$this->birth_date) {
+        if (!$this->fecha_nacimiento) {
             return null;
         }
-        return $this->birth_date->age;
+        return $this->fecha_nacimiento->age;
     }
 
     /**
@@ -200,7 +185,7 @@ class User extends Authenticatable
      */
     public function parentalConsent()
     {
-        return $this->hasOne(ParentalConsent::class, 'minor_email', 'email');
+        return $this->hasOne(ParentalConsent::class, 'minor_curp', 'curp');
     }
 
     /**
@@ -217,15 +202,19 @@ class User extends Authenticatable
     public function scopeVerified($query)
     {
         return $query->where('curp_verification_status', self::VERIFICATION_STATUS_VERIFIED)
-                    ->where('face_verification_status', self::VERIFICATION_STATUS_VERIFIED)
-                    ->where('document_verification_status', self::VERIFICATION_STATUS_VERIFIED);
+                    ->where('face_verification_status', self::VERIFICATION_STATUS_VERIFIED);
     }
 
     /**
-     * Scope for maritime professionals
+     * Get full address as a string
      */
-    public function scopeMaritimeProfessionals($query)
+    public function getFullAddressAttribute(): string
     {
-        return $query->where('user_type', self::USER_TYPE_MARITIME_PROFESSIONAL);
+        $address = $this->calle . ' ' . $this->numero_exterior;
+        if ($this->numero_interior) {
+            $address .= ' Int. ' . $this->numero_interior;
+        }
+        $address .= ', ' . $this->localidad . ', ' . $this->municipio . ', ' . $this->estado . ' C.P. ' . $this->codigo_postal;
+        return $address;
     }
 }

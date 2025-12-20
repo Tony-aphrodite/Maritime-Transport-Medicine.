@@ -526,59 +526,6 @@
             font-size: 1rem;
         }
 
-        /* Password Toggle Button */
-        .password-toggle-btn {
-            padding: 12px 16px;
-            background: linear-gradient(135deg, #64748b, #475569);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 48px;
-            font-size: 1rem;
-            flex-shrink: 0;
-        }
-
-        .password-toggle-btn:hover {
-            background: linear-gradient(135deg, #475569, #334155);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 15px rgba(100, 116, 139, 0.3);
-        }
-
-        .password-toggle-btn:active {
-            transform: translateY(0);
-            box-shadow: 0 2px 8px rgba(100, 116, 139, 0.2);
-        }
-
-        .password-toggle-btn i {
-            transition: all 0.2s ease;
-        }
-
-        .password-toggle-btn.showing-password {
-            background: linear-gradient(135deg, #0F4C75, #3282B8);
-        }
-
-        .password-toggle-btn.showing-password:hover {
-            background: linear-gradient(135deg, #0A3A5C, #0F4C75);
-        }
-
-        /* Ensure password inputs remain accessible during validation */
-        .input-with-button .form-control {
-            pointer-events: auto !important;
-            z-index: 1;
-            position: relative;
-        }
-
-        .input-with-button .form-control:focus {
-            outline: none;
-            border-color: #0F4C75 !important;
-            box-shadow: 0 0 0 3px rgba(15, 76, 117, 0.1) !important;
-        }
-
         /* RFC Input Styling */
         .rfc-input-container {
             display: flex;
@@ -948,34 +895,29 @@
                 </div>
                 <div class="section-content">
                     <div class="field-grid">
-                        <div class="field-group">
-                            <label class="field-label">
-                                <i class="fas fa-question-circle"></i>
-                                ¿Cuenta con Expediente Médico? <span class="required">*</span>
-                            </label>
-                            <div class="radio-group">
-                                <div class="radio-option">
-                                    <input type="radio" id="expediente_si" name="tiene_expediente" value="si">
-                                    <label for="expediente_si">Sí</label>
-                                </div>
-                                <div class="radio-option">
-                                    <input type="radio" id="expediente_no" name="tiene_expediente" value="no">
-                                    <label for="expediente_no">No</label>
-                                </div>
+                        <div class="three-columns">
+                            <div class="field-group">
+                                <label class="field-label">
+                                    <i class="fas fa-user"></i>
+                                    Nombre(s) <span class="required">*</span>
+                                </label>
+                                <input type="text" class="form-control" name="nombres" placeholder="Nombre(s)" required>
                             </div>
-                        </div>
 
-                        <div class="field-group" id="expedienteMedicoField" style="display: none;">
-                            <label class="field-label">
-                                <i class="fas fa-folder-open"></i>
-                                Expediente Médico <span class="required">*</span>
-                            </label>
-                            <div class="input-with-button">
-                                <input type="text" class="form-control" name="expediente_medico" id="expedienteMedicoInput" placeholder="Número de expediente médico">
-                                <button type="button" onclick="searchMedicalRecord()" class="search-btn">
-                                    <i class="fas fa-search"></i>
-                                    Buscar Expediente Méd.
-                                </button>
+                            <div class="field-group">
+                                <label class="field-label">
+                                    <i class="fas fa-user"></i>
+                                    Apellido Paterno <span class="required">*</span>
+                                </label>
+                                <input type="text" class="form-control" name="apellido_paterno" placeholder="Apellido Paterno" required>
+                            </div>
+
+                            <div class="field-group">
+                                <label class="field-label">
+                                    <i class="fas fa-user"></i>
+                                    Apellido Materno
+                                </label>
+                                <input type="text" class="form-control" name="apellido_materno" placeholder="Apellido Materno">
                             </div>
                         </div>
 
@@ -1000,11 +942,11 @@
                                     CURP <span class="required">*</span>
                                 </label>
                                 <div class="input-with-button">
-                                    <input type="text" 
-                                           class="form-control" 
-                                           id="curpInput" 
-                                           name="curp" 
-                                           placeholder="CURP (18 caracteres)" 
+                                    <input type="text"
+                                           class="form-control"
+                                           id="curpInput"
+                                           name="curp"
+                                           placeholder="CURP (18 caracteres)"
                                            maxlength="18"
                                            style="text-transform: uppercase; font-family: 'Courier New', monospace; letter-spacing: 0.5px;"
                                            required>
@@ -1043,80 +985,6 @@
                                     Los primeros 10 caracteres se toman del CURP validado. Solo capture los últimos 3 dígitos.
                                 </div>
                                 <div id="rfcValidationMessage" style="margin-top: 0.5rem; font-size: 0.875rem; display: none;"></div>
-                            </div>
-
-                            <div class="field-group">
-                                <label class="field-label">
-                                    <i class="fas fa-envelope"></i>
-                                    Correo Electrónico <span class="required">*</span>
-                                </label>
-                                <input type="email" class="form-control" name="email" placeholder="correo@ejemplo.com" required>
-                            </div>
-                        </div>
-
-                        <div class="field-group">
-                            <label class="field-label">
-                                <i class="fas fa-envelope-open"></i>
-                                Correo Electrónico Alternativo
-                            </label>
-                            <input type="email" class="form-control" name="email_alternativo" placeholder="correo.alternativo@ejemplo.com">
-                        </div>
-
-                        <div class="two-columns">
-                            <div class="field-group">
-                                <label class="field-label">
-                                    <i class="fas fa-lock"></i>
-                                    Contraseña <span class="required">*</span>
-                                </label>
-                                <div class="input-with-button">
-                                    <input type="password" class="form-control" name="password" id="passwordField" placeholder="Mínimo 8 caracteres" minlength="8" required>
-                                    <button type="button" onclick="togglePasswordVisibility('passwordField', this)" class="password-toggle-btn" title="Mostrar contraseña">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                </div>
-                                <div style="font-size: 0.8rem; color: #64748b; margin-top: 0.25rem;">
-                                    <i class="fas fa-info-circle"></i> Al menos 8 caracteres, incluya mayúsculas, minúsculas y números
-                                </div>
-                            </div>
-
-                            <div class="field-group">
-                                <label class="field-label">
-                                    <i class="fas fa-lock"></i>
-                                    Confirmar Contraseña <span class="required">*</span>
-                                </label>
-                                <div class="input-with-button">
-                                    <input type="password" class="form-control" name="password_confirmation" id="passwordConfirmField" placeholder="Confirme su contraseña" minlength="8" required>
-                                    <button type="button" onclick="togglePasswordVisibility('passwordConfirmField', this)" class="password-toggle-btn" title="Mostrar contraseña">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                </div>
-                                <div id="passwordMatchMessage" style="margin-top: 0.5rem; font-size: 0.875rem; display: none;"></div>
-                            </div>
-                        </div>
-
-                        <div class="three-columns">
-                            <div class="field-group">
-                                <label class="field-label">
-                                    <i class="fas fa-user"></i>
-                                    Nombre(s) <span class="required">*</span>
-                                </label>
-                                <input type="text" class="form-control" name="nombres" placeholder="Nombre(s)" required>
-                            </div>
-
-                            <div class="field-group">
-                                <label class="field-label">
-                                    <i class="fas fa-user"></i>
-                                    Apellido Paterno <span class="required">*</span>
-                                </label>
-                                <input type="text" class="form-control" name="apellido_paterno" placeholder="Apellido Paterno" required>
-                            </div>
-
-                            <div class="field-group">
-                                <label class="field-label">
-                                    <i class="fas fa-user"></i>
-                                    Apellido Materno
-                                </label>
-                                <input type="text" class="form-control" name="apellido_materno" placeholder="Apellido Materno">
                             </div>
                         </div>
                     </div>
@@ -1462,52 +1330,40 @@
         document.addEventListener('DOMContentLoaded', function() {
             const curpInput = document.getElementById('curpInput');
             const curpMessage = document.getElementById('curpValidationMessage');
-            const passwordInput = document.querySelector('input[name="password"]');
-            const confirmPasswordInput = document.querySelector('input[name="password_confirmation"]');
-            const passwordMatchMessage = document.getElementById('passwordMatchMessage');
             const birthdateField = document.getElementById('birthdateField');
             const ageVerificationMessage = document.getElementById('ageVerificationMessage');
             const rfcFromCurp = document.getElementById('rfcFromCurp');
             const rfcSuffixInput = document.getElementById('rfcSuffixInput');
             const rfcHiddenInput = document.getElementById('rfcHiddenInput');
-            
+
             // CURP format validation regex
             const curpRegex = /^[A-Z]{1}[AEIOUX]{1}[A-Z]{2}[0-9]{2}(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])[HM]{1}[A-Z]{2}[BCDFGHJKLMNPQRSTVWXYZ]{3}[0-9A-Z]{1}[0-9]{1}$/;
-            
+
             if (curpInput) {
                 curpInput.addEventListener('input', function() {
                     let value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
                     this.value = value;
-                    
+
                     if (value.length === 0) {
                         hideCurpMessage();
                         return;
                     }
-                    
+
                     if (value.length !== 18) {
                         showCurpMessage('error', '<i class="fas fa-exclamation-circle"></i> CURP debe tener exactamente 18 caracteres');
                         return;
                     }
-                    
+
                     if (!curpRegex.test(value)) {
                         showCurpMessage('error', '<i class="fas fa-times-circle"></i> Formato de CURP inválido');
                         return;
                     }
-                    
+
                     showCurpMessage('success', '<i class="fas fa-check-circle"></i> Formato de CURP válido');
-                    
+
                     // Populate RFC from validated CURP
                     populateRfcFromCurp(value);
                 });
-            }
-
-            // Password validation
-            if (passwordInput) {
-                passwordInput.addEventListener('input', validatePassword);
-            }
-            
-            if (confirmPasswordInput) {
-                confirmPasswordInput.addEventListener('input', validatePasswordMatch);
             }
 
             // Age verification for parental consent
@@ -1515,108 +1371,12 @@
                 birthdateField.addEventListener('change', checkAgeForParentalConsent);
             }
 
-            // Medical record field visibility
-            const medicalRecordRadios = document.querySelectorAll('input[name="tiene_expediente"]');
-            if (medicalRecordRadios.length > 0) {
-                medicalRecordRadios.forEach(radio => {
-                    radio.addEventListener('change', toggleMedicalRecordField);
-                });
-            }
-
             // RFC suffix input handling
             if (rfcSuffixInput) {
                 rfcSuffixInput.addEventListener('input', updateRfcField);
                 rfcSuffixInput.addEventListener('keyup', updateRfcField);
             }
-            
-            function validatePassword() {
-                const password = passwordInput.value;
-                const hasUpperCase = /[A-Z]/.test(password);
-                const hasLowerCase = /[a-z]/.test(password);
-                const hasNumber = /[0-9]/.test(password);
-                const minLength = password.length >= 8;
-                
-                let strength = 0;
-                let message = '';
-                let color = '';
-                
-                if (password.length === 0) {
-                    passwordInput.style.borderColor = '';
-                    passwordInput.style.backgroundColor = '';
-                    return;
-                }
-                
-                if (minLength) strength++;
-                if (hasUpperCase) strength++;
-                if (hasLowerCase) strength++;
-                if (hasNumber) strength++;
-                
-                if (strength >= 4) {
-                    message = '<i class="fas fa-check-circle"></i> Contraseña segura';
-                    color = '#10B981';
-                    passwordInput.style.borderColor = '#10B981';
-                    passwordInput.style.backgroundColor = '#f0fdf4';
-                } else if (strength >= 2) {
-                    message = '<i class="fas fa-exclamation-triangle"></i> Contraseña débil - incluya mayúsculas, minúsculas y números';
-                    color = '#f59e0b';
-                    passwordInput.style.borderColor = '#f59e0b';
-                    passwordInput.style.backgroundColor = '#fffbeb';
-                } else {
-                    message = '<i class="fas fa-times-circle"></i> Contraseña muy débil';
-                    color = '#ef4444';
-                    passwordInput.style.borderColor = '#ef4444';
-                    passwordInput.style.backgroundColor = '#fef2f2';
-                }
-                
-                // Update password hint - find the hint div after the input-with-button container
-                const passwordContainer = passwordInput.closest('.input-with-button');
-                const passwordHint = passwordContainer ? passwordContainer.nextElementSibling : passwordInput.nextElementSibling;
-                if (passwordHint && passwordHint.style !== undefined) {
-                    passwordHint.innerHTML = message;
-                    passwordHint.style.color = color;
-                }
-                
-                // Revalidate password match if confirm field has value
-                if (confirmPasswordInput && confirmPasswordInput.value) {
-                    validatePasswordMatch();
-                }
-            }
-            
-            function validatePasswordMatch() {
-                const password = passwordInput.value;
-                const confirmPassword = confirmPasswordInput.value;
-                
-                if (confirmPassword.length === 0) {
-                    passwordMatchMessage.style.display = 'none';
-                    confirmPasswordInput.style.borderColor = '';
-                    confirmPasswordInput.style.backgroundColor = '';
-                    return;
-                }
-                
-                if (password === confirmPassword) {
-                    showPasswordMatchMessage('success', '<i class="fas fa-check-circle"></i> Las contraseñas coinciden');
-                } else {
-                    showPasswordMatchMessage('error', '<i class="fas fa-times-circle"></i> Las contraseñas no coinciden');
-                }
-            }
-            
-            function showPasswordMatchMessage(type, message) {
-                passwordMatchMessage.style.display = 'flex';
-                passwordMatchMessage.style.alignItems = 'center';
-                passwordMatchMessage.style.gap = '0.5rem';
-                passwordMatchMessage.innerHTML = message;
-                
-                if (type === 'success') {
-                    passwordMatchMessage.style.color = '#10B981';
-                    confirmPasswordInput.style.borderColor = '#10B981';
-                    confirmPasswordInput.style.backgroundColor = '#f0fdf4';
-                } else {
-                    passwordMatchMessage.style.color = '#EF4444';
-                    confirmPasswordInput.style.borderColor = '#EF4444';
-                    confirmPasswordInput.style.backgroundColor = '#fef2f2';
-                }
-            }
-            
+
             function showCurpMessage(type, message) {
                 curpMessage.style.display = 'flex';
                 curpMessage.style.alignItems = 'center';
@@ -1665,7 +1425,6 @@
                 nombre: document.getElementById('nombre')?.value || '',
                 apellidoPaterno: document.getElementById('apellidoPaterno')?.value || '',
                 apellidoMaterno: document.getElementById('apellidoMaterno')?.value || '',
-                email: document.getElementById('email')?.value || '',
                 telefono: document.getElementById('telefono')?.value || '',
                 return_url: window.location.href
             };
@@ -1674,28 +1433,6 @@
             
             // Redirect to CURP validation page
             window.location.href = '/curp/validate?from=registry&curp=' + encodeURIComponent(curp);
-        }
-
-        // Function to toggle password visibility
-        function togglePasswordVisibility(fieldId, buttonElement) {
-            const passwordField = document.getElementById(fieldId);
-            const icon = buttonElement.querySelector('i');
-            
-            if (passwordField.type === 'password') {
-                // Show password
-                passwordField.type = 'text';
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
-                buttonElement.classList.add('showing-password');
-                buttonElement.setAttribute('title', 'Ocultar contraseña');
-            } else {
-                // Hide password
-                passwordField.type = 'password';
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
-                buttonElement.classList.remove('showing-password');
-                buttonElement.setAttribute('title', 'Mostrar contraseña');
-            }
         }
 
         // Function to update RFC field when suffix changes
@@ -1795,48 +1532,6 @@
                 rfcSuffixInput.value = '';
                 rfcSuffixInput.setAttribute('disabled', 'disabled');
                 showRfcValidationMessage('error', '<i class="fas fa-times-circle"></i> CURP inválido para generar RFC');
-            }
-        }
-
-        // Function to toggle medical record field visibility
-        function toggleMedicalRecordField() {
-            const medicalRecordField = document.getElementById('expedienteMedicoField');
-            const medicalRecordInput = document.getElementById('expedienteMedicoInput');
-            const selectedValue = document.querySelector('input[name="tiene_expediente"]:checked');
-            
-            if (selectedValue && selectedValue.value === 'si') {
-                // Show the medical record field
-                medicalRecordField.style.display = 'block';
-                
-                // Make the field required
-                medicalRecordInput.setAttribute('required', 'required');
-                
-                // Scroll to the field smoothly
-                setTimeout(() => {
-                    medicalRecordField.scrollIntoView({ 
-                        behavior: 'smooth', 
-                        block: 'nearest' 
-                    });
-                }, 100);
-                
-                console.log('✅ Medical record field shown and made required');
-            } else {
-                // Hide the medical record field
-                medicalRecordField.style.display = 'none';
-                
-                // Remove the required attribute
-                medicalRecordInput.removeAttribute('required');
-                
-                // Clear the input value
-                medicalRecordInput.value = '';
-                
-                // Clear any existing medical record messages
-                const existingMessage = medicalRecordField.querySelector('.medical-record-message');
-                if (existingMessage) {
-                    existingMessage.remove();
-                }
-                
-                console.log('🔒 Medical record field hidden and not required');
             }
         }
 
@@ -1957,178 +1652,6 @@
             });
             
             console.log(`🔐 Parental consent requirement set to: ${required}`);
-        }
-
-        // Function to search medical record
-        function searchMedicalRecord() {
-            const expedienteInput = document.querySelector('input[name="expediente_medico"]');
-            const expedienteNumber = expedienteInput.value.trim();
-            
-            if (!expedienteNumber) {
-                alert('Por favor ingrese un número de expediente médico antes de buscar');
-                expedienteInput.focus();
-                return;
-            }
-            
-            // Validate expediente format (basic validation - adjust as needed)
-            if (expedienteNumber.length < 3) {
-                alert('El número de expediente debe tener al menos 3 caracteres');
-                expedienteInput.focus();
-                return;
-            }
-            
-            // Show loading state
-            const searchBtn = event.target;
-            const originalText = searchBtn.innerHTML;
-            searchBtn.disabled = true;
-            searchBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Buscando...';
-            
-            // Simulate API call for medical record search
-            setTimeout(() => {
-                // Reset button state
-                searchBtn.disabled = false;
-                searchBtn.innerHTML = originalText;
-                
-                // For demonstration - in production this would be a real API call
-                const mockMedicalData = {
-                    'EXP123456': {
-                        nombre: 'Juan Carlos',
-                        apellido_paterno: 'García',
-                        apellido_materno: 'López',
-                        fecha_nacimiento: '1985-04-15',
-                        telefono: '5551234567',
-                        email: 'juan.garcia@email.com',
-                        found: true
-                    },
-                    'EXP789012': {
-                        nombre: 'María Elena',
-                        apellido_paterno: 'Rodríguez',
-                        apellido_materno: 'Hernández',
-                        fecha_nacimiento: '1990-08-22',
-                        telefono: '5559876543',
-                        email: 'maria.rodriguez@email.com',
-                        found: true
-                    }
-                };
-                
-                const record = mockMedicalData[expedienteNumber.toUpperCase()];
-                
-                if (record && record.found) {
-                    // Auto-fill form with found data
-                    fillFormWithMedicalData(record);
-                    
-                    // Show success message
-                    showMedicalRecordMessage('success', `
-                        <i class="fas fa-check-circle"></i> 
-                        Expediente médico encontrado. Los datos han sido cargados automáticamente.
-                    `);
-                } else {
-                    // Show not found message
-                    showMedicalRecordMessage('warning', `
-                        <i class="fas fa-exclamation-triangle"></i> 
-                        No se encontró información para el expediente "${expedienteNumber}". Puede continuar con el registro manual.
-                    `);
-                }
-            }, 1500); // Simulate network delay
-        }
-        
-        // Function to fill form with medical record data
-        function fillFormWithMedicalData(data) {
-            try {
-                // Fill basic information
-                if (data.nombre) {
-                    const nameField = document.querySelector('input[name="nombre"]');
-                    if (nameField && !nameField.value) nameField.value = data.nombre;
-                }
-                
-                if (data.apellido_paterno) {
-                    const paternalField = document.querySelector('input[name="apellido_paterno"]');
-                    if (paternalField && !paternalField.value) paternalField.value = data.apellido_paterno;
-                }
-                
-                if (data.apellido_materno) {
-                    const maternalField = document.querySelector('input[name="apellido_materno"]');
-                    if (maternalField && !maternalField.value) maternalField.value = data.apellido_materno;
-                }
-                
-                if (data.fecha_nacimiento) {
-                    const birthdateField = document.querySelector('input[name="fecha_nacimiento"]');
-                    if (birthdateField && !birthdateField.value) birthdateField.value = data.fecha_nacimiento;
-                }
-                
-                if (data.telefono) {
-                    const phoneField = document.querySelector('input[name="telefono"]');
-                    if (phoneField && !phoneField.value) phoneField.value = data.telefono;
-                }
-                
-                if (data.email) {
-                    const emailField = document.querySelector('input[name="email"]');
-                    if (emailField && !emailField.value) emailField.value = data.email;
-                }
-                
-                console.log('📋 Medical record data loaded successfully');
-                
-                // Log this as an audit event
-                console.log('🔍 Medical record search completed for expediente:', data);
-                
-            } catch (error) {
-                console.error('❌ Error filling form with medical data:', error);
-                showMedicalRecordMessage('error', '<i class="fas fa-times-circle"></i> Error al cargar los datos. Por favor, ingrese la información manualmente.');
-            }
-        }
-        
-        // Function to show medical record search messages
-        function showMedicalRecordMessage(type, message) {
-            const expedienteInput = document.querySelector('input[name="expediente_medico"]');
-            const parentDiv = expedienteInput.closest('.field-group');
-            
-            // Remove existing message
-            const existingMessage = parentDiv.querySelector('.medical-record-message');
-            if (existingMessage) {
-                existingMessage.remove();
-            }
-            
-            // Create new message
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'medical-record-message';
-            messageDiv.style.cssText = `
-                margin-top: 0.5rem; 
-                padding: 0.75rem; 
-                border-radius: 6px; 
-                font-size: 0.875rem;
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-            `;
-            
-            // Set message style based on type
-            switch (type) {
-                case 'success':
-                    messageDiv.style.background = '#f0fdf4';
-                    messageDiv.style.border = '1px solid #22c55e';
-                    messageDiv.style.color = '#166534';
-                    break;
-                case 'warning':
-                    messageDiv.style.background = '#fffbeb';
-                    messageDiv.style.border = '1px solid #f59e0b';
-                    messageDiv.style.color = '#92400e';
-                    break;
-                case 'error':
-                    messageDiv.style.background = '#fef2f2';
-                    messageDiv.style.border = '1px solid #ef4444';
-                    messageDiv.style.color = '#dc2626';
-                    break;
-            }
-            
-            messageDiv.innerHTML = message;
-            parentDiv.appendChild(messageDiv);
-            
-            // Auto-remove message after 8 seconds
-            setTimeout(() => {
-                if (messageDiv.parentNode) {
-                    messageDiv.parentNode.removeChild(messageDiv);
-                }
-            }, 8000);
         }
 
         // Function to simulate face verification for testing
@@ -2260,10 +1783,6 @@
                             // Trigger validation for special fields
                             if (fieldName === 'curp') {
                                 field.dispatchEvent(new Event('input'));
-                            } else if (fieldName === 'password') {
-                                field.dispatchEvent(new Event('input'));
-                            } else if (fieldName === 'password_confirmation') {
-                                field.dispatchEvent(new Event('input'));
                             } else if (fieldName === 'estado') {
                                 // Trigger state change to update municipalities
                                 updateMunicipalities();
@@ -2273,12 +1792,9 @@
                         console.log(`⚠️ Field not found: ${fieldName}`);
                     }
                 });
-                
+
                 console.log('✅ Form data restoration completed');
-                
-                // Trigger medical record field visibility check after restoration
-                toggleMedicalRecordField();
-                
+
                 // Show success message
                 showFormDataRestoredMessage();
                 
