@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro de Usuario - MARINA</title>
+    <title>Completar Perfil - Maritime Transport Medicine</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -855,17 +855,27 @@
 
     <!-- Main Content -->
     <div class="container">
+        @if(session('verified'))
+            <div style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 1px solid #22c55e; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; text-align: center;">
+                <div style="display: flex; align-items: center; justify-content: center; gap: 0.75rem; font-weight: 600; color: #166534; font-size: 1.1rem; margin-bottom: 0.5rem;">
+                    <i class="fas fa-check-circle" style="font-size: 1.5rem;"></i>
+                    ¡Correo Electrónico Verificado!
+                </div>
+                <p style="color: #15803d; margin: 0;">Ahora complete su perfil para activar su cuenta.</p>
+            </div>
+        @endif
+
         <div class="page-header">
-            <h1 class="page-title">Registro de Usuario</h1>
+            <h1 class="page-title">Completar Perfil</h1>
             <p class="page-subtitle">Sistema Digital de Certificación Médica</p>
-            
+
             <div class="progress-bar">
                 <div class="progress-fill"></div>
             </div>
             <p style="color: #64748b; font-size: 0.85rem; margin-top: 0.5rem;">
                 <i class="fas fa-info-circle"></i> Complete todos los campos requeridos para continuar
             </p>
-            
+
             @if($errors->any())
                 <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 1rem; margin: 1rem 0; color: #991b1b;">
                     <div style="display: flex; align-items: center; gap: 0.5rem; font-weight: 600; margin-bottom: 0.5rem;">
@@ -883,7 +893,7 @@
 
         <!-- Registration Method Selection - COMPLETELY REMOVED - Always show form directly -->
 
-        <form action="{{ route('registro.submit', [], request()->isSecure()) }}" method="POST" id="registryForm" style="display: block;">
+        <form action="{{ route('profile.complete.submit') }}" method="POST" id="registryForm" style="display: block;">
             @csrf
             <input type="hidden" name="face_verified" id="faceVerifiedInput" value="">
             <input type="hidden" name="face_verification_confidence" id="faceConfidenceInput" value="">
@@ -1323,7 +1333,7 @@
         </form>
 
         <div class="login-redirect">
-            <p><i class="fas fa-sign-in-alt"></i> ¿Ya tienes una cuenta? <a href="/login">Inicia sesión aquí</a></p>
+            <p><i class="fas fa-user-circle"></i> Conectado como: <strong>{{ Auth::user()->email }}</strong></p>
         </div>
     </div>
     <script>

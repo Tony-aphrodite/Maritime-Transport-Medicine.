@@ -232,7 +232,7 @@ class FaceVerificationController extends Controller
     }
 
     /**
-     * Upload images to secure storage (S3 or local fallback) for verification
+     * Upload images to Amazon S3 for verification
      *
      * @param \Illuminate\Http\UploadedFile $selfieFile
      * @param \Illuminate\Http\UploadedFile $ineFile
@@ -242,56 +242,47 @@ class FaceVerificationController extends Controller
     private function uploadImagesToS3($selfieFile, $ineFile, string $verificationId): array
     {
         try {
-            // Check if S3 is available and configured
-            $useS3 = $this->isS3Available();
-            $storageDriver = $useS3 ? 's3' : 'local';
+            // Use S3 for storing images
+            $storageDriver = 's3';
             $timestamp = now()->format('Y/m/d');
-            
-            Log::info('📤 Uploading images to storage', [
+            $directory = "face-verification/{$timestamp}/{$verificationId}";
+
+            Log::info('📤 Uploading images to Amazon S3', [
                 'driver' => $storageDriver,
-                'verification_id' => $verificationId,
-                's3_available' => $useS3
+                'bucket' => env('AWS_BUCKET'),
+                'region' => env('AWS_DEFAULT_REGION'),
+                'verification_id' => $verificationId
             ]);
 
-            // Upload selfie
+            // Upload selfie to S3
             $selfieUpload = Storage::disk($storageDriver)->putFileAs(
-                "face-verification/{$timestamp}/{$verificationId}",
+                $directory,
                 $selfieFile,
                 "selfie." . $selfieFile->getClientOriginalExtension(),
-                $useS3 ? ['visibility' => 'private'] : []
+                'private'
             );
 
-            // Upload INE
+            // Upload INE to S3
             $ineUpload = Storage::disk($storageDriver)->putFileAs(
-                "face-verification/{$timestamp}/{$verificationId}",
+                $directory,
                 $ineFile,
                 "ine." . $ineFile->getClientOriginalExtension(),
-                $useS3 ? ['visibility' => 'private'] : []
+                'private'
             );
 
             if (!$selfieUpload || !$ineUpload) {
-                Log::error('❌ Failed to upload images to storage');
+                Log::error('❌ Failed to upload images to S3');
                 return [
                     'success' => false,
-                    'message' => 'Failed to upload images to storage'
+                    'message' => 'Failed to upload images to S3'
                 ];
             }
 
-            if ($useS3) {
-                // Generate pre-signed URLs for verification (valid for 1 hour)
-                $selfieUrl = Storage::disk('s3')->temporaryUrl($selfieUpload, now()->addHour());
-                $ineUrl = Storage::disk('s3')->temporaryUrl($ineUpload, now()->addHour());
-            } else {
-                // For local storage, convert to base64
-                $selfieContent = Storage::disk('local')->get($selfieUpload);
-                $ineContent = Storage::disk('local')->get($ineUpload);
-                $selfieUrl = base64_encode($selfieContent);
-                $ineUrl = base64_encode($ineContent);
-                
-                Log::info('📁 Using local storage fallback with base64 encoding');
-            }
+            // Generate temporary signed URLs (valid for 60 minutes)
+            $selfieUrl = Storage::disk($storageDriver)->temporaryUrl($selfieUpload, now()->addMinutes(60));
+            $ineUrl = Storage::disk($storageDriver)->temporaryUrl($ineUpload, now()->addMinutes(60));
 
-            Log::info('✅ Images uploaded successfully', [
+            Log::info('✅ Images uploaded successfully to S3', [
                 'driver' => $storageDriver,
                 'selfie_path' => $selfieUpload,
                 'ine_path' => $ineUpload,
@@ -308,14 +299,14 @@ class FaceVerificationController extends Controller
             ];
 
         } catch (Exception $e) {
-            Log::error('💥 Error uploading images', [
+            Log::error('💥 Error uploading images to S3', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'verification_id' => $verificationId
             ]);
 
-            // Last resort: process in memory without storage
+            // Fallback: process in memory without storage
             return $this->processImagesInMemory($selfieFile, $ineFile, $verificationId);
         }
     }
@@ -651,6 +642,7 @@ class FaceVerificationController extends Controller
 
     /**
      * Schedule cleanup of images after verification
+     * Note: For production, images are kept in S3 for audit purposes
      *
      * @param string $verificationId
      * @param string $storageDriver
@@ -665,50 +657,20 @@ class FaceVerificationController extends Controller
                 return;
             }
 
-            $timestamp = now()->format('Y/m/d');
-            $basePath = "face-verification/{$timestamp}/{$verificationId}";
-            
-            Log::info('🗑️ Scheduling cleanup', [
+            // Images are stored in S3 for audit/review purposes
+            // They can be managed via S3 lifecycle policies for automatic cleanup after X days
+            Log::info('📁 Images stored in S3 for audit purposes', [
                 'verification_id' => $verificationId,
                 'storage_driver' => $storageDriver,
-                'base_path' => $basePath
+                'bucket' => env('AWS_BUCKET'),
+                'note' => 'Configure S3 lifecycle policies for automatic cleanup if needed'
             ]);
 
-            // Get all files in the verification directory
-            $files = Storage::disk($storageDriver)->files($basePath);
-            
-            if (!empty($files)) {
-                // Delete all files in the verification directory
-                $deleted = Storage::disk($storageDriver)->delete($files);
-                
-                if ($deleted) {
-                    Log::info('✅ Cleanup completed', [
-                        'verification_id' => $verificationId,
-                        'storage_driver' => $storageDriver,
-                        'files_deleted' => count($files)
-                    ]);
-                } else {
-                    Log::warning('⚠️ Cleanup partially failed', [
-                        'verification_id' => $verificationId,
-                        'storage_driver' => $storageDriver,
-                        'files_attempted' => count($files)
-                    ]);
-                }
-            } else {
-                Log::info('📂 No files found for cleanup', [
-                    'verification_id' => $verificationId,
-                    'storage_driver' => $storageDriver,
-                    'base_path' => $basePath
-                ]);
-            }
-
         } catch (Exception $e) {
-            Log::error('💥 Cleanup failed', [
+            Log::error('💥 Cleanup logging failed', [
                 'verification_id' => $verificationId,
                 'storage_driver' => $storageDriver,
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine()
+                'message' => $e->getMessage()
             ]);
         }
     }

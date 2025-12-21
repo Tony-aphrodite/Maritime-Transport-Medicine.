@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Log;
+use App\Models\User;
 use App\Models\AuditLog;
 
 class RegistrationController extends Controller
@@ -26,51 +26,48 @@ class RegistrationController extends Controller
         try {
             // Validate the incoming request
             $validated = $request->validate([
-                'email' => 'required|email|unique:users,email',
-                'password' => 'required|min:8|confirmed',
-                'curp' => 'required|size:18',
+                'curp' => 'required|size:18|unique:users,curp',
+                'rfc' => 'nullable|string|max:13',
                 'nombres' => 'required|string|max:255',
                 'apellido_paterno' => 'required|string|max:255',
                 'apellido_materno' => 'nullable|string|max:255',
                 'telefono_movil' => 'required|string|max:20',
-                'nacionalidad' => 'required|string',
+                'nacionalidad' => 'required|string|max:100',
                 'sexo' => 'required|in:masculino,femenino',
                 'fecha_nacimiento' => 'required|date',
-                'pais_nacimiento' => 'required|string',
-                'estado_nacimiento' => 'required|string',
-                'estado' => 'required|string',
-                'municipio' => 'required|string',
-                'localidad' => 'required|string',
+                'pais_nacimiento' => 'required|string|max:100',
+                'estado_nacimiento' => 'required|string|max:100',
+                'estado' => 'required|string|max:100',
+                'municipio' => 'required|string|max:255',
+                'localidad' => 'required|string|max:255',
                 'codigo_postal' => 'required|string|size:5',
                 'calle' => 'required|string|max:255',
                 'numero_exterior' => 'required|string|max:20',
                 'numero_interior' => 'nullable|string|max:20',
             ]);
 
-            // Check if face verification was completed (check both form input and query parameters)
+            // Check if face verification was completed
             $faceVerified = $request->input('face_verified') === 'true' || $request->query('face_verified') === 'true';
-            
-            // Log the verification check for debugging
-            \Log::info('Registration face verification check:', [
+            $faceConfidence = $request->input('face_verification_confidence') ?: $request->query('confidence', null);
+
+            Log::info('Registration face verification check:', [
                 'form_face_verified' => $request->input('face_verified'),
                 'query_face_verified' => $request->query('face_verified'),
                 'final_face_verified' => $faceVerified,
-                'all_form_data' => $request->all()
+                'confidence' => $faceConfidence
             ]);
-            
+
             if (!$faceVerified) {
-                \Log::warning('Registration blocked - face verification not completed');
+                Log::warning('Registration blocked - face verification not completed');
                 return redirect()->back()
                     ->withInput()
                     ->withErrors(['face_verification' => 'Debe completar la verificación facial antes de enviar el registro.']);
             }
 
-            // Create user account (in a real application, you would save to database)
-            // For now, we'll simulate successful registration
-            $userData = [
-                'email' => $validated['email'],
-                'password' => Hash::make($validated['password']),
-                'curp' => $validated['curp'],
+            // Create user in database
+            $user = User::create([
+                'curp' => strtoupper($validated['curp']),
+                'rfc' => $validated['rfc'] ? strtoupper($validated['rfc']) : null,
                 'nombres' => $validated['nombres'],
                 'apellido_paterno' => $validated['apellido_paterno'],
                 'apellido_materno' => $validated['apellido_materno'],
@@ -80,19 +77,22 @@ class RegistrationController extends Controller
                 'fecha_nacimiento' => $validated['fecha_nacimiento'],
                 'pais_nacimiento' => $validated['pais_nacimiento'],
                 'estado_nacimiento' => $validated['estado_nacimiento'],
-                'direccion' => [
-                    'estado' => $validated['estado'],
-                    'municipio' => $validated['municipio'],
-                    'localidad' => $validated['localidad'],
-                    'codigo_postal' => $validated['codigo_postal'],
-                    'calle' => $validated['calle'],
-                    'numero_exterior' => $validated['numero_exterior'],
-                    'numero_interior' => $validated['numero_interior'],
-                ],
-                'face_verified' => true,
-                'face_verification_confidence' => $request->input('face_verification_confidence') ?: $request->query('confidence', '95'),
-                'created_at' => now(),
-            ];
+                'estado' => $validated['estado'],
+                'municipio' => $validated['municipio'],
+                'localidad' => $validated['localidad'],
+                'codigo_postal' => $validated['codigo_postal'],
+                'calle' => $validated['calle'],
+                'numero_exterior' => $validated['numero_exterior'],
+                'numero_interior' => $validated['numero_interior'],
+                'curp_verification_status' => 'verified',
+                'face_verification_status' => 'verified',
+                'account_status' => 'active',
+                'curp_verified_at' => now(),
+                'face_verified_at' => now(),
+                'face_verification_confidence' => $faceConfidence ? floatval($faceConfidence) : null,
+                'registration_ip' => $request->ip(),
+                'registration_user_agent' => $request->userAgent(),
+            ]);
 
             // Log successful registration
             try {
@@ -100,27 +100,26 @@ class RegistrationController extends Controller
                     AuditLog::EVENT_ACCOUNT_CREATED,
                     AuditLog::STATUS_SUCCESS,
                     [
-                        'registration_method' => 'full_form',
+                        'registration_method' => 'curp_face_verification',
                         'face_verification_completed' => true,
-                        'face_verification_confidence' => $request->input('face_verification_confidence') ?: $request->query('confidence', '95'),
-                        'curp_provided' => !empty($validated['curp']),
-                        'email' => $validated['email'],
+                        'face_verification_confidence' => $faceConfidence,
+                        'curp' => $validated['curp'],
                         'nombres' => $validated['nombres'],
                         'apellido_paterno' => $validated['apellido_paterno'],
                     ],
-                    $validated['email']
+                    $validated['curp']
                 );
             } catch (\Exception $e) {
                 Log::warning('Failed to log registration success: ' . $e->getMessage());
             }
 
-            // Store user data in session (simulate successful registration)
-            Session::put('registered_user', $userData);
+            // Store success in session
             Session::put('registration_success', true);
+            Session::put('registered_curp', $user->curp);
 
             // Redirect to success page
-            return redirect('/login')->with('registration_success', 
-                'Registro completado exitosamente. Ya puede iniciar sesión con sus credenciales.');
+            return redirect('/login')->with('registration_success',
+                'Registro completado exitosamente. Su CURP es su identificador único en el sistema.');
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             // Log validation failure
@@ -129,11 +128,11 @@ class RegistrationController extends Controller
                     AuditLog::EVENT_ACCOUNT_CREATION_FAILURE,
                     AuditLog::STATUS_FAILURE,
                     [
-                        'registration_method' => 'full_form',
+                        'registration_method' => 'curp_face_verification',
                         'validation_errors' => $e->errors(),
-                        'email' => $request->input('email'),
+                        'curp' => $request->input('curp'),
                     ],
-                    $request->input('email', 'unknown')
+                    $request->input('curp', 'unknown')
                 );
             } catch (\Exception $logError) {
                 Log::warning('Failed to log registration failure: ' . $logError->getMessage());
@@ -150,18 +149,18 @@ class RegistrationController extends Controller
                     AuditLog::EVENT_ACCOUNT_CREATION_FAILURE,
                     AuditLog::STATUS_FAILURE,
                     [
-                        'registration_method' => 'full_form',
+                        'registration_method' => 'curp_face_verification',
                         'error' => $e->getMessage(),
-                        'email' => $request->input('email'),
+                        'curp' => $request->input('curp'),
                     ],
-                    $request->input('email', 'unknown')
+                    $request->input('curp', 'unknown')
                 );
             } catch (\Exception $logError) {
                 Log::warning('Failed to log registration error: ' . $logError->getMessage());
             }
 
             Log::error('Registration error: ' . $e->getMessage());
-            
+
             return redirect()->back()
                 ->withInput()
                 ->withErrors(['general' => 'Error al procesar el registro. Por favor intente nuevamente.']);

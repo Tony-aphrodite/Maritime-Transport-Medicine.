@@ -5,8 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 use App\Models\AuditLog;
+use App\Models\User;
 
 class LoginController extends Controller
 {
@@ -17,6 +18,31 @@ class LoginController extends Controller
         'email' => 'AdminJuan@gmail.com',
         'password' => 'johnson@suceess!'
     ];
+
+    /**
+     * Show main login form
+     */
+    public function showLogin()
+    {
+        // If user is already logged in, redirect appropriately
+        if (Auth::check()) {
+            $user = Auth::user();
+            if (!$user->hasVerifiedEmail()) {
+                return redirect()->route('verification.notice');
+            }
+            if (!$user->hasCompletedProfile()) {
+                return redirect()->route('profile.complete');
+            }
+            return redirect()->route('dashboard');
+        }
+
+        // If admin is logged in
+        if (Session::get('admin_logged_in', false)) {
+            return redirect('/admin/dashboard');
+        }
+
+        return view('login');
+    }
 
     /**
      * Process login attempt
@@ -31,7 +57,7 @@ class LoginController extends Controller
         $email = $request->input('email');
         $password = $request->input('password');
 
-        // Check if credentials match admin
+        // Check if credentials match admin first
         if ($email === $this->adminCredentials['email'] && $password === $this->adminCredentials['password']) {
             // Admin login successful
             Session::put('admin_logged_in', true);
@@ -54,97 +80,97 @@ class LoginController extends Controller
             }
 
             return redirect('/admin/dashboard')->with('success', 'Acceso administrativo exitoso');
+        }
 
-        } else {
-            // Check for registered users in session (in production, check database)
-            $registeredUser = Session::get('registered_user');
-            if ($registeredUser && 
-                $registeredUser['email'] === $email && 
-                Hash::check($password, $registeredUser['password'])) {
-                
-                // Log successful user login
-                try {
-                    AuditLog::logEvent(
-                        AuditLog::EVENT_LOGIN_SUCCESS,
-                        AuditLog::STATUS_SUCCESS,
-                        [
-                            'authentication_method' => 'registered_user_credentials',
-                            'email' => $email,
-                            'login_type' => 'user',
-                            'user_name' => $registeredUser['nombres'] . ' ' . $registeredUser['apellido_paterno']
-                        ],
-                        $email
-                    );
-                } catch (\Exception $e) {
-                    Log::warning('Failed to log user login success: ' . $e->getMessage());
-                }
+        // Try to authenticate as a regular user from database
+        if (Auth::attempt(['email' => $email, 'password' => $password], $request->filled('remember'))) {
+            $request->session()->regenerate();
 
-                // Set user session
-                Session::put('user_logged_in', true);
-                Session::put('user_email', $email);
-                Session::put('user_data', $registeredUser);
+            $user = Auth::user();
 
-                return redirect('/dashboard')->with('success', 'Inicio de sesión exitoso');
-                
-            } else {
-                // Invalid credentials for both admin and registered users
-            
-            // Log failed login attempt
+            // Log successful user login
             try {
                 AuditLog::logEvent(
-                    AuditLog::EVENT_LOGIN_FAILURE,
-                    AuditLog::STATUS_FAILURE,
+                    AuditLog::EVENT_LOGIN_SUCCESS,
+                    AuditLog::STATUS_SUCCESS,
                     [
-                        'authentication_method' => 'standard_credentials',
+                        'authentication_method' => 'database_credentials',
                         'email' => $email,
-                        'reason' => 'invalid_credentials',
-                        'login_type' => 'user'
+                        'login_type' => 'user',
+                        'user_id' => $user->id,
+                        'user_name' => $user->full_name
                     ],
                     $email
                 );
             } catch (\Exception $e) {
-                Log::warning('Failed to log login failure: ' . $e->getMessage());
+                Log::warning('Failed to log user login success: ' . $e->getMessage());
             }
 
-                return back()->withInput()->withErrors([
-                    'email' => 'Las credenciales proporcionadas no son válidas.'
-                ]);
+            // Check if email is verified
+            if (!$user->hasVerifiedEmail()) {
+                return redirect()->route('verification.notice');
             }
+
+            // Check if profile is completed
+            if (!$user->hasCompletedProfile()) {
+                return redirect()->route('profile.complete');
+            }
+
+            return redirect()->intended('/dashboard')->with('success', 'Inicio de sesión exitoso');
         }
-    }
 
-    /**
-     * Show main login form
-     */
-    public function showLogin()
-    {
-        return view('login');
+        // Invalid credentials
+        try {
+            AuditLog::logEvent(
+                AuditLog::EVENT_LOGIN_FAILURE,
+                AuditLog::STATUS_FAILURE,
+                [
+                    'authentication_method' => 'standard_credentials',
+                    'email' => $email,
+                    'reason' => 'invalid_credentials',
+                    'login_type' => 'user'
+                ],
+                $email
+            );
+        } catch (\Exception $e) {
+            Log::warning('Failed to log login failure: ' . $e->getMessage());
+        }
+
+        return back()->withInput()->withErrors([
+            'email' => 'Las credenciales proporcionadas no son válidas.'
+        ]);
     }
 
     /**
      * Logout (admin or regular user)
      */
-    public function logout()
+    public function logout(Request $request)
     {
         $adminEmail = Session::get('admin_email');
         $isAdmin = Session::get('admin_logged_in', false);
+        $userEmail = Auth::check() ? Auth::user()->email : null;
 
         // Log logout
         try {
             AuditLog::logEvent(
-                $isAdmin ? AuditLog::EVENT_ADMIN_LOGOUT : AuditLog::EVENT_LOGIN_FAILURE,
+                $isAdmin ? AuditLog::EVENT_ADMIN_LOGOUT : 'user_logout',
                 AuditLog::STATUS_SUCCESS,
                 [
                     'logout_method' => 'manual',
                     'login_type' => $isAdmin ? 'admin' : 'user'
                 ],
-                $adminEmail
+                $isAdmin ? $adminEmail : $userEmail
             );
         } catch (\Exception $e) {
             Log::warning('Failed to log logout: ' . $e->getMessage());
         }
 
-        Session::flush();
+        // Logout from Laravel Auth
+        Auth::logout();
+
+        // Invalidate session
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
         return redirect('/login')->with('success', 'Sesión cerrada correctamente');
     }
