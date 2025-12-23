@@ -265,6 +265,24 @@
                 </ul>
             </div>
 
+            @if(config('app.debug'))
+            <div style="margin-top: 25px; padding: 20px; background: #fef3c7; border: 2px dashed #f59e0b; border-radius: 10px; text-align: left;">
+                <h4 style="color: #92400e; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-code"></i> Modo Desarrollo
+                </h4>
+                <p style="color: #78350f; font-size: 0.85rem; margin-bottom: 15px;">
+                    El correo está configurado en modo "log". Use este enlace para verificar su cuenta:
+                </p>
+                <a href="{{ \Illuminate\Support\Facades\URL::temporarySignedRoute('verification.verify', now()->addMinutes(60), ['id' => Auth::user()->id, 'hash' => sha1(Auth::user()->email)]) }}"
+                   style="display: inline-block; background: #059669; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.9rem;">
+                    <i class="fas fa-check-circle"></i> Verificar Mi Correo Ahora
+                </a>
+                <p style="color: #92400e; font-size: 0.75rem; margin-top: 12px;">
+                    <i class="fas fa-exclamation-triangle"></i> Este botón solo aparece en modo desarrollo (APP_DEBUG=true)
+                </p>
+            </div>
+            @endif
+
             <div class="help-text">
                 ¿Necesita ayuda? <a href="#">Contacte a soporte</a>
             </div>
