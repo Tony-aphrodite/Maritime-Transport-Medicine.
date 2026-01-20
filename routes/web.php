@@ -17,8 +17,8 @@ use App\Http\Controllers\Auth\ProfileController;
 */
 
 Route::get('/', function () {
-    return redirect('/login');
-});
+    return view('landing');
+})->name('home');
 
 Route::get('/hello', function () {
     return view('hello');
