@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\Auth\ProfileController;
+use App\Http\Controllers\Api\AuthApiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,6 +23,16 @@ Route::get('/', function () {
 
 Route::get('/hello', function () {
     return view('hello');
+});
+
+// ========================================
+// Auth API Routes (for landing page AJAX)
+// ========================================
+Route::prefix('api/auth')->group(function () {
+    Route::post('/login', [AuthApiController::class, 'login'])->name('api.auth.login');
+    Route::post('/register', [AuthApiController::class, 'register'])->name('api.auth.register');
+    Route::post('/resend-verification', [AuthApiController::class, 'resendVerification'])->name('api.auth.resend');
+    Route::post('/logout', [AuthApiController::class, 'logout'])->name('api.auth.logout');
 });
 
 // ========================================

@@ -41,9 +41,13 @@ class VerificationController extends Controller
             Log::warning('Failed to log email verification: ' . $e->getMessage());
         }
 
-        return redirect()->route('profile.complete')
-            ->with('verified', true)
-            ->with('success', '¡Su correo electrónico ha sido verificado! Ahora complete su perfil.');
+        // Logout the user after verification so they can login fresh from landing page
+        auth()->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        // Redirect to landing page with verified parameter
+        return redirect('/?verified=true');
     }
 
     /**

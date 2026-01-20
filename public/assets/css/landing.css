@@ -211,7 +211,80 @@ header {
     margin-right: 10px;
 }
 
-/* Registro Card */
+/* Auth Card (Login/Register) */
+.auth-card {
+    background: white;
+    padding: 40px;
+    border-radius: 15px;
+    color: var(--text-color);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    min-height: 380px;
+}
+
+.auth-card h3 {
+    color: var(--primary-dark);
+    text-align: center;
+    margin-bottom: 5px;
+}
+
+.auth-card > div > p {
+    text-align: center;
+    font-size: 14px;
+    margin-bottom: 25px;
+    color: #666;
+}
+
+/* Verification Message Styles */
+.verification-icon {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.verification-icon i {
+    font-size: 60px;
+    color: var(--primary-light);
+}
+
+.verification-email {
+    font-weight: bold;
+    color: var(--primary-dark);
+    font-size: 16px;
+    text-align: center;
+    margin: 10px 0;
+}
+
+.verification-instruction {
+    font-size: 14px;
+    color: #666;
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+/* Secondary Button */
+.btn-cta-secondary {
+    width: 100%;
+    background: transparent;
+    color: var(--primary-light);
+    padding: 15px;
+    border: 2px solid var(--primary-light);
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-cta-secondary:hover {
+    background: var(--primary-light);
+    color: white;
+}
+
+.btn-cta-secondary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Legacy support for registration-card */
 .registration-card {
     background: white;
     padding: 40px;
@@ -275,6 +348,11 @@ header {
 
 .btn-cta-main:hover {
     background: var(--primary-dark);
+}
+
+.btn-cta-main:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 .form-footer {
