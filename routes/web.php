@@ -76,8 +76,13 @@ Route::get('/dashboard', function () {
     if ($user && !$user->hasCompletedProfile()) {
         return redirect()->route('profile.complete');
     }
-    return view('dashboard');
+    return view('user-dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
+
+// User Dashboard (alias for dashboard)
+Route::get('/user-dashboard', function () {
+    return view('user-dashboard');
+})->middleware(['auth'])->name('user.dashboard');
 
 // ========================================
 // Legacy Registration Route (redirect to new flow)

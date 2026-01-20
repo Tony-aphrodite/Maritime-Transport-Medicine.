@@ -433,13 +433,13 @@
                 const data = await response.json();
 
                 if (response.ok && data.success) {
-                    showAlert(loginAlert, '¡Inicio de sesión exitoso! Redirigiendo...', 'success');
+                    showAlert(loginAlert, '¡Inicio de sesion exitoso! Redirigiendo...', 'success');
                     setTimeout(() => {
                         window.location.href = data.redirect || '/dashboard';
                     }, 1000);
                 } else {
-                    if (data.requires_verification) {
-                        showVerificationMessage(email);
+                    if (data.needs_verification) {
+                        showVerificationMessage(data.email || email);
                     } else {
                         showAlert(loginAlert, data.message || 'Credenciales incorrectas', 'error');
                     }
