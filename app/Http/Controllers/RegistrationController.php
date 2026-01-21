@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Models\AuditLog;
 
@@ -64,9 +65,17 @@ class RegistrationController extends Controller
                     ->withErrors(['face_verification' => 'Debe completar la verificación facial antes de enviar el registro.']);
             }
 
-            // Create user in database
+            // Create user in database with email/password for authentication
+            $curp = strtoupper($validated['curp']);
+            $email = $curp . '@sistema.gob.mx'; // Create unique email from CURP
+            $defaultPassword = bcrypt($curp); // Use CURP as default password (can be changed later)
+            
             $user = User::create([
-                'curp' => strtoupper($validated['curp']),
+                'curp' => $curp,
+                'email' => $email,
+                'password' => $defaultPassword,
+                'email_verified_at' => now(), // Mark as verified since this is complete verification flow
+                'profile_completed' => true, // Mark profile as completed since all data is provided
                 'rfc' => $validated['rfc'] ? strtoupper($validated['rfc']) : null,
                 'nombres' => $validated['nombres'],
                 'apellido_paterno' => $validated['apellido_paterno'],
@@ -117,9 +126,12 @@ class RegistrationController extends Controller
             Session::put('registration_success', true);
             Session::put('registered_curp', $user->curp);
 
-            // Redirect to success page
-            return redirect('/login')->with('registration_success',
-                'Registro completado exitosamente. Su CURP es su identificador único en el sistema.');
+            // Auto-login the user
+            Auth::login($user);
+
+            // Redirect to dashboard since this is the legacy flow with all verification completed
+            return redirect('/dashboard')->with('success',
+                'Registro completado exitosamente. Bienvenido al sistema.');
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             // Log validation failure

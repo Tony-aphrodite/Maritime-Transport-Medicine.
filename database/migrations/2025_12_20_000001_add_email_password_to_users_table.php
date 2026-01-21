@@ -18,9 +18,6 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable()->after('password');
             $table->rememberToken()->after('email_verified_at');
 
-            // Make CURP nullable since it will be filled later in profile completion
-            $table->string('curp', 18)->nullable()->change();
-
             // Profile completion status
             $table->boolean('profile_completed')->default(false)->after('account_status');
         });

@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\Auth\ProfileController;
+use App\Http\Controllers\Api\AuthApiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,11 +18,21 @@ use App\Http\Controllers\Auth\ProfileController;
 */
 
 Route::get('/', function () {
-    return redirect('/login');
-});
+    return view('landing');
+})->name('home');
 
 Route::get('/hello', function () {
     return view('hello');
+});
+
+// ========================================
+// Auth API Routes (for landing page AJAX)
+// ========================================
+Route::prefix('api/auth')->group(function () {
+    Route::post('/login', [AuthApiController::class, 'login'])->name('api.auth.login');
+    Route::post('/register', [AuthApiController::class, 'register'])->name('api.auth.register');
+    Route::post('/resend-verification', [AuthApiController::class, 'resendVerification'])->name('api.auth.resend');
+    Route::post('/logout', [AuthApiController::class, 'logout'])->name('api.auth.logout');
 });
 
 // ========================================
@@ -42,8 +53,8 @@ Route::get('/email/verify', [VerificationController::class, 'notice'])
     ->middleware('auth')
     ->name('verification.notice');
 
-Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verify'])
-    ->middleware(['auth', 'signed'])
+Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verifyWithoutAuth'])
+    ->middleware(['signed'])
     ->name('verification.verify');
 
 Route::post('/email/verification-notification', [VerificationController::class, 'resend'])
@@ -65,8 +76,21 @@ Route::get('/dashboard', function () {
     if ($user && !$user->hasCompletedProfile()) {
         return redirect()->route('profile.complete');
     }
-    return view('dashboard');
+    return view('user-dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
+
+// User Dashboard (alias for dashboard)
+Route::get('/user-dashboard', function () {
+    return view('user-dashboard');
+})->middleware(['auth'])->name('user.dashboard');
+
+// ========================================
+// User Profile Routes
+// ========================================
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/profile', [App\Http\Controllers\UserProfileController::class, 'show'])->name('profile.show');
+    Route::put('/profile', [App\Http\Controllers\UserProfileController::class, 'update'])->name('profile.update');
+});
 
 // ========================================
 // Legacy Registration Route (redirect to new flow)
@@ -199,4 +223,54 @@ Route::prefix('parental-consent')->group(function () {
     Route::get('/approve/{token}', [App\Http\Controllers\ParentalConsentController::class, 'showConsentForm'])->name('parental.consent.form');
     Route::post('/approve/{token}', [App\Http\Controllers\ParentalConsentController::class, 'processConsent'])->name('parental.consent.process');
     Route::get('/status/{token}', [App\Http\Controllers\ParentalConsentController::class, 'checkStatus'])->name('parental.consent.status');
+});
+
+// ========================================
+// Appointment Booking Routes
+// ========================================
+Route::middleware(['auth', 'verified'])->prefix('appointments')->name('appointments.')->group(function () {
+    // Step 1 - Date and Time Selection
+    Route::get('/step1', [App\Http\Controllers\AppointmentController::class, 'step1'])->name('step1');
+    Route::post('/step1', [App\Http\Controllers\AppointmentController::class, 'processStep1'])->name('step1.process');
+
+    // Step 2 - File Upload
+    Route::get('/step2', [App\Http\Controllers\AppointmentController::class, 'step2'])->name('step2');
+    Route::post('/step2', [App\Http\Controllers\AppointmentController::class, 'processStep2'])->name('step2.process');
+    Route::post('/upload', [App\Http\Controllers\AppointmentController::class, 'uploadFile'])->name('upload');
+    Route::delete('/document/{id}', [App\Http\Controllers\AppointmentController::class, 'deleteFile'])->name('document.delete');
+
+    // Step 3 - Medical Declaration
+    Route::get('/step3', [App\Http\Controllers\AppointmentController::class, 'step3'])->name('step3');
+    Route::post('/step3', [App\Http\Controllers\AppointmentController::class, 'processStep3'])->name('step3.process');
+
+    // Step 4 - Confirmation
+    Route::get('/step4', [App\Http\Controllers\AppointmentController::class, 'step4'])->name('step4');
+    Route::post('/step4', [App\Http\Controllers\AppointmentController::class, 'processStep4'])->name('step4.process');
+
+    // Step 5 - Payment
+    Route::get('/step5', [App\Http\Controllers\AppointmentController::class, 'step5'])->name('step5');
+    Route::post('/payment', [App\Http\Controllers\AppointmentController::class, 'processPayment'])->name('payment.process');
+
+    // Success Page
+    Route::get('/success/{id}', [App\Http\Controllers\AppointmentController::class, 'success'])->name('success');
+});
+
+// Debug route - REMOVE IN PRODUCTION
+Route::get('/debug-auth', function () {
+    $user = auth()->user();
+    if (!$user) {
+        return response()->json([
+            'logged_in' => false,
+            'message' => 'No user logged in',
+            'session_id' => session()->getId()
+        ]);
+    }
+    return response()->json([
+        'logged_in' => true,
+        'user_id' => $user->id,
+        'email' => $user->email,
+        'email_verified' => $user->hasVerifiedEmail(),
+        'profile_completed' => $user->profile_completed,
+        'session_id' => session()->getId()
+    ]);
 });
