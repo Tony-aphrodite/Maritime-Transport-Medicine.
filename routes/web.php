@@ -225,6 +225,36 @@ Route::prefix('parental-consent')->group(function () {
     Route::get('/status/{token}', [App\Http\Controllers\ParentalConsentController::class, 'checkStatus'])->name('parental.consent.status');
 });
 
+// ========================================
+// Appointment Booking Routes
+// ========================================
+Route::middleware(['auth', 'verified'])->prefix('appointments')->name('appointments.')->group(function () {
+    // Step 1 - Date and Time Selection
+    Route::get('/step1', [App\Http\Controllers\AppointmentController::class, 'step1'])->name('step1');
+    Route::post('/step1', [App\Http\Controllers\AppointmentController::class, 'processStep1'])->name('step1.process');
+
+    // Step 2 - File Upload
+    Route::get('/step2', [App\Http\Controllers\AppointmentController::class, 'step2'])->name('step2');
+    Route::post('/step2', [App\Http\Controllers\AppointmentController::class, 'processStep2'])->name('step2.process');
+    Route::post('/upload', [App\Http\Controllers\AppointmentController::class, 'uploadFile'])->name('upload');
+    Route::delete('/document/{id}', [App\Http\Controllers\AppointmentController::class, 'deleteFile'])->name('document.delete');
+
+    // Step 3 - Medical Declaration
+    Route::get('/step3', [App\Http\Controllers\AppointmentController::class, 'step3'])->name('step3');
+    Route::post('/step3', [App\Http\Controllers\AppointmentController::class, 'processStep3'])->name('step3.process');
+
+    // Step 4 - Confirmation
+    Route::get('/step4', [App\Http\Controllers\AppointmentController::class, 'step4'])->name('step4');
+    Route::post('/step4', [App\Http\Controllers\AppointmentController::class, 'processStep4'])->name('step4.process');
+
+    // Step 5 - Payment
+    Route::get('/step5', [App\Http\Controllers\AppointmentController::class, 'step5'])->name('step5');
+    Route::post('/payment', [App\Http\Controllers\AppointmentController::class, 'processPayment'])->name('payment.process');
+
+    // Success Page
+    Route::get('/success/{id}', [App\Http\Controllers\AppointmentController::class, 'success'])->name('success');
+});
+
 // Debug route - REMOVE IN PRODUCTION
 Route::get('/debug-auth', function () {
     $user = auth()->user();

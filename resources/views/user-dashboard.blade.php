@@ -11,7 +11,7 @@
                 <span class="badge-gold">Oficial & Seguro</span>
                 <h1>Medico virtual de medicina preventiva del transporte</h1>
                 <p>Reserva una cita online y realiza tu examen medico por videollamada desde cualquier parte del mundo.</p>
-                <a href="#" style="text-decoration: none;">
+                <a href="{{ route('appointments.step1') }}" style="text-decoration: none;">
                     <button class="btn-primary-gold">
                         <i class="fas fa-calendar-check"></i> Realizar Cita
                     </button>
