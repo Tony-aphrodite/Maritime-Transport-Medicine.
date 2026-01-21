@@ -61,20 +61,20 @@ Route::post('/email/verification-notification', [VerificationController::class, 
     ->middleware(['auth', 'throttle:6,1'])
     ->name('verification.resend');
 
-// Profile Completion Routes (Step 3 - after email verification)
-Route::get('/complete-profile', [ProfileController::class, 'showCompleteForm'])
-    ->middleware(['auth', 'verified'])
-    ->name('profile.complete');
+// Profile Completion Routes (Legacy - redirect to profile page)
+Route::get('/complete-profile', function () {
+    return redirect()->route('profile.show');
+})->middleware(['auth', 'verified'])->name('profile.complete');
 
-Route::post('/complete-profile', [ProfileController::class, 'complete'])
-    ->middleware(['auth', 'verified'])
-    ->name('profile.complete.submit');
+Route::post('/complete-profile', function () {
+    return redirect()->route('profile.show');
+})->middleware(['auth', 'verified'])->name('profile.complete.submit');
 
 // Dashboard (requires completed profile)
 Route::get('/dashboard', function () {
     $user = auth()->user();
     if ($user && !$user->hasCompletedProfile()) {
-        return redirect()->route('profile.complete');
+        return redirect()->route('profile.show')->with('info', 'Por favor complete su perfil antes de continuar.');
     }
     return view('user-dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');

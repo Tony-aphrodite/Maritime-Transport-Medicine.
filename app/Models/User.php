@@ -29,6 +29,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'apellido_paterno',
         'apellido_materno',
         'telefono_movil',
+        'telefono_casa',
         'nacionalidad',
         'sexo',
         'fecha_nacimiento',
