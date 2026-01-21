@@ -291,4 +291,67 @@ class UserProfileController extends Controller
 
         return $map[$relationship] ?? 'parent';
     }
+
+    /**
+     * Update user's profile photo
+     */
+    public function updatePhoto(Request $request)
+    {
+        $request->validate([
+            'profile_photo' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+        ], [
+            'profile_photo.required' => 'Debe seleccionar una imagen.',
+            'profile_photo.image' => 'El archivo debe ser una imagen.',
+            'profile_photo.mimes' => 'La imagen debe ser JPG o PNG.',
+            'profile_photo.max' => 'La imagen no puede ser mayor a 2MB.',
+        ]);
+
+        $user = Auth::user();
+
+        try {
+            $file = $request->file('profile_photo');
+            $extension = $file->getClientOriginalExtension();
+            $filename = 'profile_' . $user->id . '_' . time() . '.' . $extension;
+            $path = 'profile-photos/' . $filename;
+
+            // Delete old photo if exists
+            if ($user->profile_photo && Storage::disk('public')->exists($user->profile_photo)) {
+                Storage::disk('public')->delete($user->profile_photo);
+            }
+
+            // Upload new photo to local public storage
+            Storage::disk('public')->put($path, file_get_contents($file));
+
+            // Update user profile_photo path
+            $user->update(['profile_photo' => $path]);
+
+            // Log the update
+            try {
+                AuditLog::logEvent(
+                    'profile_photo_updated',
+                    AuditLog::STATUS_SUCCESS,
+                    ['user_id' => $user->id],
+                    $user->email
+                );
+            } catch (\Exception $e) {
+                // Silently ignore logging errors
+            }
+
+            // Generate public URL
+            $photoUrl = asset('storage/' . $path);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Foto de perfil actualizada correctamente.',
+                'photo_url' => $photoUrl
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Failed to upload profile photo: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al subir la foto. Por favor intente de nuevo.'
+            ], 500);
+        }
+    }
 }

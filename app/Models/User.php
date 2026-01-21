@@ -53,6 +53,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'registration_user_agent',
         'document_path',
         'document_type',
+        'profile_photo',
     ];
 
     /**

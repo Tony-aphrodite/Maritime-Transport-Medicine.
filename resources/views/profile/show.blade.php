@@ -568,6 +568,29 @@
         font-size: 0.9rem;
     }
 
+    /* Notification Animations */
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+
     /* Responsive */
     @media (max-width: 1024px) {
         .three-columns {
@@ -641,8 +664,14 @@
     <div class="profile-header-card">
         <div class="profile-header-content">
             <div class="profile-avatar-container">
-                <img src="{{ asset('assets/img/user-avatar.jpg') }}" alt="Avatar" class="profile-avatar">
-                <button class="avatar-edit-btn" title="Cambiar foto">
+                @php
+                    $profilePhotoUrl = $user->profile_photo
+                        ? asset('storage/' . $user->profile_photo)
+                        : asset('assets/img/user-avatar.jpg');
+                @endphp
+                <img src="{{ $profilePhotoUrl }}" alt="Avatar" class="profile-avatar" id="profileAvatarImg">
+                <input type="file" id="profilePhotoInput" accept="image/jpeg,image/png" style="display: none;">
+                <button type="button" class="avatar-edit-btn" title="Cambiar foto" onclick="document.getElementById('profilePhotoInput').click()">
                     <i class="fas fa-camera"></i>
                 </button>
             </div>
@@ -1184,7 +1213,93 @@ document.addEventListener('DOMContentLoaded', function() {
     // File upload handlers
     setupFileUpload('ineInput', 'ineDropArea', 'inePreview');
     setupFileUpload('passportInput', 'passportDropArea', 'passportPreview');
+
+    // Profile photo upload handler
+    const profilePhotoInput = document.getElementById('profilePhotoInput');
+    if (profilePhotoInput) {
+        profilePhotoInput.addEventListener('change', handleProfilePhotoUpload);
+    }
 });
+
+function handleProfilePhotoUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validate file size (2MB max)
+    if (file.size > 2 * 1024 * 1024) {
+        alert('La imagen es demasiado grande. Maximo 2MB.');
+        event.target.value = '';
+        return;
+    }
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+    if (!validTypes.includes(file.type)) {
+        alert('Tipo de archivo no valido. Use JPG o PNG.');
+        event.target.value = '';
+        return;
+    }
+
+    // Show loading state
+    const avatarImg = document.getElementById('profileAvatarImg');
+    const avatarBtn = document.querySelector('.avatar-edit-btn');
+    const originalContent = avatarBtn.innerHTML;
+    avatarBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    avatarBtn.disabled = true;
+
+    // Create FormData and upload
+    const formData = new FormData();
+    formData.append('profile_photo', file);
+    formData.append('_token', '{{ csrf_token() }}');
+
+    fetch('{{ route("profile.photo.update") }}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update avatar image
+            avatarImg.src = data.photo_url;
+            // Show success message
+            showNotification('success', data.message);
+        } else {
+            showNotification('error', data.message || 'Error al subir la foto.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('error', 'Error al subir la foto. Por favor intente de nuevo.');
+    })
+    .finally(() => {
+        // Restore button state
+        avatarBtn.innerHTML = originalContent;
+        avatarBtn.disabled = false;
+        event.target.value = '';
+    });
+}
+
+function showNotification(type, message) {
+    // Remove existing notifications
+    const existingNotif = document.querySelector('.photo-notification');
+    if (existingNotif) existingNotif.remove();
+
+    // Create notification
+    const notif = document.createElement('div');
+    notif.className = 'photo-notification alert alert-' + type;
+    notif.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px; animation: slideIn 0.3s ease;';
+    notif.innerHTML = `
+        <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+        ${message}
+    `;
+    document.body.appendChild(notif);
+
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        notif.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => notif.remove(), 300);
+    }, 3000);
+}
 
 function handleNationalityChange() {
     const nacionalidad = document.getElementById('nacionalidadSelect').value;
