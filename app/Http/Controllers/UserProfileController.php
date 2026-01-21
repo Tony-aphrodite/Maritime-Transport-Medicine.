@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Hash;
 use App\Models\AuditLog;
 use App\Models\ParentalConsent;
 
@@ -351,6 +352,71 @@ class UserProfileController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error al subir la foto. Por favor intente de nuevo.'
+            ], 500);
+        }
+    }
+
+    /**
+     * Update user's password
+     */
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required|string',
+            'new_password' => 'required|string|min:8|confirmed',
+        ], [
+            'current_password.required' => 'La contrasena actual es obligatoria.',
+            'new_password.required' => 'La nueva contrasena es obligatoria.',
+            'new_password.min' => 'La nueva contrasena debe tener al menos 8 caracteres.',
+            'new_password.confirmed' => 'Las contrasenas no coinciden.',
+        ]);
+
+        $user = Auth::user();
+
+        // Verify current password
+        if (!Hash::check($request->current_password, $user->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'La contrasena actual es incorrecta.'
+            ], 422);
+        }
+
+        // Check if new password is same as current
+        if (Hash::check($request->new_password, $user->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'La nueva contrasena debe ser diferente a la actual.'
+            ], 422);
+        }
+
+        try {
+            // Update password
+            $user->update([
+                'password' => Hash::make($request->new_password)
+            ]);
+
+            // Log the update
+            try {
+                AuditLog::logEvent(
+                    'password_changed',
+                    AuditLog::STATUS_SUCCESS,
+                    ['user_id' => $user->id],
+                    $user->email
+                );
+            } catch (\Exception $e) {
+                // Silently ignore logging errors
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Contrasena actualizada correctamente.'
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Failed to update password: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al actualizar la contrasena. Por favor intente de nuevo.'
             ], 500);
         }
     }

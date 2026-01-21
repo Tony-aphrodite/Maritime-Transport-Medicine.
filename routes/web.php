@@ -91,6 +91,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', [App\Http\Controllers\UserProfileController::class, 'show'])->name('profile.show');
     Route::put('/profile', [App\Http\Controllers\UserProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/photo', [App\Http\Controllers\UserProfileController::class, 'updatePhoto'])->name('profile.photo.update');
+    Route::post('/profile/password', [App\Http\Controllers\UserProfileController::class, 'updatePassword'])->name('profile.password.update');
 });
 
 // ========================================
