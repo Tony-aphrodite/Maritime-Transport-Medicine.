@@ -85,6 +85,14 @@ Route::get('/user-dashboard', function () {
 })->middleware(['auth'])->name('user.dashboard');
 
 // ========================================
+// User Profile Routes
+// ========================================
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/profile', [App\Http\Controllers\UserProfileController::class, 'show'])->name('profile.show');
+    Route::put('/profile', [App\Http\Controllers\UserProfileController::class, 'update'])->name('profile.update');
+});
+
+// ========================================
 // Legacy Registration Route (redirect to new flow)
 // ========================================
 Route::get('/registro', function() {
@@ -215,4 +223,24 @@ Route::prefix('parental-consent')->group(function () {
     Route::get('/approve/{token}', [App\Http\Controllers\ParentalConsentController::class, 'showConsentForm'])->name('parental.consent.form');
     Route::post('/approve/{token}', [App\Http\Controllers\ParentalConsentController::class, 'processConsent'])->name('parental.consent.process');
     Route::get('/status/{token}', [App\Http\Controllers\ParentalConsentController::class, 'checkStatus'])->name('parental.consent.status');
+});
+
+// Debug route - REMOVE IN PRODUCTION
+Route::get('/debug-auth', function () {
+    $user = auth()->user();
+    if (!$user) {
+        return response()->json([
+            'logged_in' => false,
+            'message' => 'No user logged in',
+            'session_id' => session()->getId()
+        ]);
+    }
+    return response()->json([
+        'logged_in' => true,
+        'user_id' => $user->id,
+        'email' => $user->email,
+        'email_verified' => $user->hasVerifiedEmail(),
+        'profile_completed' => $user->profile_completed,
+        'session_id' => session()->getId()
+    ]);
 });

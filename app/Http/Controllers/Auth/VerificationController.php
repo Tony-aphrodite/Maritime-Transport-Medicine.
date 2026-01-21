@@ -41,7 +41,13 @@ class VerificationController extends Controller
             Log::warning('Failed to log email verification: ' . $e->getMessage());
         }
 
-        // Logout the user after verification so they can login fresh from landing page
+        // Mark profile as completed for new users
+        $user = $request->user();
+        if (!$user->profile_completed) {
+            $user->update(['profile_completed' => true]);
+        }
+
+        // Logout user so they can login fresh from landing page
         auth()->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
