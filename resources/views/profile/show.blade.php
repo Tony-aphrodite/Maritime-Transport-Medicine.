@@ -239,79 +239,6 @@
         font-size: 0.75rem;
     }
 
-    /* CURP/RFC Input with Button */
-    .input-with-button {
-        display: flex;
-        gap: 0.75rem;
-    }
-
-    .input-with-button .form-control {
-        flex: 1;
-    }
-
-    .validate-btn {
-        padding: 0.75rem 1.25rem;
-        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        white-space: nowrap;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .validate-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(47, 125, 178, 0.3);
-    }
-
-    /* RFC Container */
-    .rfc-input-container {
-        display: flex;
-        border: 2px solid #E5E7EB;
-        border-radius: 8px;
-        overflow: hidden;
-        transition: all 0.3s ease;
-    }
-
-    .rfc-input-container:focus-within {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 3px rgba(47, 125, 178, 0.15);
-    }
-
-    .rfc-readonly-section {
-        background: #F3F4F6;
-        padding: 0.75rem 1rem;
-        border-right: 2px solid #E5E7EB;
-        display: flex;
-        align-items: center;
-        min-width: 120px;
-    }
-
-    .rfc-readonly-text {
-        font-family: 'Courier New', monospace;
-        font-weight: 600;
-        color: var(--primary-dark);
-        letter-spacing: 1px;
-    }
-
-    .rfc-editable-input {
-        border: none !important;
-        box-shadow: none !important;
-        flex: 1;
-        font-family: 'Courier New', monospace;
-        font-weight: 600;
-        letter-spacing: 1px;
-    }
-
-    .rfc-editable-input:focus {
-        outline: none;
-    }
-
     /* Validation Messages */
     .validation-message {
         display: flex;
@@ -350,7 +277,7 @@
     /* Verification Status Cards */
     .verification-grid {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(2, 1fr);
         gap: 1rem;
     }
 
@@ -419,40 +346,103 @@
         margin: 0;
     }
 
-    /* Face Verification Section */
-    .face-verification-box {
-        text-align: center;
-        padding: 2rem;
-        background: #FAFBFC;
-        border-radius: 12px;
+    /* Document Upload Section */
+    .document-upload-area {
         border: 2px dashed #E5E7EB;
+        border-radius: 12px;
+        padding: 2rem;
+        text-align: center;
+        background: #FAFBFC;
+        transition: all 0.3s ease;
+        cursor: pointer;
     }
 
-    .face-verification-box.verified {
+    .document-upload-area:hover {
+        border-color: var(--primary-color);
+        background: #F0F7FF;
+    }
+
+    .document-upload-area.dragover {
+        border-color: var(--primary-color);
+        background: #E0F2FE;
+    }
+
+    .document-upload-area.has-file {
+        border-color: var(--success-color);
         background: #F0FDF4;
-        border-color: #BBF7D0;
         border-style: solid;
     }
 
-    .face-verification-box .icon {
-        font-size: 3rem;
+    .upload-icon {
+        font-size: 2.5rem;
+        color: var(--primary-color);
         margin-bottom: 1rem;
     }
 
-    .face-verification-box.pending .icon { color: var(--warning-color); }
-    .face-verification-box.verified .icon { color: var(--success-color); }
-
-    .face-verification-box h3 {
-        margin-bottom: 0.5rem;
-        color: var(--primary-dark);
+    .document-upload-area.has-file .upload-icon {
+        color: var(--success-color);
     }
 
-    .face-verification-box p {
+    .upload-text {
         color: #6B7280;
-        margin-bottom: 1.5rem;
-        max-width: 500px;
-        margin-left: auto;
-        margin-right: auto;
+        margin-bottom: 0.5rem;
+    }
+
+    .upload-hint {
+        font-size: 0.8rem;
+        color: #9CA3AF;
+    }
+
+    .file-preview {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background: white;
+        border-radius: 8px;
+        margin-top: 1rem;
+        border: 1px solid #E5E7EB;
+    }
+
+    .file-preview img {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 6px;
+    }
+
+    .file-info {
+        flex: 1;
+        text-align: left;
+    }
+
+    .file-info .file-name {
+        font-weight: 600;
+        color: var(--primary-dark);
+        word-break: break-all;
+    }
+
+    .file-info .file-size {
+        font-size: 0.8rem;
+        color: #6B7280;
+    }
+
+    .remove-file-btn {
+        background: #FEE2E2;
+        color: #DC2626;
+        border: none;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: 0.3s;
+    }
+
+    .remove-file-btn:hover {
+        background: #FECACA;
     }
 
     /* Parental Consent Section */
@@ -527,16 +517,6 @@
         background: #E5E7EB;
     }
 
-    .btn-success {
-        background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
-        color: white;
-    }
-
-    .btn-success:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
-    }
-
     /* Alerts */
     .alert {
         padding: 1rem;
@@ -559,6 +539,35 @@
         border: 1px solid #FECACA;
     }
 
+    .alert-info {
+        background: #EFF6FF;
+        color: #1E40AF;
+        border: 1px solid #BFDBFE;
+    }
+
+    /* Nationality Info Box */
+    .nationality-info-box {
+        background: #FEF3C7;
+        border: 1px solid #F59E0B;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .nationality-info-box i {
+        color: #D97706;
+        font-size: 1.25rem;
+    }
+
+    .nationality-info-box p {
+        color: #92400E;
+        margin: 0;
+        font-size: 0.9rem;
+    }
+
     /* Responsive */
     @media (max-width: 1024px) {
         .three-columns {
@@ -579,10 +588,6 @@
             grid-template-columns: 1fr;
         }
 
-        .input-with-button {
-            flex-direction: column;
-        }
-
         .form-actions {
             flex-direction: column;
         }
@@ -590,15 +595,6 @@
         .btn {
             width: 100%;
             justify-content: center;
-        }
-
-        .rfc-input-container {
-            flex-direction: column;
-        }
-
-        .rfc-readonly-section {
-            border-right: none;
-            border-bottom: 2px solid #E5E7EB;
         }
     }
 </style>
@@ -617,6 +613,13 @@
         <div class="alert alert-error">
             <i class="fas fa-exclamation-circle"></i>
             {{ session('error') }}
+        </div>
+    @endif
+
+    @if(session('info'))
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            {{ session('info') }}
         </div>
     @endif
 
@@ -653,14 +656,10 @@
                         <span class="badge badge-unverified"><i class="fas fa-times"></i> Email No Verificado</span>
                     @endif
 
-                    @if($user->curp_verification_status === 'verified')
-                        <span class="badge badge-verified"><i class="fas fa-id-card"></i> CURP Verificado</span>
-                    @elseif($user->curp_verification_status === 'pending')
-                        <span class="badge badge-pending"><i class="fas fa-clock"></i> CURP Pendiente</span>
-                    @endif
-
-                    @if($user->face_verification_status === 'verified')
-                        <span class="badge badge-verified"><i class="fas fa-user-check"></i> Identidad Verificada</span>
+                    @if($user->document_path)
+                        <span class="badge badge-verified"><i class="fas fa-id-card"></i> Documento Subido</span>
+                    @else
+                        <span class="badge badge-pending"><i class="fas fa-clock"></i> Documento Pendiente</span>
                     @endif
                 </div>
             </div>
@@ -685,23 +684,13 @@
                     </div>
                 </div>
 
-                <div class="verification-card {{ $user->curp_verification_status === 'verified' ? 'verified' : ($user->curp_verification_status === 'pending' ? 'pending' : 'unverified') }}">
+                <div class="verification-card {{ $user->document_path ? 'verified' : 'unverified' }}">
                     <div class="verification-icon">
-                        <i class="fas {{ $user->curp_verification_status === 'verified' ? 'fa-check-circle' : ($user->curp_verification_status === 'pending' ? 'fa-clock' : 'fa-times-circle') }}"></i>
+                        <i class="fas {{ $user->document_path ? 'fa-check-circle' : 'fa-times-circle' }}"></i>
                     </div>
                     <div class="verification-info">
-                        <h4>CURP</h4>
-                        <p>{{ $user->curp_verification_status === 'verified' ? 'Verificado' : ($user->curp_verification_status === 'pending' ? 'Pendiente' : 'No verificado') }}</p>
-                    </div>
-                </div>
-
-                <div class="verification-card {{ $user->face_verification_status === 'verified' ? 'verified' : ($user->face_verification_status === 'pending' ? 'pending' : 'unverified') }}">
-                    <div class="verification-icon">
-                        <i class="fas {{ $user->face_verification_status === 'verified' ? 'fa-check-circle' : ($user->face_verification_status === 'pending' ? 'fa-clock' : 'fa-times-circle') }}"></i>
-                    </div>
-                    <div class="verification-info">
-                        <h4>Identidad Facial</h4>
-                        <p>{{ $user->face_verification_status === 'verified' ? 'Verificado' : ($user->face_verification_status === 'pending' ? 'Pendiente' : 'No verificado') }}</p>
+                        <h4>Documento de Identidad</h4>
+                        <p>{{ $user->document_path ? 'Subido' : 'Pendiente' }}</p>
                     </div>
                 </div>
             </div>
@@ -709,11 +698,9 @@
     </div>
 
     <!-- Main Profile Form -->
-    <form action="{{ route('profile.update') }}" method="POST" id="profileForm">
+    <form action="{{ route('profile.update') }}" method="POST" id="profileForm" enctype="multipart/form-data">
         @csrf
         @method('PUT')
-        <input type="hidden" name="face_verified" id="faceVerifiedInput" value="{{ $user->face_verification_status === 'verified' ? 'true' : '' }}">
-        <input type="hidden" name="rfc" id="rfcHiddenInput" value="{{ old('rfc', $user->rfc) }}">
 
         <!-- Section 1 - General Information -->
         <div class="form-section">
@@ -758,7 +745,7 @@
                                 <i class="fas fa-flag"></i>
                                 Nacionalidad <span class="required">*</span>
                             </label>
-                            <select class="form-select" name="nacionalidad" required>
+                            <select class="form-select" name="nacionalidad" id="nacionalidadSelect" required>
                                 <option value="">Seleccione...</option>
                                 <option value="mexicana" {{ old('nacionalidad', $user->nacionalidad) == 'mexicana' ? 'selected' : '' }}>Mexicana</option>
                                 <option value="estadounidense" {{ old('nacionalidad', $user->nacionalidad) == 'estadounidense' ? 'selected' : '' }}>Estadounidense</option>
@@ -769,56 +756,40 @@
 
                         <div class="field-group">
                             <label class="field-label">
-                                <i class="fas fa-id-card"></i>
-                                CURP <span class="required">*</span>
-                            </label>
-                            <div class="input-with-button">
-                                <input type="text" class="form-control" id="curpInput" name="curp"
-                                       value="{{ old('curp', $user->curp) }}"
-                                       placeholder="CURP (18 caracteres)" maxlength="18"
-                                       style="text-transform: uppercase; font-family: 'Courier New', monospace; letter-spacing: 0.5px;"
-                                       {{ $user->curp_verification_status === 'verified' ? 'disabled' : '' }} required>
-                                @if($user->curp_verification_status !== 'verified')
-                                <button type="button" onclick="validateCurp()" class="validate-btn">
-                                    <i class="fas fa-check-circle"></i> Validar
-                                </button>
-                                @endif
-                            </div>
-                            <div id="curpValidationMessage" style="display: none;"></div>
-                            @if($user->curp_verification_status === 'verified')
-                                <span class="input-hint"><i class="fas fa-lock"></i> CURP verificado, no puede ser modificado</span>
-                            @endif
-                        </div>
-                    </div>
-
-                    <div class="two-columns">
-                        <div class="field-group">
-                            <label class="field-label">
-                                <i class="fas fa-receipt"></i>
-                                RFC <span class="required">*</span>
-                            </label>
-                            <div class="rfc-input-container">
-                                <div class="rfc-readonly-section">
-                                    <span id="rfcFromCurp" class="rfc-readonly-text">{{ $user->curp ? substr($user->curp, 0, 10) : '--' }}</span>
-                                </div>
-                                <input type="text" class="form-control rfc-editable-input" name="rfc_suffix" id="rfcSuffixInput"
-                                       value="{{ $user->rfc ? substr($user->rfc, 10) : '' }}"
-                                       placeholder="XXX" maxlength="3" style="text-transform: uppercase;">
-                            </div>
-                            <div class="input-hint">
-                                <i class="fas fa-info-circle"></i>
-                                Los primeros 10 caracteres se toman del CURP. Solo capture los ultimos 3 digitos.
-                            </div>
-                            <div id="rfcValidationMessage" style="display: none;"></div>
-                        </div>
-
-                        <div class="field-group">
-                            <label class="field-label">
                                 <i class="fas fa-envelope"></i>
                                 Correo Electronico
                             </label>
                             <input type="email" class="form-control" value="{{ $user->email }}" disabled>
                             <span class="input-hint"><i class="fas fa-lock"></i> El correo no puede ser modificado</span>
+                        </div>
+                    </div>
+
+                    <!-- Mexican-only fields (CURP and RFC) -->
+                    <div id="mexicanFieldsSection" style="display: none;">
+                        <div class="two-columns">
+                            <div class="field-group">
+                                <label class="field-label">
+                                    <i class="fas fa-id-card"></i>
+                                    CURP <span class="required" id="curpRequired">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="curpInput" name="curp"
+                                       value="{{ old('curp', $user->curp) }}"
+                                       placeholder="CURP (18 caracteres)" maxlength="18"
+                                       style="text-transform: uppercase; font-family: 'Courier New', monospace; letter-spacing: 0.5px;">
+                                <div id="curpValidationMessage" style="display: none;"></div>
+                            </div>
+
+                            <div class="field-group">
+                                <label class="field-label">
+                                    <i class="fas fa-receipt"></i>
+                                    RFC <span class="required" id="rfcRequired">*</span>
+                                </label>
+                                <input type="text" class="form-control" name="rfc" id="rfcInput"
+                                       value="{{ old('rfc', $user->rfc) }}"
+                                       placeholder="RFC (13 caracteres)" maxlength="13"
+                                       style="text-transform: uppercase; font-family: 'Courier New', monospace; letter-spacing: 0.5px;">
+                                <div id="rfcValidationMessage" style="display: none;"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -902,56 +873,86 @@
             </div>
             <div class="section-content">
                 <div class="form-grid">
-                    <div class="two-columns">
-                        <div class="field-group">
-                            <label class="field-label">
-                                <i class="fas fa-map"></i>
-                                Estado <span class="required">*</span>
-                            </label>
-                            <select class="form-select" name="estado" id="estadoSelect" required>
-                                <option value="">Seleccione un estado...</option>
-                                <option value="Aguascalientes" {{ old('estado', $user->estado) == 'Aguascalientes' ? 'selected' : '' }}>Aguascalientes</option>
-                                <option value="Baja California" {{ old('estado', $user->estado) == 'Baja California' ? 'selected' : '' }}>Baja California</option>
-                                <option value="Baja California Sur" {{ old('estado', $user->estado) == 'Baja California Sur' ? 'selected' : '' }}>Baja California Sur</option>
-                                <option value="Campeche" {{ old('estado', $user->estado) == 'Campeche' ? 'selected' : '' }}>Campeche</option>
-                                <option value="Chiapas" {{ old('estado', $user->estado) == 'Chiapas' ? 'selected' : '' }}>Chiapas</option>
-                                <option value="Chihuahua" {{ old('estado', $user->estado) == 'Chihuahua' ? 'selected' : '' }}>Chihuahua</option>
-                                <option value="Ciudad de Mexico" {{ old('estado', $user->estado) == 'Ciudad de Mexico' ? 'selected' : '' }}>Ciudad de Mexico</option>
-                                <option value="Coahuila" {{ old('estado', $user->estado) == 'Coahuila' ? 'selected' : '' }}>Coahuila</option>
-                                <option value="Colima" {{ old('estado', $user->estado) == 'Colima' ? 'selected' : '' }}>Colima</option>
-                                <option value="Durango" {{ old('estado', $user->estado) == 'Durango' ? 'selected' : '' }}>Durango</option>
-                                <option value="Estado de Mexico" {{ old('estado', $user->estado) == 'Estado de Mexico' ? 'selected' : '' }}>Estado de Mexico</option>
-                                <option value="Guanajuato" {{ old('estado', $user->estado) == 'Guanajuato' ? 'selected' : '' }}>Guanajuato</option>
-                                <option value="Guerrero" {{ old('estado', $user->estado) == 'Guerrero' ? 'selected' : '' }}>Guerrero</option>
-                                <option value="Hidalgo" {{ old('estado', $user->estado) == 'Hidalgo' ? 'selected' : '' }}>Hidalgo</option>
-                                <option value="Jalisco" {{ old('estado', $user->estado) == 'Jalisco' ? 'selected' : '' }}>Jalisco</option>
-                                <option value="Michoacan" {{ old('estado', $user->estado) == 'Michoacan' ? 'selected' : '' }}>Michoacan</option>
-                                <option value="Morelos" {{ old('estado', $user->estado) == 'Morelos' ? 'selected' : '' }}>Morelos</option>
-                                <option value="Nayarit" {{ old('estado', $user->estado) == 'Nayarit' ? 'selected' : '' }}>Nayarit</option>
-                                <option value="Nuevo Leon" {{ old('estado', $user->estado) == 'Nuevo Leon' ? 'selected' : '' }}>Nuevo Leon</option>
-                                <option value="Oaxaca" {{ old('estado', $user->estado) == 'Oaxaca' ? 'selected' : '' }}>Oaxaca</option>
-                                <option value="Puebla" {{ old('estado', $user->estado) == 'Puebla' ? 'selected' : '' }}>Puebla</option>
-                                <option value="Queretaro" {{ old('estado', $user->estado) == 'Queretaro' ? 'selected' : '' }}>Queretaro</option>
-                                <option value="Quintana Roo" {{ old('estado', $user->estado) == 'Quintana Roo' ? 'selected' : '' }}>Quintana Roo</option>
-                                <option value="San Luis Potosi" {{ old('estado', $user->estado) == 'San Luis Potosi' ? 'selected' : '' }}>San Luis Potosi</option>
-                                <option value="Sinaloa" {{ old('estado', $user->estado) == 'Sinaloa' ? 'selected' : '' }}>Sinaloa</option>
-                                <option value="Sonora" {{ old('estado', $user->estado) == 'Sonora' ? 'selected' : '' }}>Sonora</option>
-                                <option value="Tabasco" {{ old('estado', $user->estado) == 'Tabasco' ? 'selected' : '' }}>Tabasco</option>
-                                <option value="Tamaulipas" {{ old('estado', $user->estado) == 'Tamaulipas' ? 'selected' : '' }}>Tamaulipas</option>
-                                <option value="Tlaxcala" {{ old('estado', $user->estado) == 'Tlaxcala' ? 'selected' : '' }}>Tlaxcala</option>
-                                <option value="Veracruz" {{ old('estado', $user->estado) == 'Veracruz' ? 'selected' : '' }}>Veracruz</option>
-                                <option value="Yucatan" {{ old('estado', $user->estado) == 'Yucatan' ? 'selected' : '' }}>Yucatan</option>
-                                <option value="Zacatecas" {{ old('estado', $user->estado) == 'Zacatecas' ? 'selected' : '' }}>Zacatecas</option>
-                            </select>
-                        </div>
+                    <!-- Mexican Address Fields -->
+                    <div id="mexicanAddressSection">
+                        <div class="two-columns">
+                            <div class="field-group">
+                                <label class="field-label">
+                                    <i class="fas fa-map"></i>
+                                    Estado <span class="required">*</span>
+                                </label>
+                                <select class="form-select" name="estado" id="estadoSelect">
+                                    <option value="">Seleccione un estado...</option>
+                                    <option value="Aguascalientes" {{ old('estado', $user->estado) == 'Aguascalientes' ? 'selected' : '' }}>Aguascalientes</option>
+                                    <option value="Baja California" {{ old('estado', $user->estado) == 'Baja California' ? 'selected' : '' }}>Baja California</option>
+                                    <option value="Baja California Sur" {{ old('estado', $user->estado) == 'Baja California Sur' ? 'selected' : '' }}>Baja California Sur</option>
+                                    <option value="Campeche" {{ old('estado', $user->estado) == 'Campeche' ? 'selected' : '' }}>Campeche</option>
+                                    <option value="Chiapas" {{ old('estado', $user->estado) == 'Chiapas' ? 'selected' : '' }}>Chiapas</option>
+                                    <option value="Chihuahua" {{ old('estado', $user->estado) == 'Chihuahua' ? 'selected' : '' }}>Chihuahua</option>
+                                    <option value="Ciudad de Mexico" {{ old('estado', $user->estado) == 'Ciudad de Mexico' ? 'selected' : '' }}>Ciudad de Mexico</option>
+                                    <option value="Coahuila" {{ old('estado', $user->estado) == 'Coahuila' ? 'selected' : '' }}>Coahuila</option>
+                                    <option value="Colima" {{ old('estado', $user->estado) == 'Colima' ? 'selected' : '' }}>Colima</option>
+                                    <option value="Durango" {{ old('estado', $user->estado) == 'Durango' ? 'selected' : '' }}>Durango</option>
+                                    <option value="Estado de Mexico" {{ old('estado', $user->estado) == 'Estado de Mexico' ? 'selected' : '' }}>Estado de Mexico</option>
+                                    <option value="Guanajuato" {{ old('estado', $user->estado) == 'Guanajuato' ? 'selected' : '' }}>Guanajuato</option>
+                                    <option value="Guerrero" {{ old('estado', $user->estado) == 'Guerrero' ? 'selected' : '' }}>Guerrero</option>
+                                    <option value="Hidalgo" {{ old('estado', $user->estado) == 'Hidalgo' ? 'selected' : '' }}>Hidalgo</option>
+                                    <option value="Jalisco" {{ old('estado', $user->estado) == 'Jalisco' ? 'selected' : '' }}>Jalisco</option>
+                                    <option value="Michoacan" {{ old('estado', $user->estado) == 'Michoacan' ? 'selected' : '' }}>Michoacan</option>
+                                    <option value="Morelos" {{ old('estado', $user->estado) == 'Morelos' ? 'selected' : '' }}>Morelos</option>
+                                    <option value="Nayarit" {{ old('estado', $user->estado) == 'Nayarit' ? 'selected' : '' }}>Nayarit</option>
+                                    <option value="Nuevo Leon" {{ old('estado', $user->estado) == 'Nuevo Leon' ? 'selected' : '' }}>Nuevo Leon</option>
+                                    <option value="Oaxaca" {{ old('estado', $user->estado) == 'Oaxaca' ? 'selected' : '' }}>Oaxaca</option>
+                                    <option value="Puebla" {{ old('estado', $user->estado) == 'Puebla' ? 'selected' : '' }}>Puebla</option>
+                                    <option value="Queretaro" {{ old('estado', $user->estado) == 'Queretaro' ? 'selected' : '' }}>Queretaro</option>
+                                    <option value="Quintana Roo" {{ old('estado', $user->estado) == 'Quintana Roo' ? 'selected' : '' }}>Quintana Roo</option>
+                                    <option value="San Luis Potosi" {{ old('estado', $user->estado) == 'San Luis Potosi' ? 'selected' : '' }}>San Luis Potosi</option>
+                                    <option value="Sinaloa" {{ old('estado', $user->estado) == 'Sinaloa' ? 'selected' : '' }}>Sinaloa</option>
+                                    <option value="Sonora" {{ old('estado', $user->estado) == 'Sonora' ? 'selected' : '' }}>Sonora</option>
+                                    <option value="Tabasco" {{ old('estado', $user->estado) == 'Tabasco' ? 'selected' : '' }}>Tabasco</option>
+                                    <option value="Tamaulipas" {{ old('estado', $user->estado) == 'Tamaulipas' ? 'selected' : '' }}>Tamaulipas</option>
+                                    <option value="Tlaxcala" {{ old('estado', $user->estado) == 'Tlaxcala' ? 'selected' : '' }}>Tlaxcala</option>
+                                    <option value="Veracruz" {{ old('estado', $user->estado) == 'Veracruz' ? 'selected' : '' }}>Veracruz</option>
+                                    <option value="Yucatan" {{ old('estado', $user->estado) == 'Yucatan' ? 'selected' : '' }}>Yucatan</option>
+                                    <option value="Zacatecas" {{ old('estado', $user->estado) == 'Zacatecas' ? 'selected' : '' }}>Zacatecas</option>
+                                </select>
+                            </div>
 
-                        <div class="field-group">
-                            <label class="field-label">
-                                <i class="fas fa-city"></i>
-                                Municipio / Alcaldia <span class="required">*</span>
-                            </label>
-                            <input type="text" class="form-control" name="municipio"
-                                   value="{{ old('municipio', $user->municipio) }}" placeholder="Municipio" required>
+                            <div class="field-group">
+                                <label class="field-label">
+                                    <i class="fas fa-city"></i>
+                                    Ciudad <span class="required">*</span>
+                                </label>
+                                <input type="text" class="form-control" name="municipio" id="municipioInput"
+                                       value="{{ old('municipio', $user->municipio) }}" placeholder="Ciudad">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Non-Mexican Address Fields -->
+                    <div id="foreignAddressSection" style="display: none;">
+                        <div class="nationality-info-box">
+                            <i class="fas fa-info-circle"></i>
+                            <p>Como usuario extranjero, por favor ingrese su direccion manualmente.</p>
+                        </div>
+                        <div class="two-columns">
+                            <div class="field-group">
+                                <label class="field-label">
+                                    <i class="fas fa-map"></i>
+                                    Estado / Provincia <span class="required">*</span>
+                                </label>
+                                <input type="text" class="form-control" name="estado_foreign" id="estadoForeignInput"
+                                       value="{{ old('estado_foreign', $user->estado) }}" placeholder="Estado o Provincia">
+                            </div>
+
+                            <div class="field-group">
+                                <label class="field-label">
+                                    <i class="fas fa-city"></i>
+                                    Ciudad <span class="required">*</span>
+                                </label>
+                                <input type="text" class="form-control" name="municipio_foreign" id="municipioForeignInput"
+                                       value="{{ old('municipio_foreign', $user->municipio) }}" placeholder="Ciudad">
+                            </div>
                         </div>
                     </div>
 
@@ -959,10 +960,10 @@
                         <div class="field-group">
                             <label class="field-label">
                                 <i class="fas fa-map-pin"></i>
-                                Colonia / Localidad <span class="required">*</span>
+                                Colonia / Localidad
                             </label>
                             <input type="text" class="form-control" name="localidad"
-                                   value="{{ old('localidad', $user->localidad) }}" placeholder="Colonia" required>
+                                   value="{{ old('localidad', $user->localidad) }}" placeholder="Colonia (Opcional)">
                         </div>
 
                         <div class="field-group">
@@ -971,7 +972,7 @@
                                 Codigo Postal <span class="required">*</span>
                             </label>
                             <input type="text" class="form-control" name="codigo_postal"
-                                   value="{{ old('codigo_postal', $user->codigo_postal) }}" placeholder="12345" maxlength="5" required>
+                                   value="{{ old('codigo_postal', $user->codigo_postal) }}" placeholder="12345" maxlength="10" required>
                         </div>
                     </div>
 
@@ -1007,11 +1008,68 @@
             </div>
         </div>
 
-        <!-- Section 4 - Parental Consent (for minors) -->
+        <!-- Section 4 - Document Upload -->
+        <div class="form-section">
+            <div class="section-header">
+                <i class="fas fa-id-card"></i>
+                Seccion 4 - Documento de Identidad
+            </div>
+            <div class="section-content">
+                <!-- Mexican Document (INE) -->
+                <div id="ineUploadSection">
+                    <p style="margin-bottom: 1rem; color: #6B7280;">
+                        <i class="fas fa-info-circle" style="color: var(--primary-color);"></i>
+                        Por favor suba una imagen clara de su INE/IFE (ambos lados si es posible).
+                    </p>
+                    <div class="document-upload-area" id="ineDropArea" onclick="document.getElementById('ineInput').click()">
+                        <input type="file" id="ineInput" name="ine_document" accept="image/*,.pdf" style="display: none;">
+                        <i class="fas fa-id-card upload-icon"></i>
+                        <p class="upload-text">Haga clic o arrastre su INE/IFE aqui</p>
+                        <p class="upload-hint">Formatos: JPG, PNG, PDF (Max. 5MB)</p>
+                    </div>
+                    <div id="inePreview" style="display: none;"></div>
+                    @if($user->document_path && $user->document_type === 'ine')
+                        <div class="file-preview" style="margin-top: 1rem;">
+                            <i class="fas fa-file-image" style="font-size: 2rem; color: var(--success-color);"></i>
+                            <div class="file-info">
+                                <p class="file-name">Documento INE subido</p>
+                                <p class="file-size">Archivo almacenado correctamente</p>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+
+                <!-- Foreign Document (Passport) -->
+                <div id="passportUploadSection" style="display: none;">
+                    <p style="margin-bottom: 1rem; color: #6B7280;">
+                        <i class="fas fa-info-circle" style="color: var(--primary-color);"></i>
+                        Por favor suba una imagen clara de la pagina principal de su pasaporte.
+                    </p>
+                    <div class="document-upload-area" id="passportDropArea" onclick="document.getElementById('passportInput').click()">
+                        <input type="file" id="passportInput" name="passport_document" accept="image/*,.pdf" style="display: none;">
+                        <i class="fas fa-passport upload-icon"></i>
+                        <p class="upload-text">Haga clic o arrastre su Pasaporte aqui</p>
+                        <p class="upload-hint">Formatos: JPG, PNG, PDF (Max. 5MB)</p>
+                    </div>
+                    <div id="passportPreview" style="display: none;"></div>
+                    @if($user->document_path && $user->document_type === 'passport')
+                        <div class="file-preview" style="margin-top: 1rem;">
+                            <i class="fas fa-file-image" style="font-size: 2rem; color: var(--success-color);"></i>
+                            <div class="file-info">
+                                <p class="file-name">Pasaporte subido</p>
+                                <p class="file-size">Archivo almacenado correctamente</p>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 5 - Parental Consent (for minors) -->
         <div class="form-section" id="parentalConsentSection" style="display: none;">
             <div class="section-header">
                 <i class="fas fa-user-shield"></i>
-                Seccion 4 - Consentimiento Parental (Menor de 18 anos)
+                Seccion 5 - Consentimiento Parental (Menor de 18 anos)
             </div>
             <div class="section-content">
                 <div class="parental-consent-alert">
@@ -1072,39 +1130,6 @@
             </div>
         </div>
 
-        <!-- Section 5 - Face Verification -->
-        <div class="form-section">
-            <div class="section-header">
-                <i class="fas fa-camera"></i>
-                Seccion 5 - Verificacion de Identidad Facial
-            </div>
-            <div class="section-content">
-                <div class="face-verification-box {{ $user->face_verification_status === 'verified' ? 'verified' : 'pending' }}" id="faceVerificationBox">
-                    @if($user->face_verification_status === 'verified')
-                        <i class="fas fa-check-circle icon"></i>
-                        <h3>Verificacion Facial Completada</h3>
-                        <p>Su identidad ha sido verificada exitosamente mediante reconocimiento facial.</p>
-                        <div class="validation-message success" style="display: inline-flex;">
-                            <i class="fas fa-shield-check"></i>
-                            Estado: Verificado
-                        </div>
-                    @else
-                        <i class="fas fa-exclamation-triangle icon"></i>
-                        <h3>Verificacion Facial Requerida</h3>
-                        <p>Para completar su perfil, debe verificar su identidad comparando una selfie con la fotografia de su INE/IFE. Este proceso garantiza la seguridad y autenticidad de su cuenta.</p>
-                        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-                            <button type="button" onclick="startFaceVerification()" class="btn btn-primary">
-                                <i class="fas fa-camera"></i> Iniciar Verificacion Facial
-                            </button>
-                            <button type="button" onclick="simulateFaceVerification()" class="btn btn-secondary">
-                                <i class="fas fa-code"></i> Simular (Test)
-                            </button>
-                        </div>
-                    @endif
-                </div>
-            </div>
-        </div>
-
         <!-- Form Actions -->
         <div class="form-actions">
             <button type="button" class="btn btn-secondary" onclick="window.location.reload()">
@@ -1121,63 +1146,148 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const curpInput = document.getElementById('curpInput');
-    const curpMessage = document.getElementById('curpValidationMessage');
+    const nacionalidadSelect = document.getElementById('nacionalidadSelect');
     const birthdateField = document.getElementById('birthdateField');
-    const rfcFromCurp = document.getElementById('rfcFromCurp');
-    const rfcSuffixInput = document.getElementById('rfcSuffixInput');
-    const rfcHiddenInput = document.getElementById('rfcHiddenInput');
+    const curpInput = document.getElementById('curpInput');
+    const rfcInput = document.getElementById('rfcInput');
 
-    // CURP format validation regex
-    const curpRegex = /^[A-Z]{1}[AEIOUX]{1}[A-Z]{2}[0-9]{2}(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])[HM]{1}[A-Z]{2}[BCDFGHJKLMNPQRSTVWXYZ]{3}[0-9A-Z]{1}[0-9]{1}$/;
-
-    // CURP Input Handler
-    if (curpInput && !curpInput.disabled) {
-        curpInput.addEventListener('input', function() {
-            let value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-            this.value = value;
-
-            if (value.length === 0) {
-                hideMessage(curpMessage);
-                return;
-            }
-
-            if (value.length !== 18) {
-                showMessage(curpMessage, 'error', '<i class="fas fa-exclamation-circle"></i> CURP debe tener exactamente 18 caracteres');
-                return;
-            }
-
-            if (!curpRegex.test(value)) {
-                showMessage(curpMessage, 'error', '<i class="fas fa-times-circle"></i> Formato de CURP invalido');
-                return;
-            }
-
-            showMessage(curpMessage, 'success', '<i class="fas fa-check-circle"></i> Formato de CURP valido');
-            populateRfcFromCurp(value);
-        });
-    }
+    // Initialize nationality-based display
+    handleNationalityChange();
+    nacionalidadSelect.addEventListener('change', handleNationalityChange);
 
     // Birthdate Handler for Parental Consent
     if (birthdateField) {
         birthdateField.addEventListener('change', checkAgeForParentalConsent);
-        // Check on page load if date is already set
         if (birthdateField.value) {
             checkAgeForParentalConsent();
         }
     }
 
-    // RFC Suffix Handler
-    if (rfcSuffixInput) {
-        rfcSuffixInput.addEventListener('input', updateRfcField);
+    // CURP format validation
+    if (curpInput) {
+        curpInput.addEventListener('input', function() {
+            let value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+            this.value = value;
+            validateCurpFormat(value);
+        });
     }
 
-    // Initialize RFC if CURP exists
-    if (curpInput && curpInput.value && curpInput.value.length >= 10) {
-        populateRfcFromCurp(curpInput.value);
+    // RFC format validation
+    if (rfcInput) {
+        rfcInput.addEventListener('input', function() {
+            let value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+            this.value = value;
+            validateRfcFormat(value);
+        });
     }
+
+    // File upload handlers
+    setupFileUpload('ineInput', 'ineDropArea', 'inePreview');
+    setupFileUpload('passportInput', 'passportDropArea', 'passportPreview');
 });
 
-// Show validation message
+function handleNationalityChange() {
+    const nacionalidad = document.getElementById('nacionalidadSelect').value;
+    const isMexican = nacionalidad === 'mexicana';
+
+    // Toggle Mexican-only fields (CURP, RFC)
+    const mexicanFields = document.getElementById('mexicanFieldsSection');
+    const curpInput = document.getElementById('curpInput');
+    const rfcInput = document.getElementById('rfcInput');
+
+    if (isMexican) {
+        mexicanFields.style.display = 'block';
+        curpInput.setAttribute('required', 'required');
+        rfcInput.setAttribute('required', 'required');
+    } else {
+        mexicanFields.style.display = 'none';
+        curpInput.removeAttribute('required');
+        rfcInput.removeAttribute('required');
+        curpInput.value = '';
+        rfcInput.value = '';
+    }
+
+    // Toggle address sections
+    const mexicanAddress = document.getElementById('mexicanAddressSection');
+    const foreignAddress = document.getElementById('foreignAddressSection');
+    const estadoSelect = document.getElementById('estadoSelect');
+    const municipioInput = document.getElementById('municipioInput');
+    const estadoForeign = document.getElementById('estadoForeignInput');
+    const municipioForeign = document.getElementById('municipioForeignInput');
+
+    if (isMexican) {
+        mexicanAddress.style.display = 'block';
+        foreignAddress.style.display = 'none';
+        estadoSelect.setAttribute('required', 'required');
+        municipioInput.setAttribute('required', 'required');
+        estadoForeign.removeAttribute('required');
+        municipioForeign.removeAttribute('required');
+    } else {
+        mexicanAddress.style.display = 'none';
+        foreignAddress.style.display = 'block';
+        estadoSelect.removeAttribute('required');
+        municipioInput.removeAttribute('required');
+        estadoForeign.setAttribute('required', 'required');
+        municipioForeign.setAttribute('required', 'required');
+    }
+
+    // Toggle document upload sections
+    const ineSection = document.getElementById('ineUploadSection');
+    const passportSection = document.getElementById('passportUploadSection');
+
+    if (isMexican) {
+        ineSection.style.display = 'block';
+        passportSection.style.display = 'none';
+    } else {
+        ineSection.style.display = 'none';
+        passportSection.style.display = 'block';
+    }
+}
+
+function validateCurpFormat(curp) {
+    const curpMessage = document.getElementById('curpValidationMessage');
+    const curpRegex = /^[A-Z]{1}[AEIOUX]{1}[A-Z]{2}[0-9]{2}(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])[HM]{1}[A-Z]{2}[BCDFGHJKLMNPQRSTVWXYZ]{3}[0-9A-Z]{1}[0-9]{1}$/;
+
+    if (curp.length === 0) {
+        hideMessage(curpMessage);
+        return;
+    }
+
+    if (curp.length !== 18) {
+        showMessage(curpMessage, 'warning', '<i class="fas fa-exclamation-circle"></i> CURP debe tener 18 caracteres (' + curp.length + '/18)');
+        return;
+    }
+
+    if (!curpRegex.test(curp)) {
+        showMessage(curpMessage, 'error', '<i class="fas fa-times-circle"></i> Formato de CURP invalido');
+        return;
+    }
+
+    showMessage(curpMessage, 'success', '<i class="fas fa-check-circle"></i> Formato de CURP valido');
+}
+
+function validateRfcFormat(rfc) {
+    const rfcMessage = document.getElementById('rfcValidationMessage');
+    const rfcRegex = /^[A-Z]{3,4}[0-9]{6}[A-Z0-9]{3}$/;
+
+    if (rfc.length === 0) {
+        hideMessage(rfcMessage);
+        return;
+    }
+
+    if (rfc.length < 12 || rfc.length > 13) {
+        showMessage(rfcMessage, 'warning', '<i class="fas fa-exclamation-circle"></i> RFC debe tener 12 o 13 caracteres (' + rfc.length + ')');
+        return;
+    }
+
+    if (!rfcRegex.test(rfc)) {
+        showMessage(rfcMessage, 'error', '<i class="fas fa-times-circle"></i> Formato de RFC invalido');
+        return;
+    }
+
+    showMessage(rfcMessage, 'success', '<i class="fas fa-check-circle"></i> Formato de RFC valido');
+}
+
 function showMessage(element, type, html) {
     if (!element) return;
     element.className = 'validation-message ' + type;
@@ -1185,80 +1295,11 @@ function showMessage(element, type, html) {
     element.style.display = 'flex';
 }
 
-// Hide validation message
 function hideMessage(element) {
     if (!element) return;
     element.style.display = 'none';
 }
 
-// Validate CURP
-function validateCurp() {
-    const curpInput = document.getElementById('curpInput');
-    const curp = curpInput.value.trim().toUpperCase();
-
-    if (!curp) {
-        alert('Por favor ingrese un CURP antes de validar');
-        curpInput.focus();
-        return;
-    }
-
-    if (curp.length !== 18) {
-        alert('El CURP debe tener exactamente 18 caracteres');
-        curpInput.focus();
-        return;
-    }
-
-    // Redirect to CURP validation page
-    window.location.href = '/curp/validate?from=profile&curp=' + encodeURIComponent(curp);
-}
-
-// Populate RFC from CURP
-function populateRfcFromCurp(curp) {
-    const rfcFromCurp = document.getElementById('rfcFromCurp');
-    const rfcSuffixInput = document.getElementById('rfcSuffixInput');
-
-    if (curp && curp.length >= 10) {
-        const rfcPrefix = curp.substring(0, 10);
-        rfcFromCurp.textContent = rfcPrefix;
-        rfcFromCurp.style.color = '#059669';
-        rfcSuffixInput.removeAttribute('disabled');
-        updateRfcField();
-    } else {
-        rfcFromCurp.textContent = '--';
-        rfcFromCurp.style.color = '#6b7280';
-    }
-}
-
-// Update RFC hidden field
-function updateRfcField() {
-    const rfcFromCurp = document.getElementById('rfcFromCurp');
-    const rfcSuffixInput = document.getElementById('rfcSuffixInput');
-    const rfcHiddenInput = document.getElementById('rfcHiddenInput');
-    const rfcMessage = document.getElementById('rfcValidationMessage');
-
-    const rfcPrefix = rfcFromCurp.textContent.trim();
-    const rfcSuffix = rfcSuffixInput.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-    rfcSuffixInput.value = rfcSuffix;
-
-    if (rfcPrefix === '--') {
-        showMessage(rfcMessage, 'warning', '<i class="fas fa-exclamation-triangle"></i> Primero valide su CURP');
-        rfcHiddenInput.value = '';
-        return;
-    }
-
-    const fullRfc = rfcPrefix + rfcSuffix;
-    rfcHiddenInput.value = fullRfc;
-
-    if (rfcSuffix.length === 0) {
-        showMessage(rfcMessage, 'info', '<i class="fas fa-info-circle"></i> Ingrese los ultimos 3 caracteres del RFC');
-    } else if (rfcSuffix.length < 3) {
-        showMessage(rfcMessage, 'warning', '<i class="fas fa-exclamation-triangle"></i> Faltan ' + (3 - rfcSuffix.length) + ' caracteres');
-    } else {
-        showMessage(rfcMessage, 'success', '<i class="fas fa-check-circle"></i> RFC: ' + fullRfc);
-    }
-}
-
-// Check age for parental consent
 function checkAgeForParentalConsent() {
     const birthdateField = document.getElementById('birthdateField');
     const ageMessage = document.getElementById('ageVerificationMessage');
@@ -1295,7 +1336,6 @@ function checkAgeForParentalConsent() {
     }
 }
 
-// Set parental consent required
 function setParentalConsentRequired(required) {
     const fields = ['parentFullNameField', 'parentEmailField', 'parentRelationshipField'];
     fields.forEach(id => {
@@ -1311,38 +1351,91 @@ function setParentalConsentRequired(required) {
     });
 }
 
-// Start face verification
-function startFaceVerification() {
-    const form = document.getElementById('profileForm');
-    const formData = new FormData(form);
+function setupFileUpload(inputId, dropAreaId, previewId) {
+    const input = document.getElementById(inputId);
+    const dropArea = document.getElementById(dropAreaId);
+    const preview = document.getElementById(previewId);
 
-    // Save form data to session storage
-    const data = {};
-    formData.forEach((value, key) => { data[key] = value; });
-    sessionStorage.setItem('profileFormData', JSON.stringify(data));
+    if (!input || !dropArea) return;
 
-    // Redirect to face verification
-    window.location.href = '/face-verification?return_to=' + encodeURIComponent(window.location.href);
+    // Drag and drop events
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropArea.addEventListener(eventName, () => dropArea.classList.add('dragover'), false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, () => dropArea.classList.remove('dragover'), false);
+    });
+
+    dropArea.addEventListener('drop', (e) => {
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            input.files = files;
+            handleFileSelect(input, dropArea, preview);
+        }
+    });
+
+    input.addEventListener('change', () => handleFileSelect(input, dropArea, preview));
 }
 
-// Simulate face verification (for testing)
-function simulateFaceVerification() {
-    const faceBox = document.getElementById('faceVerificationBox');
-    const faceInput = document.getElementById('faceVerifiedInput');
+function handleFileSelect(input, dropArea, preview) {
+    const file = input.files[0];
+    if (!file) return;
 
-    faceBox.className = 'face-verification-box verified';
-    faceBox.innerHTML = `
-        <i class="fas fa-check-circle icon" style="color: #10B981;"></i>
-        <h3>Verificacion Facial Completada (Simulada)</h3>
-        <p>Su identidad ha sido verificada exitosamente.</p>
-        <div class="validation-message success" style="display: inline-flex;">
-            <i class="fas fa-shield-check"></i>
-            Estado: Verificado (Test Mode)
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+        alert('El archivo es demasiado grande. Maximo 5MB.');
+        input.value = '';
+        return;
+    }
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
+    if (!validTypes.includes(file.type)) {
+        alert('Tipo de archivo no valido. Use JPG, PNG o PDF.');
+        input.value = '';
+        return;
+    }
+
+    dropArea.classList.add('has-file');
+
+    // Show preview
+    preview.style.display = 'block';
+    preview.innerHTML = `
+        <div class="file-preview">
+            ${file.type.startsWith('image/') ?
+                `<img src="${URL.createObjectURL(file)}" alt="Preview">` :
+                `<i class="fas fa-file-pdf" style="font-size: 2rem; color: #DC2626;"></i>`
+            }
+            <div class="file-info">
+                <p class="file-name">${file.name}</p>
+                <p class="file-size">${(file.size / 1024 / 1024).toFixed(2)} MB</p>
+            </div>
+            <button type="button" class="remove-file-btn" onclick="removeFile('${input.id}', '${dropArea.id}', '${preview.id}')">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
     `;
+}
 
-    faceInput.value = 'true';
-    alert('Verificacion facial simulada completada. Ahora puede guardar su perfil.');
+function removeFile(inputId, dropAreaId, previewId) {
+    const input = document.getElementById(inputId);
+    const dropArea = document.getElementById(dropAreaId);
+    const preview = document.getElementById(previewId);
+
+    input.value = '';
+    dropArea.classList.remove('has-file');
+    preview.style.display = 'none';
+    preview.innerHTML = '';
 }
 </script>
 @endpush

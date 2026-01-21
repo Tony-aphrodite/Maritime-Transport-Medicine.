@@ -51,6 +51,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'verification_metadata',
         'registration_ip',
         'registration_user_agent',
+        'document_path',
+        'document_type',
     ];
 
     /**
@@ -136,6 +138,22 @@ class User extends Authenticatable implements MustVerifyEmail
     public function hasFaceVerified(): bool
     {
         return $this->face_verification_status === self::VERIFICATION_STATUS_VERIFIED;
+    }
+
+    /**
+     * Check if user has uploaded identity document (INE or Passport)
+     */
+    public function hasDocumentUploaded(): bool
+    {
+        return !empty($this->document_path);
+    }
+
+    /**
+     * Check if user is Mexican
+     */
+    public function isMexican(): bool
+    {
+        return strtolower($this->nacionalidad ?? '') === 'mexicana';
     }
 
     /**
