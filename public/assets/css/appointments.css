@@ -1,5 +1,6 @@
 /* ===========================================
    Appointment Booking Styles
+   Color Scheme: #2F7DB2 (Primary Blue), #5BA4D9 (Light Blue), #1A5A8A (Dark Blue)
    =========================================== */
 
 /* Stepper Component */
@@ -9,7 +10,7 @@
     align-items: center;
     margin-bottom: 2rem;
     padding: 1.5rem;
-    background: linear-gradient(135deg, #1a2a4f 0%, #2a3a5f 100%);
+    background: linear-gradient(135deg, #1A5A8A 0%, #2F7DB2 100%);
     border-radius: 12px;
     position: relative;
 }
@@ -52,10 +53,10 @@
 }
 
 .step.active .step-number {
-    background: linear-gradient(135deg, #d4af37 0%, #c5a028 100%);
-    border-color: #d4af37;
-    color: #1a2a4f;
-    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+    background: white;
+    border-color: white;
+    color: #2F7DB2;
+    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.4);
 }
 
 .step.completed .step-number {
@@ -78,12 +79,12 @@
 }
 
 .step.active .step-label {
-    color: #d4af37;
+    color: white;
     font-weight: 600;
 }
 
 .step.completed .step-label {
-    color: #28a745;
+    color: #90EE90;
 }
 
 /* Appointment Container */
@@ -100,7 +101,7 @@
 
 .appointment-header h2 {
     font-size: 1.5rem;
-    color: #1a2a4f;
+    color: #1A5A8A;
     margin-bottom: 0.5rem;
 }
 
@@ -134,7 +135,7 @@
 .calendar-header h3 {
     margin: 0;
     font-size: 1.1rem;
-    color: #1a2a4f;
+    color: #1A5A8A;
 }
 
 .calendar-nav {
@@ -145,11 +146,11 @@
 .calendar-nav button {
     width: 36px;
     height: 36px;
-    border: 1px solid #d4af37;
+    border: 1px solid #2F7DB2;
     background: white;
     border-radius: 8px;
     cursor: pointer;
-    color: #d4af37;
+    color: #2F7DB2;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -157,14 +158,14 @@
 }
 
 .calendar-nav button:hover {
-    background: #d4af37;
+    background: #2F7DB2;
     color: white;
 }
 
 .calendar-days {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    background: #1a2a4f;
+    background: #2F7DB2;
 }
 
 .calendar-days span {
@@ -195,11 +196,11 @@
 }
 
 .calendar-date:hover:not(.disabled):not(.empty) {
-    background: #f8f9fa;
+    background: #E8F4FC;
 }
 
 .calendar-date.selected {
-    background: linear-gradient(135deg, #d4af37 0%, #c5a028 100%);
+    background: linear-gradient(135deg, #2F7DB2 0%, #5BA4D9 100%);
     color: white;
     font-weight: 700;
 }
@@ -216,19 +217,19 @@
 }
 
 .calendar-date.today {
-    border: 2px solid #d4af37;
+    border: 2px solid #2F7DB2;
 }
 
 /* Time Slots */
 .time-slots-panel {
-    background: #f8f9fa;
+    background: #E8F4FC;
     border-radius: 12px;
     padding: 1.5rem;
 }
 
 .time-slots-panel h4 {
     margin-bottom: 1rem;
-    color: #1a2a4f;
+    color: #1A5A8A;
     font-size: 1rem;
 }
 
@@ -250,12 +251,13 @@
 }
 
 .time-slot:hover:not(.disabled) {
-    border-color: #d4af37;
+    border-color: #2F7DB2;
+    background: #E8F4FC;
 }
 
 .time-slot.selected {
-    background: linear-gradient(135deg, #d4af37 0%, #c5a028 100%);
-    border-color: #d4af37;
+    background: linear-gradient(135deg, #2F7DB2 0%, #5BA4D9 100%);
+    border-color: #2F7DB2;
     color: white;
     font-weight: 600;
 }
@@ -272,29 +274,29 @@
 }
 
 .upload-area {
-    border: 2px dashed #d4af37;
+    border: 2px dashed #2F7DB2;
     border-radius: 12px;
     padding: 3rem 2rem;
     text-align: center;
-    background: #fffdf5;
+    background: #E8F4FC;
     transition: all 0.3s ease;
     cursor: pointer;
 }
 
 .upload-area:hover,
 .upload-area.drag-over {
-    border-color: #c5a028;
-    background: #fff8e1;
+    border-color: #1A5A8A;
+    background: #D4E9F7;
 }
 
 .upload-area i {
     font-size: 3rem;
-    color: #d4af37;
+    color: #2F7DB2;
     margin-bottom: 1rem;
 }
 
 .upload-area h4 {
-    color: #1a2a4f;
+    color: #1A5A8A;
     margin-bottom: 0.5rem;
 }
 
@@ -305,7 +307,7 @@
 }
 
 .upload-area .btn-browse {
-    background: linear-gradient(135deg, #d4af37 0%, #c5a028 100%);
+    background: linear-gradient(135deg, #2F7DB2 0%, #5BA4D9 100%);
     color: white;
     padding: 0.75rem 1.5rem;
     border-radius: 8px;
@@ -317,7 +319,7 @@
 
 .upload-area .btn-browse:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+    box-shadow: 0 4px 12px rgba(47, 125, 178, 0.3);
 }
 
 /* Documents Table */
@@ -335,9 +337,9 @@
 }
 
 .documents-table th {
-    background: #f8f9fa;
+    background: #E8F4FC;
     font-weight: 600;
-    color: #1a2a4f;
+    color: #1A5A8A;
     font-size: 0.9rem;
 }
 
@@ -399,7 +401,7 @@
 }
 
 .form-section h3 {
-    color: #1a2a4f;
+    color: #1A5A8A;
     font-size: 1.1rem;
     margin-bottom: 1rem;
     display: flex;
@@ -408,7 +410,7 @@
 }
 
 .form-section h3 i {
-    color: #d4af37;
+    color: #2F7DB2;
 }
 
 .form-row {
@@ -426,7 +428,7 @@
     display: block;
     margin-bottom: 0.5rem;
     font-weight: 600;
-    color: #1a2a4f;
+    color: #1A5A8A;
     font-size: 0.9rem;
 }
 
@@ -448,9 +450,9 @@
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
-    border-color: #d4af37;
+    border-color: #2F7DB2;
     outline: none;
-    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+    box-shadow: 0 0 0 3px rgba(47, 125, 178, 0.15);
 }
 
 .form-group textarea {
@@ -476,7 +478,7 @@
 .checkbox-item input,
 .radio-item input {
     width: auto;
-    accent-color: #d4af37;
+    accent-color: #2F7DB2;
 }
 
 /* Confirmation Summary */
@@ -492,7 +494,7 @@
 }
 
 .summary-card h4 {
-    color: #1a2a4f;
+    color: #1A5A8A;
     font-size: 1rem;
     margin-bottom: 1rem;
     display: flex;
@@ -501,7 +503,7 @@
 }
 
 .summary-card h4 i {
-    color: #d4af37;
+    color: #2F7DB2;
 }
 
 .summary-item {
@@ -522,19 +524,19 @@
 
 .summary-item .value {
     font-weight: 600;
-    color: #1a2a4f;
+    color: #1A5A8A;
 }
 
 /* Price Summary */
 .price-summary {
-    background: linear-gradient(135deg, #1a2a4f 0%, #2a3a5f 100%);
+    background: linear-gradient(135deg, #1A5A8A 0%, #2F7DB2 100%);
     border-radius: 12px;
     padding: 1.5rem;
     color: white;
 }
 
 .price-summary h4 {
-    color: #d4af37;
+    color: #A8D8FF;
     margin-bottom: 1rem;
 }
 
@@ -553,7 +555,7 @@
 }
 
 .price-row.total .amount {
-    color: #d4af37;
+    color: #A8D8FF;
 }
 
 /* Payment Form */
@@ -564,13 +566,13 @@
 }
 
 .payment-card {
-    background: #f8f9fa;
+    background: #E8F4FC;
     border-radius: 12px;
     padding: 2rem;
 }
 
 .payment-card h3 {
-    color: #1a2a4f;
+    color: #1A5A8A;
     margin-bottom: 1.5rem;
     display: flex;
     align-items: center;
@@ -578,7 +580,7 @@
 }
 
 .payment-card h3 i {
-    color: #d4af37;
+    color: #2F7DB2;
 }
 
 .card-icons {
@@ -621,9 +623,9 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.75rem 1.5rem;
-    border: 2px solid #1a2a4f;
+    border: 2px solid #2F7DB2;
     background: white;
-    color: #1a2a4f;
+    color: #2F7DB2;
     border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
@@ -631,7 +633,7 @@
 }
 
 .btn-back:hover {
-    background: #1a2a4f;
+    background: #2F7DB2;
     color: white;
 }
 
@@ -641,7 +643,7 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.75rem 2rem;
-    background: linear-gradient(135deg, #d4af37 0%, #c5a028 100%);
+    background: linear-gradient(135deg, #2F7DB2 0%, #5BA4D9 100%);
     color: white;
     border: none;
     border-radius: 8px;
@@ -653,7 +655,7 @@
 .btn-next:hover,
 .btn-submit:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+    box-shadow: 0 4px 15px rgba(47, 125, 178, 0.4);
 }
 
 .btn-pay {
@@ -697,7 +699,7 @@
 }
 
 .success-container h2 {
-    color: #1a2a4f;
+    color: #1A5A8A;
     font-size: 1.8rem;
     margin-bottom: 1rem;
 }
@@ -709,7 +711,7 @@
 }
 
 .appointment-details {
-    background: #f8f9fa;
+    background: #E8F4FC;
     border-radius: 12px;
     padding: 2rem;
     margin-bottom: 2rem;
