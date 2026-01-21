@@ -21,9 +21,6 @@ Route::get('/', function () {
     return view('landing');
 })->name('home');
 
-Route::get('/hello', function () {
-    return view('hello');
-});
 
 // ========================================
 // Auth API Routes (for landing page AJAX)
@@ -39,8 +36,12 @@ Route::prefix('api/auth')->group(function () {
 // Authentication Routes
 // ========================================
 
-// Login Routes
-Route::get('/login', [App\Http\Controllers\LoginController::class, 'showLogin'])->name('login');
+// Login Routes - Redirect to home page (login is handled on landing page)
+Route::get('/login', function () {
+    return redirect('/');
+})->name('login');
+
+// Keep POST routes for form submissions
 Route::post('/login', [App\Http\Controllers\LoginController::class, 'processLogin'])->name('login.submit');
 Route::post('/logout', [App\Http\Controllers\LoginController::class, 'logout'])->name('logout');
 
