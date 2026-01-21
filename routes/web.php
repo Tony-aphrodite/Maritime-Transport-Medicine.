@@ -53,8 +53,8 @@ Route::get('/email/verify', [VerificationController::class, 'notice'])
     ->middleware('auth')
     ->name('verification.notice');
 
-Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verify'])
-    ->middleware(['auth', 'signed'])
+Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verifyWithoutAuth'])
+    ->middleware(['signed'])
     ->name('verification.verify');
 
 Route::post('/email/verification-notification', [VerificationController::class, 'resend'])
