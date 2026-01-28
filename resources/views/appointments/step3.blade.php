@@ -258,6 +258,66 @@
                 </div>
             </div>
 
+            <!-- Declaration Section -->
+            <div class="form-section">
+                <h3><i class="fas fa-file-signature"></i> Declaracion y Consentimiento</h3>
+                <p style="color: #666; font-size: 0.9rem; margin-bottom: 1rem;">Por favor, lea y acepte las siguientes declaraciones para continuar:</p>
+
+                <div class="declaration-checkboxes" style="display: flex; flex-direction: column; gap: 1rem;">
+                    <!-- Truthful Declaration -->
+                    <label class="declaration-item" style="display: flex; align-items: flex-start; gap: 0.75rem; cursor: pointer; padding: 1rem; background: #f8f9fa; border-radius: 8px; border: 2px solid transparent; transition: all 0.2s ease;">
+                        <input type="checkbox" name="declaration_truthful" value="1"
+                               {{ old('declaration_truthful', session('appointment.medical_declaration.declaration_truthful')) ? 'checked' : '' }}
+                               required style="margin-top: 3px; min-width: 18px; min-height: 18px;">
+                        <div>
+                            <strong style="color: #1f2937;">Declaro que la informacion proporcionada es veraz <span class="required">*</span></strong>
+                            <p style="margin: 0.25rem 0 0 0; color: #6b7280; font-size: 0.875rem;">
+                                Confirmo que todos los datos medicos e informacion personal que he proporcionado en este formulario son verdaderos, completos y precisos segun mi leal saber y entender.
+                            </p>
+                        </div>
+                    </label>
+
+                    <!-- Terms Acceptance -->
+                    <label class="declaration-item" style="display: flex; align-items: flex-start; gap: 0.75rem; cursor: pointer; padding: 1rem; background: #f8f9fa; border-radius: 8px; border: 2px solid transparent; transition: all 0.2s ease;">
+                        <input type="checkbox" name="declaration_terms" value="1"
+                               {{ old('declaration_terms', session('appointment.medical_declaration.declaration_terms')) ? 'checked' : '' }}
+                               required style="margin-top: 3px; min-width: 18px; min-height: 18px;">
+                        <div>
+                            <strong style="color: #1f2937;">Acepto los terminos y condiciones del servicio <span class="required">*</span></strong>
+                            <p style="margin: 0.25rem 0 0 0; color: #6b7280; font-size: 0.875rem;">
+                                He leido y acepto los <a href="#" style="color: #d4af37; text-decoration: underline;">terminos y condiciones</a> del servicio de examen medico de medicina preventiva del transporte.
+                            </p>
+                        </div>
+                    </label>
+
+                    <!-- Privacy Policy -->
+                    <label class="declaration-item" style="display: flex; align-items: flex-start; gap: 0.75rem; cursor: pointer; padding: 1rem; background: #f8f9fa; border-radius: 8px; border: 2px solid transparent; transition: all 0.2s ease;">
+                        <input type="checkbox" name="declaration_privacy" value="1"
+                               {{ old('declaration_privacy', session('appointment.medical_declaration.declaration_privacy')) ? 'checked' : '' }}
+                               required style="margin-top: 3px; min-width: 18px; min-height: 18px;">
+                        <div>
+                            <strong style="color: #1f2937;">Acepto el aviso de privacidad <span class="required">*</span></strong>
+                            <p style="margin: 0.25rem 0 0 0; color: #6b7280; font-size: 0.875rem;">
+                                Autorizo el tratamiento de mis datos personales y datos de salud conforme al <a href="#" style="color: #d4af37; text-decoration: underline;">aviso de privacidad</a> y las disposiciones de la Ley Federal de Proteccion de Datos Personales.
+                            </p>
+                        </div>
+                    </label>
+
+                    <!-- Medical Consent -->
+                    <label class="declaration-item" style="display: flex; align-items: flex-start; gap: 0.75rem; cursor: pointer; padding: 1rem; background: #f8f9fa; border-radius: 8px; border: 2px solid transparent; transition: all 0.2s ease;">
+                        <input type="checkbox" name="declaration_consent" value="1"
+                               {{ old('declaration_consent', session('appointment.medical_declaration.declaration_consent')) ? 'checked' : '' }}
+                               required style="margin-top: 3px; min-width: 18px; min-height: 18px;">
+                        <div>
+                            <strong style="color: #1f2937;">Otorgo mi consentimiento para el examen medico <span class="required">*</span></strong>
+                            <p style="margin: 0.25rem 0 0 0; color: #6b7280; font-size: 0.875rem;">
+                                Autorizo la realizacion del examen medico por videollamada y entiendo que el resultado del dictamen sera emitido con base en la informacion y estudios proporcionados.
+                            </p>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
             <!-- Navigation -->
             <div class="step-navigation">
                 <a href="{{ route('appointments.step2') }}" class="btn-back">

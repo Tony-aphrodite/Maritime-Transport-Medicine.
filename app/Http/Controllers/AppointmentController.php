@@ -246,6 +246,19 @@ class AppointmentController extends Controller
             'workplace_risks' => 'nullable|array',
             'workplace_risks.*' => 'string|in:noise,dust,chemicals,vibration,heights,confined_spaces,other',
             'additional_notes' => 'nullable|string|max:1000',
+            'declaration_truthful' => 'required|accepted',
+            'declaration_terms' => 'required|accepted',
+            'declaration_privacy' => 'required|accepted',
+            'declaration_consent' => 'required|accepted',
+        ], [
+            'declaration_truthful.required' => 'Debe confirmar que la informacion proporcionada es veraz.',
+            'declaration_truthful.accepted' => 'Debe confirmar que la informacion proporcionada es veraz.',
+            'declaration_terms.required' => 'Debe aceptar los terminos y condiciones.',
+            'declaration_terms.accepted' => 'Debe aceptar los terminos y condiciones.',
+            'declaration_privacy.required' => 'Debe aceptar el aviso de privacidad.',
+            'declaration_privacy.accepted' => 'Debe aceptar el aviso de privacidad.',
+            'declaration_consent.required' => 'Debe otorgar su consentimiento para el examen medico.',
+            'declaration_consent.accepted' => 'Debe otorgar su consentimiento para el examen medico.',
         ]);
 
         // Store in session
@@ -323,6 +336,10 @@ class AppointmentController extends Controller
             'surgeries_detail' => $appointmentData['medical_declaration']['surgeries_detail'] ?? null,
             'workplace_risks' => json_encode($appointmentData['medical_declaration']['workplace_risks'] ?? []),
             'additional_notes' => $appointmentData['medical_declaration']['additional_notes'] ?? null,
+            'declaration_truthful' => !empty($appointmentData['medical_declaration']['declaration_truthful']),
+            'declaration_terms' => !empty($appointmentData['medical_declaration']['declaration_terms']),
+            'declaration_privacy' => !empty($appointmentData['medical_declaration']['declaration_privacy']),
+            'declaration_consent' => !empty($appointmentData['medical_declaration']['declaration_consent']),
             'subtotal' => $serviceCost['subtotal'],
             'tax' => $serviceCost['tax'],
             'total' => $serviceCost['total'],
