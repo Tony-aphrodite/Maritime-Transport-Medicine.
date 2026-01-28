@@ -232,33 +232,18 @@ class AppointmentController extends Controller
     {
         $validated = $request->validate([
             'exam_type' => 'required|string|in:new,renewal',
-            'years_at_sea' => 'required|integer|min:0|max:50',
-            'current_position' => 'required|string|max:100',
-            'vessel_type' => 'required|string|max:100',
-            'has_chronic_conditions' => 'required|boolean',
-            'chronic_conditions_detail' => 'nullable|string|max:500',
-            'takes_medications' => 'required|boolean',
-            'medications_detail' => 'nullable|string|max:500',
-            'has_allergies' => 'required|boolean',
-            'allergies_detail' => 'nullable|string|max:500',
-            'has_surgeries' => 'required|boolean',
-            'surgeries_detail' => 'nullable|string|max:500',
+            'years_at_sea' => 'required|integer|min:0|max:60',
             'workplace_risks' => 'nullable|array',
-            'workplace_risks.*' => 'string|in:noise,dust,chemicals,vibration,heights,confined_spaces,other',
+            'workplace_risks.*' => 'string|in:none,noise,dust,radiation,other',
+            'health_conditions' => 'nullable|array',
+            'health_conditions.*' => 'string|in:high_blood_pressure,diabetes,hearing_vision,recent_surgeries',
             'additional_notes' => 'nullable|string|max:1000',
             'declaration_truthful' => 'required|accepted',
-            'declaration_terms' => 'required|accepted',
-            'declaration_privacy' => 'required|accepted',
-            'declaration_consent' => 'required|accepted',
         ], [
-            'declaration_truthful.required' => 'Debe confirmar que la informacion proporcionada es veraz.',
-            'declaration_truthful.accepted' => 'Debe confirmar que la informacion proporcionada es veraz.',
-            'declaration_terms.required' => 'Debe aceptar los terminos y condiciones.',
-            'declaration_terms.accepted' => 'Debe aceptar los terminos y condiciones.',
-            'declaration_privacy.required' => 'Debe aceptar el aviso de privacidad.',
-            'declaration_privacy.accepted' => 'Debe aceptar el aviso de privacidad.',
-            'declaration_consent.required' => 'Debe otorgar su consentimiento para el examen medico.',
-            'declaration_consent.accepted' => 'Debe otorgar su consentimiento para el examen medico.',
+            'exam_type.required' => 'Seleccione si es su primer examen o renovacion.',
+            'years_at_sea.required' => 'Indique los anos de experiencia en el mar.',
+            'declaration_truthful.required' => 'Debe confirmar que la informacion proporcionada es veridica.',
+            'declaration_truthful.accepted' => 'Debe confirmar que la informacion proporcionada es veridica.',
         ]);
 
         // Store in session
@@ -316,6 +301,11 @@ class AppointmentController extends Controller
         // Calculate cost
         $serviceCost = $this->calculateServiceCost($appointmentData['medical_declaration']['exam_type']);
 
+        // Determine health conditions from checkboxes
+        $healthConditions = $appointmentData['medical_declaration']['health_conditions'] ?? [];
+        $hasChronicConditions = in_array('high_blood_pressure', $healthConditions) || in_array('diabetes', $healthConditions);
+        $hasSurgeries = in_array('recent_surgeries', $healthConditions);
+
         // Create the appointment
         $appointment = Appointment::create([
             'user_id' => $user->id,
@@ -324,22 +314,22 @@ class AppointmentController extends Controller
             'timezone' => $appointmentData['timezone'],
             'exam_type' => $appointmentData['medical_declaration']['exam_type'],
             'years_at_sea' => $appointmentData['medical_declaration']['years_at_sea'],
-            'current_position' => $appointmentData['medical_declaration']['current_position'],
-            'vessel_type' => $appointmentData['medical_declaration']['vessel_type'],
-            'has_chronic_conditions' => $appointmentData['medical_declaration']['has_chronic_conditions'],
-            'chronic_conditions_detail' => $appointmentData['medical_declaration']['chronic_conditions_detail'] ?? null,
-            'takes_medications' => $appointmentData['medical_declaration']['takes_medications'],
-            'medications_detail' => $appointmentData['medical_declaration']['medications_detail'] ?? null,
-            'has_allergies' => $appointmentData['medical_declaration']['has_allergies'],
-            'allergies_detail' => $appointmentData['medical_declaration']['allergies_detail'] ?? null,
-            'has_surgeries' => $appointmentData['medical_declaration']['has_surgeries'],
-            'surgeries_detail' => $appointmentData['medical_declaration']['surgeries_detail'] ?? null,
-            'workplace_risks' => json_encode($appointmentData['medical_declaration']['workplace_risks'] ?? []),
+            'current_position' => null, // Not collected in simplified form
+            'vessel_type' => null, // Not collected in simplified form
+            'has_chronic_conditions' => $hasChronicConditions,
+            'chronic_conditions_detail' => $hasChronicConditions ? implode(', ', array_filter($healthConditions, fn($c) => in_array($c, ['high_blood_pressure', 'diabetes']))) : null,
+            'takes_medications' => false, // Collected in additional_notes instead
+            'medications_detail' => null,
+            'has_allergies' => false, // Not collected separately
+            'allergies_detail' => null,
+            'has_surgeries' => $hasSurgeries,
+            'surgeries_detail' => $hasSurgeries ? 'Cirugias recientes' : null,
+            'workplace_risks' => $appointmentData['medical_declaration']['workplace_risks'] ?? [],
             'additional_notes' => $appointmentData['medical_declaration']['additional_notes'] ?? null,
             'declaration_truthful' => !empty($appointmentData['medical_declaration']['declaration_truthful']),
-            'declaration_terms' => !empty($appointmentData['medical_declaration']['declaration_terms']),
-            'declaration_privacy' => !empty($appointmentData['medical_declaration']['declaration_privacy']),
-            'declaration_consent' => !empty($appointmentData['medical_declaration']['declaration_consent']),
+            'declaration_terms' => true, // Implied by proceeding
+            'declaration_privacy' => true, // Implied by proceeding
+            'declaration_consent' => true, // Implied by proceeding
             'subtotal' => $serviceCost['subtotal'],
             'tax' => $serviceCost['tax'],
             'total' => $serviceCost['total'],
