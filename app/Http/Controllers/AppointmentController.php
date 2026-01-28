@@ -20,6 +20,20 @@ class AppointmentController extends Controller
     {
         $user = Auth::user();
 
+        // Check if profile is completed before allowing appointment booking
+        // This is a fallback for direct URL access - main check is in dashboard
+        if (!$user->hasCompletedProfile()) {
+            return redirect()->route('dashboard')
+                ->with('error', 'Debe completar su perfil antes de agendar una cita.');
+        }
+
+        // Check if user already has an active appointment
+        if ($user->hasActiveAppointment()) {
+            $activeAppointment = $user->getActiveAppointment();
+            return redirect()->route('dashboard')
+                ->with('error', 'Ya tiene una cita activa programada para el ' . $activeAppointment->formatted_date_time . '. No puede agendar otra cita hasta que esta sea completada o cancelada.');
+        }
+
         // Get available time slots for the next 30 days
         $availableSlots = $this->getAvailableSlots();
 
@@ -75,7 +89,7 @@ class AppointmentController extends Controller
     {
         $request->validate([
             'file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240', // 10MB max
-            'document_type' => 'required|string|in:identification,medical_history,sea_book,photo,other',
+            'document_type' => 'required|string|in:blood_test,chemistry,urine_test,chest_xray,ecg,vision_test,audiometry,other_medical',
         ]);
 
         $user = Auth::user();
@@ -84,13 +98,10 @@ class AppointmentController extends Controller
         try {
             // Generate unique filename
             $filename = time() . '_' . $user->id . '_' . $file->getClientOriginalName();
+            $path = 'appointments/documents/' . $user->id . '/' . $filename;
 
-            // Upload to S3
-            $path = Storage::disk('s3')->putFileAs(
-                'appointments/documents/' . $user->id,
-                $file,
-                $filename
-            );
+            // Upload to local storage
+            Storage::disk('public')->put($path, file_get_contents($file));
 
             // Save document record
             $document = AppointmentDocument::create([
@@ -141,8 +152,8 @@ class AppointmentController extends Controller
             ->firstOrFail();
 
         try {
-            // Delete from S3
-            Storage::disk('s3')->delete($document->file_path);
+            // Delete from local storage
+            Storage::disk('public')->delete($document->file_path);
 
             // Delete record
             $document->delete();
@@ -169,8 +180,17 @@ class AppointmentController extends Controller
     {
         $user = Auth::user();
 
-        // Check required documents are uploaded
-        $requiredTypes = ['identification', 'photo'];
+        // Check required medical studies are uploaded
+        $requiredTypes = [
+            'blood_test',    // Biometria Hematica
+            'chemistry',     // Quimica Sanguinea
+            'urine_test',    // Examen General de Orina
+            'chest_xray',    // Radiografia de Torax
+            'ecg',           // Electrocardiograma
+            'vision_test',   // Examen de Vista
+            'audiometry',    // Audiometria
+        ];
+
         $uploadedTypes = AppointmentDocument::where('user_id', $user->id)
             ->where('appointment_id', null)
             ->pluck('document_type')
@@ -179,7 +199,7 @@ class AppointmentController extends Controller
         $missingTypes = array_diff($requiredTypes, $uploadedTypes);
 
         if (!empty($missingTypes)) {
-            return back()->with('error', 'Por favor, suba todos los documentos requeridos.');
+            return back()->with('error', 'Por favor, suba todos los estudios medicos requeridos.');
         }
 
         session(['appointment.documents_uploaded' => true]);

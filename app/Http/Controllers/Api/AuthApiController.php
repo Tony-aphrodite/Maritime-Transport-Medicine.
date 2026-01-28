@@ -92,16 +92,12 @@ class AuthApiController extends Controller
                         ], 403);
                     }
 
-                    // Check if profile is completed
-                    $redirect = '/dashboard';
-                    if (method_exists($user, 'hasCompletedProfile') && !$user->hasCompletedProfile()) {
-                        $redirect = '/complete-profile';
-                    }
-
+                    // Always redirect to dashboard after login
+                    // Profile check is done when user tries to book an appointment
                     return response()->json([
                         'success' => true,
                         'message' => '¡Inicio de sesion exitoso!',
-                        'redirect' => $redirect,
+                        'redirect' => '/dashboard',
                         'user' => [
                             'id' => $user->id,
                             'email' => $user->email,

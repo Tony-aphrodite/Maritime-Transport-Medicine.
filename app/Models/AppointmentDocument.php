@@ -43,6 +43,16 @@ class AppointmentDocument extends Model
     public function getDocumentTypeLabelAttribute()
     {
         return match($this->document_type) {
+            // Medical studies (new)
+            'blood_test' => 'Biometria Hematica',
+            'chemistry' => 'Quimica Sanguinea',
+            'urine_test' => 'Examen General de Orina',
+            'chest_xray' => 'Radiografia de Torax',
+            'ecg' => 'Electrocardiograma',
+            'vision_test' => 'Examen de Vista',
+            'audiometry' => 'Audiometria',
+            'other_medical' => 'Otros Estudios',
+            // Legacy types (for existing data)
             'identification' => 'Identificacion Oficial',
             'medical_history' => 'Historial Medico',
             'sea_book' => 'Libreta de Mar',
