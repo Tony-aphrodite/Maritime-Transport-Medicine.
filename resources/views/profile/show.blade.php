@@ -1259,8 +1259,13 @@ function handleProfilePhotoUpload(event) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Update avatar image
+            // Update avatar image on profile page
             avatarImg.src = data.photo_url;
+            // Also update dashboard header avatar if exists
+            const dashboardAvatar = document.getElementById('dashboardAvatar');
+            if (dashboardAvatar) {
+                dashboardAvatar.src = data.photo_url;
+            }
             // Show success message
             showNotification('success', data.message);
         } else {

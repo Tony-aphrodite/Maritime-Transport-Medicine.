@@ -34,7 +34,12 @@
         <main class="main-content">
             <header class="dash-header">
                 <div class="user-welcome">
-                    <img src="{{ asset('assets/img/user-avatar.jpg') }}" alt="Usuario" class="user-avatar">
+                    @php
+                        $userAvatarUrl = auth()->user()->profile_photo
+                            ? asset('storage/' . auth()->user()->profile_photo)
+                            : asset('assets/img/user-avatar.jpg');
+                    @endphp
+                    <img src="{{ $userAvatarUrl }}" alt="Usuario" class="user-avatar" id="dashboardAvatar">
                     <div class="welcome-text">
                         <span>Bienvenido de nuevo,</span>
                         <h2>{{ auth()->user()->full_name ?? auth()->user()->name ?? 'Usuario' }}</h2>
