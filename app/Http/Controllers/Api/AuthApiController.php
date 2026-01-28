@@ -11,9 +11,18 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Support\Facades\Session;
 
 class AuthApiController extends Controller
 {
+    /**
+     * Admin credentials (same as LoginController)
+     */
+    private $adminCredentials = [
+        'email' => 'AdminJuan@gmail.com',
+        'password' => 'johnson@suceess!'
+    ];
+
     private function isDatabaseAvailable()
     {
         try {
@@ -60,6 +69,44 @@ class AuthApiController extends Controller
         }
 
         try {
+            $email = $request->input('email');
+            $password = $request->input('password');
+
+            // Check if credentials match admin first
+            if ($email === $this->adminCredentials['email'] && $password === $this->adminCredentials['password']) {
+                // Admin login successful
+                Session::put('admin_logged_in', true);
+                Session::put('admin_email', $email);
+
+                // Log successful admin login
+                try {
+                    AuditLog::logEvent(
+                        'login_success',
+                        AuditLog::STATUS_SUCCESS,
+                        [
+                            'authentication_method' => 'admin_credentials',
+                            'email' => $email,
+                            'login_type' => 'admin'
+                        ],
+                        $email
+                    );
+                } catch (\Exception $e) {
+                    // Silently ignore logging errors
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Acceso administrativo exitoso',
+                    'redirect' => '/admin/dashboard',
+                    'is_admin' => true,
+                    'user' => [
+                        'email' => $email,
+                        'name' => 'Administrador',
+                        'is_admin' => true
+                    ]
+                ]);
+            }
+
             // Check if database is available
             if ($this->isDatabaseAvailable()) {
                 // Use normal Laravel authentication
@@ -185,6 +232,16 @@ class AuthApiController extends Controller
         try {
             // Check if database is available
             if ($this->isDatabaseAvailable()) {
+                // Check if user already exists
+                $existingUser = User::where('email', $request->email)->first();
+                if ($existingUser) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Este correo electronico ya esta registrado.',
+                        'errors' => ['email' => ['Este correo electronico ya esta registrado.']]
+                    ], 422);
+                }
+
                 // Use normal Laravel registration
                 $user = User::create([
                     'name' => explode('@', $request->email)[0], // Temporary name from email
@@ -192,27 +249,53 @@ class AuthApiController extends Controller
                     'password' => Hash::make($request->password),
                 ]);
 
-                // Trigger the Registered event (sends verification email)
-                event(new Registered($user));
+                // Try to send verification email (may fail due to missing extensions)
+                $emailSent = false;
+                try {
+                    // Check if DOM extension is available before attempting to send email
+                    if (class_exists('DOMDocument')) {
+                        event(new Registered($user));
+                        $emailSent = true;
+                    } else {
+                        // DOM extension not available, auto-verify user
+                        $user->email_verified_at = now();
+                        $user->save();
+                    }
+                } catch (\Exception $emailException) {
+                    // Email sending failed (likely missing DOM extension)
+                    // Auto-verify the user so they can still use the system
+                    $user->email_verified_at = now();
+                    $user->save();
+                }
 
                 // Log the registration
                 try {
                     AuditLog::logEvent(
                         'registration_success',
                         AuditLog::STATUS_SUCCESS,
-                        ['user_id' => $user->id],
+                        ['user_id' => $user->id, 'email_sent' => $emailSent],
                         $user->email
                     );
                 } catch (\Exception $logException) {
                     // Silently ignore logging errors
                 }
 
-                return response()->json([
-                    'success' => true,
-                    'message' => '¡Registro exitoso! Por favor revisa tu correo electronico para verificar tu cuenta.',
-                    'email' => $request->email,
-                    'needs_verification' => true
-                ]);
+                if ($emailSent) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => '¡Registro exitoso! Por favor revisa tu correo electronico para verificar tu cuenta.',
+                        'email' => $request->email,
+                        'needs_verification' => true
+                    ]);
+                } else {
+                    return response()->json([
+                        'success' => true,
+                        'message' => '¡Registro exitoso! Tu cuenta ha sido verificada automaticamente.',
+                        'email' => $request->email,
+                        'needs_verification' => false,
+                        'auto_verified' => true
+                    ]);
+                }
             } else {
                 // Use file database fallback
                 $fileDb = new FileDatabase();

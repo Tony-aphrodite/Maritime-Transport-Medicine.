@@ -154,6 +154,11 @@ Route::prefix('admin')->group(function () {
     Route::get('/users', function() { return view('admin.users'); })->name('admin.users');
     Route::get('/settings', function() { return view('admin.settings'); })->name('admin.settings');
 
+    // Appointment Management Routes
+    Route::get('/appointments', [App\Http\Controllers\AdminAppointmentController::class, 'index'])->name('admin.appointments.index');
+    Route::get('/appointments/{id}', [App\Http\Controllers\AdminAppointmentController::class, 'show'])->name('admin.appointments.show');
+    Route::post('/appointments/{id}/status', [App\Http\Controllers\AdminAppointmentController::class, 'updateStatus'])->name('admin.appointments.status');
+
     // API Routes for admin
     Route::prefix('api')->group(function () {
         Route::get('/dashboard-stats', [App\Http\Controllers\AdminController::class, 'getDashboardStats'])->name('admin.api.dashboard.stats');
