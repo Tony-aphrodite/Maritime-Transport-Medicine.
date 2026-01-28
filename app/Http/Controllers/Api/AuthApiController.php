@@ -11,9 +11,18 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Support\Facades\Session;
 
 class AuthApiController extends Controller
 {
+    /**
+     * Admin credentials (same as LoginController)
+     */
+    private $adminCredentials = [
+        'email' => 'AdminJuan@gmail.com',
+        'password' => 'johnson@suceess!'
+    ];
+
     private function isDatabaseAvailable()
     {
         try {
@@ -60,6 +69,44 @@ class AuthApiController extends Controller
         }
 
         try {
+            $email = $request->input('email');
+            $password = $request->input('password');
+
+            // Check if credentials match admin first
+            if ($email === $this->adminCredentials['email'] && $password === $this->adminCredentials['password']) {
+                // Admin login successful
+                Session::put('admin_logged_in', true);
+                Session::put('admin_email', $email);
+
+                // Log successful admin login
+                try {
+                    AuditLog::logEvent(
+                        'login_success',
+                        AuditLog::STATUS_SUCCESS,
+                        [
+                            'authentication_method' => 'admin_credentials',
+                            'email' => $email,
+                            'login_type' => 'admin'
+                        ],
+                        $email
+                    );
+                } catch (\Exception $e) {
+                    // Silently ignore logging errors
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Acceso administrativo exitoso',
+                    'redirect' => '/admin/dashboard',
+                    'is_admin' => true,
+                    'user' => [
+                        'email' => $email,
+                        'name' => 'Administrador',
+                        'is_admin' => true
+                    ]
+                ]);
+            }
+
             // Check if database is available
             if ($this->isDatabaseAvailable()) {
                 // Use normal Laravel authentication

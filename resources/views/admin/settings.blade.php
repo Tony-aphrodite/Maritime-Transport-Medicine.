@@ -226,6 +226,7 @@
             </div>
             <nav class="admin-nav">
                 <a href="/admin/dashboard"><i class="fas fa-chart-line"></i> Dashboard</a>
+                <a href="/admin/appointments"><i class="fas fa-calendar-check"></i> Citas</a>
                 <a href="/admin/audit-logs"><i class="fas fa-clipboard-list"></i> Audit Logs</a>
                 <a href="/admin/users"><i class="fas fa-users"></i> Usuarios</a>
                 <a href="/admin/settings" class="active"><i class="fas fa-cog"></i> Configuración</a>

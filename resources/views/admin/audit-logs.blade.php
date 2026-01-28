@@ -1316,10 +1316,12 @@
             </div>
             <nav class="admin-nav">
                 <a href="/admin/dashboard"><i class="fas fa-chart-line"></i> Dashboard</a>
+                <a href="/admin/appointments"><i class="fas fa-calendar-check"></i> Citas</a>
                 <a href="/admin/audit-logs" class="active"><i class="fas fa-clipboard-list"></i> Audit Logs</a>
                 <a href="/admin/users"><i class="fas fa-users"></i> Usuarios</a>
                 <a href="/admin/settings"><i class="fas fa-cog"></i> Configuración</a>
-                <a href="/registro"><i class="fas fa-arrow-left"></i> Volver</a>
+                <a href="/admin/logout" style="background: rgba(239, 68, 68, 0.2); color: #fca5a5;"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a>
+                <a href="/"><i class="fas fa-arrow-left"></i> Volver</a>
             </nav>
         </div>
     </header>
