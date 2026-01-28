@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Notifications\VerifyEmailNotification;
+use App\Notifications\ResetPasswordNotification;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -29,6 +30,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'apellido_paterno',
         'apellido_materno',
         'telefono_movil',
+        'telefono_casa',
         'nacionalidad',
         'sexo',
         'fecha_nacimiento',
@@ -50,6 +52,9 @@ class User extends Authenticatable implements MustVerifyEmail
         'verification_metadata',
         'registration_ip',
         'registration_user_agent',
+        'document_path',
+        'document_type',
+        'profile_photo',
     ];
 
     /**
@@ -99,6 +104,14 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Send the password reset notification.
+     */
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new ResetPasswordNotification($token));
+    }
+
+    /**
      * Get user's full name
      */
     public function getFullNameAttribute(): string
@@ -115,10 +128,28 @@ class User extends Authenticatable implements MustVerifyEmail
 
     /**
      * Check if user has completed their profile
+     * Validates that all required fields are filled, not just the flag
      */
     public function hasCompletedProfile(): bool
     {
-        return $this->profile_completed === true;
+        // Required fields that must be filled
+        $requiredFields = [
+            'nombres',
+            'apellido_paterno',
+            'telefono_movil',
+            'nacionalidad',
+            'sexo',
+            'fecha_nacimiento',
+        ];
+
+        // Check if all required fields have values
+        foreach ($requiredFields as $field) {
+            if (empty($this->$field)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -135,6 +166,22 @@ class User extends Authenticatable implements MustVerifyEmail
     public function hasFaceVerified(): bool
     {
         return $this->face_verification_status === self::VERIFICATION_STATUS_VERIFIED;
+    }
+
+    /**
+     * Check if user has uploaded identity document (INE or Passport)
+     */
+    public function hasDocumentUploaded(): bool
+    {
+        return !empty($this->document_path);
+    }
+
+    /**
+     * Check if user is Mexican
+     */
+    public function isMexican(): bool
+    {
+        return strtolower($this->nacionalidad ?? '') === 'mexicana';
     }
 
     /**
@@ -228,6 +275,35 @@ class User extends Authenticatable implements MustVerifyEmail
     public function auditLogs()
     {
         return $this->hasMany(AuditLog::class, 'user_id', 'id');
+    }
+
+    /**
+     * Relationship with appointments
+     */
+    public function appointments()
+    {
+        return $this->hasMany(Appointment::class);
+    }
+
+    /**
+     * Check if user has an active appointment
+     */
+    public function hasActiveAppointment(): bool
+    {
+        return $this->appointments()
+            ->active()
+            ->exists();
+    }
+
+    /**
+     * Get user's active appointment
+     */
+    public function getActiveAppointment(): ?Appointment
+    {
+        return $this->appointments()
+            ->active()
+            ->orderBy('appointment_date', 'asc')
+            ->first();
     }
 
     /**

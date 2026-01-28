@@ -9,6 +9,22 @@ class Appointment extends Model
 {
     use HasFactory;
 
+    /**
+     * Appointment status constants
+     */
+    const STATUS_PENDING_PAYMENT = 'pending_payment';
+    const STATUS_CONFIRMED = 'confirmed';
+    const STATUS_COMPLETED = 'completed';
+    const STATUS_CANCELLED = 'cancelled';
+
+    /**
+     * Active statuses - appointments that block new bookings
+     */
+    const ACTIVE_STATUSES = [
+        self::STATUS_PENDING_PAYMENT,
+        self::STATUS_CONFIRMED,
+    ];
+
     protected $fillable = [
         'user_id',
         'appointment_date',
@@ -115,5 +131,29 @@ class Appointment extends Model
             'renewal' => 'Renovacion',
             default => $this->exam_type,
         };
+    }
+
+    /**
+     * Check if appointment is active (blocking new bookings).
+     */
+    public function isActive(): bool
+    {
+        return in_array($this->status, self::ACTIVE_STATUSES);
+    }
+
+    /**
+     * Scope for active appointments.
+     */
+    public function scopeActive($query)
+    {
+        return $query->whereIn('status', self::ACTIVE_STATUSES);
+    }
+
+    /**
+     * Scope for user's appointments.
+     */
+    public function scopeForUser($query, $userId)
+    {
+        return $query->where('user_id', $userId);
     }
 }

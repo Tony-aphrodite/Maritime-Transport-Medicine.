@@ -69,6 +69,7 @@
                                 <span class="btn-loader" style="display: none;"><i class="fas fa-spinner fa-spin"></i></span>
                             </button>
                         </form>
+                        <p class="form-footer"><a href="{{ route('password.request') }}" class="forgot-password-link">¿Olvidaste tu contraseña?</a></p>
                         <p class="form-footer">¿No tienes cuenta? <a href="#" id="show-register">Regístrate aquí</a></p>
                     </div>
 

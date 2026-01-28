@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\Auth\ProfileController;
 use App\Http\Controllers\Api\AuthApiController;
+use App\Http\Controllers\Auth\PasswordResetController;
 
 /*
 |--------------------------------------------------------------------------
@@ -21,9 +22,6 @@ Route::get('/', function () {
     return view('landing');
 })->name('home');
 
-Route::get('/hello', function () {
-    return view('hello');
-});
 
 // ========================================
 // Auth API Routes (for landing page AJAX)
@@ -39,8 +37,12 @@ Route::prefix('api/auth')->group(function () {
 // Authentication Routes
 // ========================================
 
-// Login Routes
-Route::get('/login', [App\Http\Controllers\LoginController::class, 'showLogin'])->name('login');
+// Login Routes - Redirect to home page (login is handled on landing page)
+Route::get('/login', function () {
+    return redirect('/');
+})->name('login');
+
+// Keep POST routes for form submissions
 Route::post('/login', [App\Http\Controllers\LoginController::class, 'processLogin'])->name('login.submit');
 Route::post('/logout', [App\Http\Controllers\LoginController::class, 'logout'])->name('logout');
 
@@ -61,21 +63,17 @@ Route::post('/email/verification-notification', [VerificationController::class, 
     ->middleware(['auth', 'throttle:6,1'])
     ->name('verification.resend');
 
-// Profile Completion Routes (Step 3 - after email verification)
-Route::get('/complete-profile', [ProfileController::class, 'showCompleteForm'])
-    ->middleware(['auth', 'verified'])
-    ->name('profile.complete');
+// Profile Completion Routes (Legacy - redirect to profile page)
+Route::get('/complete-profile', function () {
+    return redirect()->route('profile.show');
+})->middleware(['auth', 'verified'])->name('profile.complete');
 
-Route::post('/complete-profile', [ProfileController::class, 'complete'])
-    ->middleware(['auth', 'verified'])
-    ->name('profile.complete.submit');
+Route::post('/complete-profile', function () {
+    return redirect()->route('profile.show');
+})->middleware(['auth', 'verified'])->name('profile.complete.submit');
 
-// Dashboard (requires completed profile)
+// Dashboard
 Route::get('/dashboard', function () {
-    $user = auth()->user();
-    if ($user && !$user->hasCompletedProfile()) {
-        return redirect()->route('profile.complete');
-    }
     return view('user-dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
@@ -90,6 +88,8 @@ Route::get('/user-dashboard', function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', [App\Http\Controllers\UserProfileController::class, 'show'])->name('profile.show');
     Route::put('/profile', [App\Http\Controllers\UserProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/photo', [App\Http\Controllers\UserProfileController::class, 'updatePhoto'])->name('profile.photo.update');
+    Route::post('/profile/password', [App\Http\Controllers\UserProfileController::class, 'updatePassword'])->name('profile.password.update');
 });
 
 // ========================================
@@ -113,14 +113,13 @@ Route::get('/browser-help', function() {
     return view('browser-help');
 });
 
-Route::get('/password/reset', function () {
-    return view('password-reset');
-})->name('password.request');
-
-Route::post('/password/email', function () {
-    // Here you would handle the password reset email logic
-    return redirect()->back()->with('status', 'Se ha enviado un enlace de recuperación a tu correo electrónico.');
-})->name('password.email');
+// ========================================
+// Password Reset Routes
+// ========================================
+Route::get('/password/reset', [PasswordResetController::class, 'showRequestForm'])->name('password.request');
+Route::post('/password/email', [PasswordResetController::class, 'sendResetLink'])->name('password.email');
+Route::get('/password/reset/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset');
+Route::post('/password/reset', [PasswordResetController::class, 'reset'])->name('password.update');
 
 // ========================================
 // CURP Validation Routes
