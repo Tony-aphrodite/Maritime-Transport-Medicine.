@@ -26,6 +26,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'profile_completed',
         'curp',
         'rfc',
+        'libreta_de_mar',
         'nombres',
         'apellido_paterno',
         'apellido_materno',

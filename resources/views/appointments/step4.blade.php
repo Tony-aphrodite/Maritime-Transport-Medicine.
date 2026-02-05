@@ -46,9 +46,15 @@
                         <p>{{ $user->telefono_movil }}</p>
                     </div>
                     @endif
+                    @if($user->libreta_de_mar)
                     <div class="data-item">
-                        <label>Tipo de Examen</label>
-                        <p>{{ $appointmentData['medical_declaration']['exam_type'] == 'new' ? 'Dictamen Nuevo' : 'Renovacion' }}</p>
+                        <label><i class="fas fa-anchor"></i> Numero de Libreta de Mar</label>
+                        <p>{{ $user->libreta_de_mar }}</p>
+                    </div>
+                    @endif
+                    <div class="data-item" style="grid-column: 1 / -1;">
+                        <label><i class="fas fa-file-medical-alt"></i> Tipo de Examen</label>
+                        <p style="font-weight: 600; color: var(--primary-dark);">Dictamen de Aptitud Psicofisica (STCW)</p>
                     </div>
                 </div>
 
@@ -63,8 +69,8 @@
 
                 <div class="declaration-summary-mini">
                     <div class="mini-status-item">
-                        <span><i class="fas fa-history"></i> Tipo de Examen:</span>
-                        <strong>{{ $appointmentData['medical_declaration']['exam_type'] == 'new' ? 'Nuevo' : 'Renovacion' }}</strong>
+                        <span><i class="fas fa-history"></i> Modalidad:</span>
+                        <strong>{{ $appointmentData['medical_declaration']['exam_type'] == 'new' ? 'NUEVO' : 'RENOVACION' }}</strong>
                     </div>
                     <div class="mini-status-item">
                         <span><i class="fas fa-anchor"></i> Tiempo en Mar:</span>

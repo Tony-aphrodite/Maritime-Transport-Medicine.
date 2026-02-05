@@ -4,6 +4,77 @@
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/appointments.css') }}">
+<style>
+/* Timer Styles */
+.timer-container {
+    background: linear-gradient(135deg, #1a5f7a 0%, #11507a 100%);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    color: white;
+    text-align: center;
+}
+.timer-container.warning {
+    background: linear-gradient(135deg, #f39c12 0%, #e74c3c 100%);
+    animation: pulse 1s infinite;
+}
+.timer-container.expired {
+    background: #95a5a6;
+}
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+}
+.timer-display {
+    font-size: 2.5rem;
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+    margin: 0.5rem 0;
+}
+.timer-label {
+    font-size: 0.85rem;
+    opacity: 0.9;
+}
+.timer-message {
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+    opacity: 0.8;
+}
+
+/* Slot status colors */
+.slot.held {
+    background: #f39c12 !important;
+    color: white !important;
+    cursor: not-allowed;
+}
+.slot.booked {
+    background: #e74c3c !important;
+    color: white !important;
+    cursor: not-allowed;
+}
+.slot.available {
+    background: #27ae60;
+    color: white;
+}
+.slot.available:hover {
+    background: #2ecc71;
+    transform: scale(1.05);
+}
+.slot.selected {
+    background: #3498db !important;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.4);
+}
+
+/* No doctor warning */
+.no-doctor-warning {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    color: #856404;
+}
+</style>
 @endpush
 
 @section('content')
@@ -30,18 +101,26 @@
         </div>
     @endif
 
+    @if(!$doctor)
+        <div class="no-doctor-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            <strong>Atencion:</strong> No hay medicos configurados en el sistema. Contacte al administrador.
+        </div>
+    @endif
+
     <form action="{{ route('appointments.step1.process') }}" method="POST" id="step1Form">
         @csrf
         <input type="hidden" name="appointment_date" id="selectedDate" value="{{ old('appointment_date', session('appointment.date')) }}">
         <input type="hidden" name="appointment_time" id="selectedTime" value="{{ old('appointment_time', session('appointment.time')) }}">
-        <input type="hidden" name="timezone" id="selectedTimezone" value="America/Mexico_City">
+        <input type="hidden" name="timezone" id="selectedTimezone" value="{{ $userTimezone }}">
+        <input type="hidden" name="doctor_id" id="selectedDoctorId" value="{{ $doctor?->id }}">
 
         <div class="booking-grid">
             <!-- Calendar Section -->
             <div class="calendar-section">
                 <div class="calendar-header">
                     <button type="button" class="nav-cal-btn" id="prevWeek"><i class="fas fa-chevron-left"></i></button>
-                    <h3 id="weekDisplay">Semana del 29 de Dic - 04 de Ene</h3>
+                    <h3 id="weekDisplay">Cargando...</h3>
                     <button type="button" class="nav-cal-btn" id="nextWeek"><i class="fas fa-chevron-right"></i></button>
                 </div>
 
@@ -52,20 +131,29 @@
 
             <!-- Sidebar -->
             <aside class="booking-sidebar">
+                <!-- Timer Card (hidden until slot selected) -->
+                <div class="timer-container" id="timerContainer" style="display: none;">
+                    <div class="timer-label"><i class="fas fa-clock"></i> Tiempo restante para completar</div>
+                    <div class="timer-display" id="timerDisplay">15:00</div>
+                    <div class="timer-message" id="timerMessage">Su reserva expirara si no completa el proceso</div>
+                </div>
+
                 <div class="helper-card">
                     <h4><i class="fas fa-info-circle"></i> Ayuda para agendar</h4>
                     <ul class="aid-list">
                         <li><strong>Seleccione una fecha y hora:</strong> Use las flechas para navegar entre semanas.</li>
-                        <li><strong>Cuadros verdes:</strong> Indican espacios disponibles. Haga clic para reservar.</li>
-                        <li><strong>Zonas horarias:</strong> Todos los horarios se muestran segun su zona horaria detectada: <br>
-                            <span class="tz-highlight">Zona Centro / Ciudad de Mexico</span>
-                        </li>
+                        <li><span style="display:inline-block;width:12px;height:12px;background:#27ae60;border-radius:2px;"></span> <strong>Verde:</strong> Disponible</li>
+                        <li><span style="display:inline-block;width:12px;height:12px;background:#f39c12;border-radius:2px;"></span> <strong>Naranja:</strong> Reservado temporalmente</li>
+                        <li><span style="display:inline-block;width:12px;height:12px;background:#e74c3c;border-radius:2px;"></span> <strong>Rojo:</strong> Ocupado</li>
+                        <li><strong>15 minutos:</strong> Tiene 15 minutos para completar su reserva despues de seleccionar un horario.</li>
                     </ul>
                 </div>
 
                 <div class="summary-card">
                     <h4>Resumen de Cita</h4>
-                    <p class="empty-msg" id="summaryContent">Seleccione un espacio disponible para continuar.</p>
+                    <div id="summaryContent">
+                        <p class="empty-msg">Seleccione un espacio disponible para continuar.</p>
+                    </div>
                     <button type="submit" class="btn-next" id="btnNext" disabled>
                         Siguiente Paso <i class="fas fa-arrow-right"></i>
                     </button>
@@ -75,12 +163,20 @@
                 <div class="timezone-card">
                     <label><i class="fas fa-globe"></i> Zona Horaria</label>
                     <select name="timezone_select" id="timezoneSelect" class="timezone-select">
-                        <option value="America/Mexico_City">Zona Central / Ciudad de Mexico (GMT-6)</option>
-                        <option value="America/Tijuana">Zona Pacifico / Tijuana (GMT-8)</option>
-                        <option value="America/Cancun">Zona Sureste / Cancun (GMT-5)</option>
-                        <option value="UTC">Tiempo Universal Coordinado (UTC)</option>
+                        <option value="America/Mexico_City" {{ $userTimezone == 'America/Mexico_City' ? 'selected' : '' }}>Zona Central / Ciudad de Mexico (GMT-6)</option>
+                        <option value="America/Tijuana" {{ $userTimezone == 'America/Tijuana' ? 'selected' : '' }}>Zona Pacifico / Tijuana (GMT-8)</option>
+                        <option value="America/Cancun" {{ $userTimezone == 'America/Cancun' ? 'selected' : '' }}>Zona Sureste / Cancun (GMT-5)</option>
+                        <option value="UTC" {{ $userTimezone == 'UTC' ? 'selected' : '' }}>Tiempo Universal Coordinado (UTC)</option>
                     </select>
                 </div>
+
+                @if($doctor)
+                <div class="helper-card" style="margin-top: 1rem; background: #e8f4f8;">
+                    <h4><i class="fas fa-user-md"></i> Medico</h4>
+                    <p style="margin: 0; font-size: 0.9rem;">{{ $doctor->name }}</p>
+                    <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem; color: #666;">{{ $doctor->specialty }}</p>
+                </div>
+                @endif
             </aside>
         </div>
     </form>
@@ -91,9 +187,15 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const availableSlots = @json($availableSlots);
+    const doctorId = {{ $doctor?->id ?? 'null' }};
+    const existingHold = @json($existingHold);
+    const csrfToken = '{{ csrf_token() }}';
+
     let currentWeekStart = new Date();
     let selectedDate = null;
     let selectedTime = null;
+    let timerInterval = null;
+    let holdExpiresAt = null;
 
     // Set to Monday of current week
     const dayOfWeek = currentWeekStart.getDay();
@@ -107,6 +209,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const selectedTimeInput = document.getElementById('selectedTime');
     const summaryContent = document.getElementById('summaryContent');
     const btnNext = document.getElementById('btnNext');
+    const timerContainer = document.getElementById('timerContainer');
+    const timerDisplay = document.getElementById('timerDisplay');
+    const timerMessage = document.getElementById('timerMessage');
 
     const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
     const dayNames = ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'];
@@ -122,7 +227,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function renderWeek() {
         const weekEnd = new Date(currentWeekStart);
-        weekEnd.setDate(weekEnd.getDate() + 4); // Monday to Friday (5 days)
+        weekEnd.setDate(weekEnd.getDate() + 6);
 
         weekDisplay.textContent = `Semana del ${formatDateForDisplay(currentWeekStart)} - ${formatDateForDisplay(weekEnd)}`;
 
@@ -131,38 +236,57 @@ document.addEventListener('DOMContentLoaded', function() {
 
         let html = '';
 
-        // Generate 5 columns (Monday to Friday)
-        for (let i = 0; i < 5; i++) {
+        // Generate 7 columns (full week)
+        for (let i = 0; i < 7; i++) {
             const date = new Date(currentWeekStart);
             date.setDate(date.getDate() + i);
             const dateStr = formatDateString(date);
             const dayName = dayNames[date.getDay()];
             const dayNum = date.getDate();
             const isPast = date < today;
+            const slotData = availableSlots[dateStr];
 
             html += `<div class="day-column">`;
             html += `<span class="day-name">${dayName} ${dayNum}</span>`;
 
-            // Time slots from 09:00 to 17:00
-            const times = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
+            if (!slotData || !slotData.slots || slotData.slots.length === 0) {
+                html += `<div class="no-slots">Sin horarios</div>`;
+            } else {
+                slotData.slots.forEach(slot => {
+                    const isSelected = selectedDate === dateStr && selectedTime === slot.time_utc;
+                    let slotClass = 'slot';
+                    let disabled = '';
+                    let title = '';
 
-            times.forEach(time => {
-                const slotData = availableSlots[dateStr];
-                let isAvailable = false;
+                    if (isPast) {
+                        slotClass += ' taken';
+                        disabled = 'disabled';
+                        title = 'Fecha pasada';
+                    } else if (slot.booked > 0) {
+                        slotClass += ' booked';
+                        disabled = 'disabled';
+                        title = 'Ocupado';
+                    } else if (slot.held > 0 && !isSelected) {
+                        slotClass += ' held';
+                        disabled = 'disabled';
+                        title = 'Reservado temporalmente';
+                    } else if (slot.available) {
+                        slotClass += ' available';
+                        if (isSelected) slotClass += ' selected';
+                    } else {
+                        slotClass += ' taken';
+                        disabled = 'disabled';
+                        title = 'No disponible';
+                    }
 
-                if (slotData && slotData.slots) {
-                    const slot = slotData.slots.find(s => s.time === time);
-                    isAvailable = slot && slot.available && !isPast;
-                }
-
-                const isSelected = selectedDate === dateStr && selectedTime === time;
-
-                if (isPast || !isAvailable) {
-                    html += `<button type="button" class="slot taken" disabled>${time}</button>`;
-                } else {
-                    html += `<button type="button" class="slot available ${isSelected ? 'selected' : ''}" data-date="${dateStr}" data-time="${time}">${time}</button>`;
-                }
-            });
+                    html += `<button type="button" class="${slotClass}"
+                        data-date="${dateStr}"
+                        data-time="${slot.time_utc}"
+                        data-display="${slot.time_display}"
+                        title="${title}"
+                        ${disabled}>${slot.time_display}</button>`;
+                });
+            }
 
             html += `</div>`;
         }
@@ -172,12 +296,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // Add click handlers
         document.querySelectorAll('.slot.available').forEach(slot => {
             slot.addEventListener('click', function() {
-                selectSlot(this.dataset.date, this.dataset.time, this);
+                selectSlot(this.dataset.date, this.dataset.time, this.dataset.display, this);
             });
         });
     }
 
-    function selectSlot(date, time, element) {
+    function selectSlot(date, time, displayTime, element) {
         // Remove previous selection
         document.querySelectorAll('.slot').forEach(s => s.classList.remove('selected'));
 
@@ -199,17 +323,61 @@ document.addEventListener('DOMContentLoaded', function() {
         summaryContent.innerHTML = `
             <div class="selected-slot-summary">
                 <p style="margin:0; color:#11507a; font-weight:bold;">Cita seleccionada:</p>
-                <p style="margin:5px 0 0 0; color:#555;">${dayName} ${dayNum} de ${monthName} a las ${time} hrs.</p>
+                <p style="margin:5px 0 0 0; color:#555;">${dayName} ${dayNum} de ${monthName} a las ${displayTime} hrs.</p>
             </div>
         `;
 
         // Enable next button
         btnNext.disabled = false;
 
+        // Show timer and start countdown (simulated - actual hold happens on form submit)
+        showTimer(15 * 60); // 15 minutes in seconds
+
         // Scroll to button on mobile
         if (window.innerWidth < 768) {
             btnNext.scrollIntoView({ behavior: 'smooth' });
         }
+    }
+
+    function showTimer(seconds) {
+        timerContainer.style.display = 'block';
+        timerContainer.classList.remove('warning', 'expired');
+
+        if (timerInterval) {
+            clearInterval(timerInterval);
+        }
+
+        let remaining = seconds;
+        updateTimerDisplay(remaining);
+
+        timerInterval = setInterval(() => {
+            remaining--;
+            updateTimerDisplay(remaining);
+
+            if (remaining <= 180 && remaining > 0) { // Less than 3 minutes
+                timerContainer.classList.add('warning');
+                timerMessage.textContent = 'Apurese! Su reserva esta por expirar';
+            }
+
+            if (remaining <= 0) {
+                clearInterval(timerInterval);
+                timerContainer.classList.remove('warning');
+                timerContainer.classList.add('expired');
+                timerDisplay.textContent = '00:00';
+                timerMessage.textContent = 'Su reserva ha expirado. Seleccione otro horario.';
+                btnNext.disabled = true;
+
+                // Clear selection
+                document.querySelectorAll('.slot').forEach(s => s.classList.remove('selected'));
+                summaryContent.innerHTML = '<p class="empty-msg">Seleccione un espacio disponible para continuar.</p>';
+            }
+        }, 1000);
+    }
+
+    function updateTimerDisplay(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        timerDisplay.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
     }
 
     // Navigation
@@ -223,9 +391,11 @@ document.addEventListener('DOMContentLoaded', function() {
         renderWeek();
     });
 
-    // Timezone selection
+    // Timezone selection - reload page with new timezone
     document.getElementById('timezoneSelect').addEventListener('change', function() {
         document.getElementById('selectedTimezone').value = this.value;
+        // Note: For full timezone support, page should reload to get recalculated slots
+        // For now, just update the hidden field
     });
 
     // Initialize
@@ -234,20 +404,45 @@ document.addEventListener('DOMContentLoaded', function() {
     // Restore previous selection if exists
     const prevDate = '{{ session("appointment.date") }}';
     const prevTime = '{{ session("appointment.time") }}';
+    const prevHoldExpires = '{{ session("appointment.hold_expires_at") }}';
+
     if (prevDate && prevTime) {
         selectedDate = prevDate;
         selectedTime = prevTime;
         selectedDateInput.value = prevDate;
         selectedTimeInput.value = prevTime;
 
-        // Check if the date is in current week view
-        const prevDateObj = new Date(prevDate);
-        if (prevDateObj >= currentWeekStart) {
-            const slot = document.querySelector(`.slot[data-date="${prevDate}"][data-time="${prevTime}"]`);
-            if (slot) {
-                selectSlot(prevDate, prevTime, slot);
+        // Calculate remaining time from existing hold
+        if (prevHoldExpires) {
+            const expiresAt = new Date(prevHoldExpires);
+            const now = new Date();
+            const remainingSeconds = Math.max(0, Math.floor((expiresAt - now) / 1000));
+
+            if (remainingSeconds > 0) {
+                showTimer(remainingSeconds);
+                btnNext.disabled = false;
+
+                // Try to find and highlight the slot
+                setTimeout(() => {
+                    const slot = document.querySelector(`.slot[data-date="${prevDate}"][data-time="${prevTime}"]`);
+                    if (slot) {
+                        slot.classList.add('selected');
+                        const dateObj = new Date(prevDate + 'T12:00:00');
+                        summaryContent.innerHTML = `
+                            <div class="selected-slot-summary">
+                                <p style="margin:0; color:#11507a; font-weight:bold;">Cita seleccionada:</p>
+                                <p style="margin:5px 0 0 0; color:#555;">${fullDayNames[dateObj.getDay()]} ${dateObj.getDate()} de ${monthNames[dateObj.getMonth()]} a las ${slot.dataset.display} hrs.</p>
+                            </div>
+                        `;
+                    }
+                }, 100);
             }
         }
+    }
+
+    // Check existing hold from server
+    if (existingHold && existingHold.remaining_seconds > 0) {
+        showTimer(existingHold.remaining_seconds);
     }
 });
 </script>

@@ -237,6 +237,11 @@ Route::middleware(['auth', 'verified'])->prefix('appointments')->name('appointme
     Route::get('/step1', [App\Http\Controllers\AppointmentController::class, 'step1'])->name('step1');
     Route::post('/step1', [App\Http\Controllers\AppointmentController::class, 'processStep1'])->name('step1.process');
 
+    // Slot Hold Management (AJAX)
+    Route::post('/hold-slot', [App\Http\Controllers\AppointmentController::class, 'holdSlot'])->name('hold.slot');
+    Route::post('/release-slot', [App\Http\Controllers\AppointmentController::class, 'releaseSlot'])->name('release.slot');
+    Route::get('/check-hold', [App\Http\Controllers\AppointmentController::class, 'checkHoldStatus'])->name('check.hold');
+
     // Step 2 - File Upload
     Route::get('/step2', [App\Http\Controllers\AppointmentController::class, 'step2'])->name('step2');
     Route::post('/step2', [App\Http\Controllers\AppointmentController::class, 'processStep2'])->name('step2.process');
