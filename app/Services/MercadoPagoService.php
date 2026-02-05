@@ -2,25 +2,26 @@
 
 namespace App\Services;
 
-use MercadoPago\MercadoPagoConfig;
-use MercadoPago\Client\Preference\PreferenceClient;
-use MercadoPago\Client\Payment\PaymentClient;
-use MercadoPago\Exceptions\MPApiException;
 use App\Models\Appointment;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
 
 class MercadoPagoService
 {
-    protected PreferenceClient $preferenceClient;
-    protected PaymentClient $paymentClient;
+    protected string $accessToken;
+    protected string $baseUrl = 'https://api.mercadopago.com';
 
     public function __construct()
     {
-        // Configure MercadoPago SDK
-        MercadoPagoConfig::setAccessToken(config('services.mercadopago.access_token'));
+        $this->accessToken = config('services.mercadopago.access_token') ?? '';
+    }
 
-        $this->preferenceClient = new PreferenceClient();
-        $this->paymentClient = new PaymentClient();
+    /**
+     * Check if SDK is properly configured.
+     */
+    protected function isConfigured(): bool
+    {
+        return !empty($this->accessToken);
     }
 
     /**
@@ -28,12 +29,20 @@ class MercadoPagoService
      */
     public function createPreference(Appointment $appointment): array
     {
+        if (!$this->isConfigured()) {
+            Log::warning('MercadoPago not configured - access token missing');
+            return [
+                'success' => false,
+                'error' => 'Mercado Pago no esta configurado. Contacte al administrador.',
+            ];
+        }
+
         try {
             $examTypeLabel = $appointment->exam_type === 'new'
                 ? 'Dictamen Medico Nuevo'
                 : 'Renovacion de Dictamen Medico';
 
-            $preference = $this->preferenceClient->create([
+            $preferenceData = [
                 'items' => [
                     [
                         'id' => 'appointment-' . $appointment->id,
@@ -60,24 +69,31 @@ class MercadoPagoService
                 'expires' => true,
                 'expiration_date_from' => now()->toIso8601String(),
                 'expiration_date_to' => now()->addMinutes(15)->toIso8601String(),
-            ]);
-
-            return [
-                'success' => true,
-                'preference_id' => $preference->id,
-                'init_point' => $preference->init_point,
-                'sandbox_init_point' => $preference->sandbox_init_point,
             ];
-        } catch (MPApiException $e) {
-            Log::error('MercadoPago API Error: ' . $e->getMessage(), [
-                'status_code' => $e->getApiResponse()->getStatusCode(),
-                'content' => $e->getApiResponse()->getContent(),
+
+            $response = Http::withToken($this->accessToken)
+                ->post($this->baseUrl . '/checkout/preferences', $preferenceData);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                return [
+                    'success' => true,
+                    'preference_id' => $data['id'],
+                    'init_point' => $data['init_point'],
+                    'sandbox_init_point' => $data['sandbox_init_point'] ?? $data['init_point'],
+                ];
+            }
+
+            Log::error('MercadoPago API Error', [
+                'status' => $response->status(),
+                'body' => $response->json(),
             ]);
 
             return [
                 'success' => false,
-                'error' => 'Error al crear la preferencia de pago: ' . $e->getMessage(),
+                'error' => 'Error al crear la preferencia de pago.',
             ];
+
         } catch (\Exception $e) {
             Log::error('MercadoPago Error: ' . $e->getMessage());
 
@@ -93,25 +109,40 @@ class MercadoPagoService
      */
     public function getPayment(int $paymentId): ?array
     {
-        try {
-            $payment = $this->paymentClient->get($paymentId);
+        if (!$this->isConfigured()) {
+            return null;
+        }
 
-            return [
-                'id' => $payment->id,
-                'status' => $payment->status,
-                'status_detail' => $payment->status_detail,
-                'external_reference' => $payment->external_reference,
-                'transaction_amount' => $payment->transaction_amount,
-                'currency_id' => $payment->currency_id,
-                'payment_method_id' => $payment->payment_method_id,
-                'payment_type_id' => $payment->payment_type_id,
-                'date_approved' => $payment->date_approved,
-                'payer' => [
-                    'email' => $payment->payer->email ?? null,
-                    'id' => $payment->payer->id ?? null,
-                ],
-            ];
-        } catch (MPApiException $e) {
+        try {
+            $response = Http::withToken($this->accessToken)
+                ->get($this->baseUrl . '/v1/payments/' . $paymentId);
+
+            if ($response->successful()) {
+                $payment = $response->json();
+                return [
+                    'id' => $payment['id'],
+                    'status' => $payment['status'],
+                    'status_detail' => $payment['status_detail'] ?? null,
+                    'external_reference' => $payment['external_reference'] ?? null,
+                    'transaction_amount' => $payment['transaction_amount'] ?? null,
+                    'currency_id' => $payment['currency_id'] ?? null,
+                    'payment_method_id' => $payment['payment_method_id'] ?? null,
+                    'payment_type_id' => $payment['payment_type_id'] ?? null,
+                    'date_approved' => $payment['date_approved'] ?? null,
+                    'payer' => [
+                        'email' => $payment['payer']['email'] ?? null,
+                        'id' => $payment['payer']['id'] ?? null,
+                    ],
+                ];
+            }
+
+            Log::error('MercadoPago Get Payment Error', [
+                'status' => $response->status(),
+                'body' => $response->json(),
+            ]);
+            return null;
+
+        } catch (\Exception $e) {
             Log::error('MercadoPago Get Payment Error: ' . $e->getMessage());
             return null;
         }
