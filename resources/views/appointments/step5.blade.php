@@ -4,6 +4,104 @@
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/appointments.css') }}">
+<style>
+.mercadopago-button {
+    background: linear-gradient(135deg, #009EE3 0%, #00B1EA 100%);
+    color: white;
+    border: none;
+    padding: 16px 32px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 158, 227, 0.3);
+}
+.mercadopago-button:hover {
+    background: linear-gradient(135deg, #007AB8 0%, #009EE3 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 158, 227, 0.4);
+}
+.mercadopago-button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+.mercadopago-button img {
+    height: 24px;
+}
+.payment-methods-info {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 20px;
+}
+.payment-methods-info h5 {
+    color: #333;
+    margin-bottom: 15px;
+    font-size: 0.95rem;
+}
+.payment-methods-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+.payment-method-item {
+    background: white;
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+    border: 1px solid #e0e0e0;
+}
+.payment-method-item img {
+    height: 30px;
+    object-fit: contain;
+}
+.payment-method-item span {
+    display: block;
+    font-size: 0.75rem;
+    color: #666;
+    margin-top: 5px;
+}
+.secure-payment-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 20px;
+    color: #28a745;
+    font-size: 0.9rem;
+}
+.secure-payment-badge i {
+    font-size: 1.2rem;
+}
+.mp-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+.mp-logo img {
+    height: 40px;
+}
+.payment-loading {
+    display: none;
+    text-align: center;
+    padding: 40px;
+}
+.payment-loading.active {
+    display: block;
+}
+.payment-form-content.hidden {
+    display: none;
+}
+</style>
 @endpush
 
 @section('content')
@@ -29,7 +127,7 @@
         <div class="timer-box" id="timerBox">
             <i class="fas fa-clock"></i>
             <span>Su sesion expira en: </span>
-            <span id="countdown-timer">10:00</span>
+            <span id="countdown-timer">15:00</span>
         </div>
         <p class="timer-disclaimer">Su espacio reservado se liberara si no completa el pago antes de que el tiempo termine.</p>
     </div>
@@ -38,55 +136,61 @@
         <!-- Left Section - Payment Form -->
         <div class="payment-form-section">
             <div class="card-white">
-                <div class="payment-header">
-                    <h3>Pago Seguro con Tarjeta</h3>
-                    <div class="card-icons-header">
-                        <i class="fab fa-cc-visa"></i>
-                        <i class="fab fa-cc-mastercard"></i>
-                        <i class="fab fa-cc-amex"></i>
+                <!-- Loading State -->
+                <div class="payment-loading" id="paymentLoading">
+                    <div class="spinner-container">
+                        <div class="spinner"></div>
                     </div>
+                    <h3 style="margin-top: 1.5rem;">Preparando pago...</h3>
+                    <p style="color: #666;">Por favor espere mientras lo redirigimos a Mercado Pago.</p>
                 </div>
 
-                <form id="paymentForm" class="card-details-form">
-                    @csrf
-                    <div class="form-group">
-                        <label>Nombre del Titular</label>
-                        <input type="text" id="card_name" name="card_name" placeholder="Como aparece en el plastico" required>
+                <!-- Payment Content -->
+                <div class="payment-form-content" id="paymentContent">
+                    <div class="mp-logo">
+                        <img src="https://http2.mlstatic.com/frontend-assets/mp-web-navigation/ui-navigation/6.6.92/mercadopago/logo__large.png" alt="Mercado Pago">
                     </div>
 
-                    <div class="form-group">
-                        <label>Numero de Tarjeta</label>
-                        <div class="input-with-icon-wrapper">
-                            <input type="text" id="card_number" name="card_number" inputmode="numeric"
-                                   placeholder="0000 0000 0000 0000" maxlength="19" required autocomplete="cc-number">
-                            <i class="fas fa-lock"></i>
-                        </div>
+                    <div class="payment-header" style="text-align: center; margin-bottom: 25px;">
+                        <h3 style="margin-bottom: 10px;">Pago Seguro</h3>
+                        <p style="color: #666; font-size: 0.95rem;">Complete su pago de forma segura con Mercado Pago</p>
                     </div>
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Fecha de Expiracion</label>
-                            <input type="text" id="card_expiry" name="card_expiry" inputmode="numeric"
-                                   placeholder="MM / AA" maxlength="7" required autocomplete="cc-exp">
-                        </div>
-                        <div class="form-group">
-                            <label>Codigo de Seguridad (CVC)</label>
-                            <input type="password" id="card_cvc" name="card_cvc" inputmode="numeric"
-                                   placeholder="123" maxlength="4" required autocomplete="cc-csc">
-                        </div>
-                    </div>
-
-                    <div class="secure-badge-container">
-                        <div class="secure-notice">
-                            <i class="fas fa-shield-alt"></i>
-                            <p>Encriptacion SSL de 256 bits. Sus datos bancarios no son almacenados en nuestros servidores.</p>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="btn-pay-now" id="btnPay">
+                    <button type="button" class="mercadopago-button" id="btnPayMercadoPago">
+                        <img src="https://http2.mlstatic.com/frontend-assets/mp-web-navigation/ui-navigation/6.6.92/mercadopago/logo__small.png" alt="MP">
                         Pagar ${{ number_format($appointment->total, 2) }} MXN
                     </button>
-                </form>
+
+                    <div class="secure-payment-badge">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Pago protegido por Mercado Pago</span>
+                    </div>
+
+                    <div class="payment-methods-info">
+                        <h5><i class="fas fa-credit-card"></i> Metodos de pago aceptados:</h5>
+                        <div class="payment-methods-grid">
+                            <div class="payment-method-item">
+                                <i class="fab fa-cc-visa" style="font-size: 30px; color: #1A1F71;"></i>
+                                <span>Visa</span>
+                            </div>
+                            <div class="payment-method-item">
+                                <i class="fab fa-cc-mastercard" style="font-size: 30px; color: #EB001B;"></i>
+                                <span>Mastercard</span>
+                            </div>
+                            <div class="payment-method-item">
+                                <i class="fab fa-cc-amex" style="font-size: 30px; color: #006FCF;"></i>
+                                <span>Amex</span>
+                            </div>
+                            <div class="payment-method-item">
+                                <i class="fas fa-store" style="font-size: 30px; color: #FF6600;"></i>
+                                <span>OXXO</span>
+                            </div>
+                        </div>
+                        <p style="margin-top: 15px; font-size: 0.85rem; color: #666; text-align: center;">
+                            Tarjetas de credito, debito, efectivo en OXXO y mas opciones disponibles
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -142,20 +246,6 @@
     </div>
 </section>
 
-<!-- Processing Modal -->
-<div id="processingModal" class="modal-overlay">
-    <div class="modal-content" style="text-align: center; max-width: 350px;">
-        <div class="spinner-container" id="spinnerContainer">
-            <div class="spinner"></div>
-        </div>
-        <h3 id="modalTitle" style="margin: 1.5rem 0 0.5rem;">Procesando Pago</h3>
-        <p id="modalMessage" style="color: #666; margin: 0;">Por favor, espere mientras procesamos su pago...</p>
-        <button type="button" id="btnCancelPayment" class="btn-cancel-payment">
-            <i class="fas fa-times"></i> Cancelar y Reintentar
-        </button>
-    </div>
-</div>
-
 <style>
 .spinner-container {
     display: flex;
@@ -165,30 +255,12 @@
     width: 50px;
     height: 50px;
     border: 4px solid #e0e0e0;
-    border-top-color: var(--accent-gold);
+    border-top-color: #009EE3;
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
 @keyframes spin {
     to { transform: rotate(360deg); }
-}
-.btn-cancel-payment {
-    margin-top: 1.5rem;
-    padding: 12px 25px;
-    background: transparent;
-    border: 2px solid #dc3545;
-    color: #dc3545;
-    border-radius: 50px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-}
-.btn-cancel-payment:hover {
-    background: #dc3545;
-    color: white;
 }
 </style>
 @endsection
@@ -196,32 +268,8 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Format card number
-    const cardNumber = document.getElementById('card_number');
-    cardNumber.addEventListener('input', function(e) {
-        let value = e.target.value.replace(/\s/g, '').replace(/\D/g, '');
-        let formatted = value.match(/.{1,4}/g)?.join(' ') || value;
-        e.target.value = formatted;
-    });
-
-    // Format expiry date
-    const cardExpiry = document.getElementById('card_expiry');
-    cardExpiry.addEventListener('input', function(e) {
-        let value = e.target.value.replace(/\D/g, '');
-        if (value.length >= 2) {
-            value = value.substring(0, 2) + ' / ' + value.substring(2, 4);
-        }
-        e.target.value = value;
-    });
-
-    // CVC - numbers only
-    const cardCvc = document.getElementById('card_cvc');
-    cardCvc.addEventListener('input', function(e) {
-        e.target.value = e.target.value.replace(/\D/g, '');
-    });
-
     // Countdown timer
-    let timeLeft = 10 * 60; // 10 minutes in seconds
+    let timeLeft = 15 * 60; // 15 minutes in seconds
     const countdownEl = document.getElementById('countdown-timer');
     const timerBox = document.getElementById('timerBox');
 
@@ -231,7 +279,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const seconds = timeLeft % 60;
         countdownEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
 
+        if (timeLeft <= 180) { // 3 minutes warning
+            timerBox.classList.add('timer-warning');
+        }
+
         if (timeLeft <= 60) {
+            timerBox.classList.remove('timer-warning');
             timerBox.classList.add('timer-urgent');
         }
 
@@ -242,85 +295,46 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }, 1000);
 
-    // Payment form submission
-    const paymentForm = document.getElementById('paymentForm');
-    const processingModal = document.getElementById('processingModal');
-    const btnPay = document.getElementById('btnPay');
-    const btnCancelPayment = document.getElementById('btnCancelPayment');
-    const modalTitle = document.getElementById('modalTitle');
-    const modalMessage = document.getElementById('modalMessage');
-    const spinnerContainer = document.getElementById('spinnerContainer');
+    // Mercado Pago payment button
+    const btnPayMercadoPago = document.getElementById('btnPayMercadoPago');
+    const paymentLoading = document.getElementById('paymentLoading');
+    const paymentContent = document.getElementById('paymentContent');
 
-    let paymentAbortController = null;
+    btnPayMercadoPago.addEventListener('click', function() {
+        // Show loading state
+        paymentContent.classList.add('hidden');
+        paymentLoading.classList.add('active');
+        btnPayMercadoPago.disabled = true;
 
-    paymentForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-
-        // Basic validation
-        const cardNum = cardNumber.value.replace(/\s/g, '');
-        if (cardNum.length < 13 || cardNum.length > 19) {
-            alert('Numero de tarjeta invalido.');
-            return;
-        }
-
-        // Reset modal state
-        modalTitle.textContent = 'Procesando Pago';
-        modalMessage.textContent = 'Por favor, espere mientras procesamos su pago...';
-        spinnerContainer.style.display = 'flex';
-
-        // Show processing modal
-        processingModal.style.display = 'flex';
-        btnPay.disabled = true;
-
-        // Create abort controller for cancellation
-        paymentAbortController = new AbortController();
-
-        // Submit payment
-        fetch('{{ route("appointments.payment.process") }}', {
+        // Create preference and redirect to Mercado Pago
+        fetch('{{ route("mercadopago.create-preference") }}', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            },
-            body: JSON.stringify({
-                card_name: document.getElementById('card_name').value,
-                // In production, use a payment gateway like Stripe - never send card details to your server
-            }),
-            signal: paymentAbortController.signal
+            }
         })
         .then(response => response.json())
         .then(data => {
-            if (data.success) {
-                clearInterval(timer);
-                window.location.href = data.redirect;
+            if (data.success && data.init_point) {
+                // Redirect to Mercado Pago checkout
+                window.location.href = data.init_point;
             } else {
-                closePaymentModal();
-                alert(data.message || 'Error al procesar el pago.');
+                // Show error
+                paymentContent.classList.remove('hidden');
+                paymentLoading.classList.remove('active');
+                btnPayMercadoPago.disabled = false;
+                alert(data.message || 'Error al iniciar el pago. Por favor, intente de nuevo.');
             }
         })
         .catch(error => {
-            if (error.name === 'AbortError') {
-                // Payment was cancelled by user
-                return;
-            }
-            closePaymentModal();
-            alert('Error al procesar el pago. Por favor, intente de nuevo.');
             console.error('Payment error:', error);
+            paymentContent.classList.remove('hidden');
+            paymentLoading.classList.remove('active');
+            btnPayMercadoPago.disabled = false;
+            alert('Error al conectar con el servidor. Por favor, intente de nuevo.');
         });
     });
-
-    // Cancel payment handler
-    btnCancelPayment.addEventListener('click', function() {
-        if (paymentAbortController) {
-            paymentAbortController.abort();
-        }
-        closePaymentModal();
-    });
-
-    function closePaymentModal() {
-        processingModal.style.display = 'none';
-        btnPay.disabled = false;
-    }
 });
 </script>
 @endpush

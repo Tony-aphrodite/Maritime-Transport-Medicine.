@@ -260,9 +260,25 @@ Route::middleware(['auth', 'verified'])->prefix('appointments')->name('appointme
     Route::get('/step5', [App\Http\Controllers\AppointmentController::class, 'step5'])->name('step5');
     Route::post('/payment', [App\Http\Controllers\AppointmentController::class, 'processPayment'])->name('payment.process');
 
-    // Success Page
+    // Payment return routes
+    Route::get('/payment/success', [App\Http\Controllers\MercadoPagoController::class, 'success'])->name('payment.success');
+    Route::get('/payment/failure', [App\Http\Controllers\MercadoPagoController::class, 'failure'])->name('payment.failure');
+    Route::get('/payment/pending', [App\Http\Controllers\MercadoPagoController::class, 'pending'])->name('payment.pending');
+
+    // Success Page / Confirmation
     Route::get('/success/{id}', [App\Http\Controllers\AppointmentController::class, 'success'])->name('success');
+    Route::get('/confirmation/{id}', [App\Http\Controllers\AppointmentController::class, 'success'])->name('confirmation');
 });
+
+// ========================================
+// Mercado Pago Routes
+// ========================================
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::post('/mercadopago/create-preference', [App\Http\Controllers\MercadoPagoController::class, 'createPreference'])->name('mercadopago.create-preference');
+});
+
+// Mercado Pago Webhook (no auth required - called by MercadoPago servers)
+Route::post('/mercadopago/webhook', [App\Http\Controllers\MercadoPagoController::class, 'webhook'])->name('mercadopago.webhook');
 
 // Debug route - REMOVE IN PRODUCTION
 Route::get('/debug-auth', function () {
