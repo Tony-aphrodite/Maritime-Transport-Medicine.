@@ -68,6 +68,14 @@
                 </div>
             </div>
 
+            <div class="required-documents-info">
+                <i class="fas fa-info-circle"></i>
+                <span>
+                    <strong>Estudios requeridos:</strong>
+                    Biometria Hematica, Quimica Sanguinea, Examen General de Orina, Radiografia de Torax, Electrocardiograma (ECG), Examen de Vista y Audiometria.
+                </span>
+            </div>
+
             <div class="table-container">
                 <table class="files-table">
                     <thead>
