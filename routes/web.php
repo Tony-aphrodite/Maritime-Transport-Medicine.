@@ -237,6 +237,11 @@ Route::middleware(['auth', 'verified'])->prefix('appointments')->name('appointme
     Route::get('/step1', [App\Http\Controllers\AppointmentController::class, 'step1'])->name('step1');
     Route::post('/step1', [App\Http\Controllers\AppointmentController::class, 'processStep1'])->name('step1.process');
 
+    // Slot Hold Management (AJAX)
+    Route::post('/hold-slot', [App\Http\Controllers\AppointmentController::class, 'holdSlot'])->name('hold.slot');
+    Route::post('/release-slot', [App\Http\Controllers\AppointmentController::class, 'releaseSlot'])->name('release.slot');
+    Route::get('/check-hold', [App\Http\Controllers\AppointmentController::class, 'checkHoldStatus'])->name('check.hold');
+
     // Step 2 - File Upload
     Route::get('/step2', [App\Http\Controllers\AppointmentController::class, 'step2'])->name('step2');
     Route::post('/step2', [App\Http\Controllers\AppointmentController::class, 'processStep2'])->name('step2.process');
@@ -255,8 +260,56 @@ Route::middleware(['auth', 'verified'])->prefix('appointments')->name('appointme
     Route::get('/step5', [App\Http\Controllers\AppointmentController::class, 'step5'])->name('step5');
     Route::post('/payment', [App\Http\Controllers\AppointmentController::class, 'processPayment'])->name('payment.process');
 
-    // Success Page
+    // Payment return routes
+    Route::get('/payment/success', [App\Http\Controllers\MercadoPagoController::class, 'success'])->name('payment.success');
+    Route::get('/payment/failure', [App\Http\Controllers\MercadoPagoController::class, 'failure'])->name('payment.failure');
+    Route::get('/payment/pending', [App\Http\Controllers\MercadoPagoController::class, 'pending'])->name('payment.pending');
+
+    // Success Page / Confirmation
     Route::get('/success/{id}', [App\Http\Controllers\AppointmentController::class, 'success'])->name('success');
+    Route::get('/confirmation/{id}', [App\Http\Controllers\AppointmentController::class, 'success'])->name('confirmation');
+});
+
+// ========================================
+// Mercado Pago Routes
+// ========================================
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::post('/mercadopago/create-preference', [App\Http\Controllers\MercadoPagoController::class, 'createPreference'])->name('mercadopago.create-preference');
+});
+
+// Mercado Pago Webhook (no auth required - called by MercadoPago servers)
+Route::post('/mercadopago/webhook', [App\Http\Controllers\MercadoPagoController::class, 'webhook'])->name('mercadopago.webhook');
+
+// TEMPORARY: Create storage symlink - REMOVE AFTER USE
+Route::get('/create-storage-link', function () {
+    $target = storage_path('app/public');
+    $link = public_path('storage');
+
+    if (file_exists($link)) {
+        return response()->json([
+            'success' => true,
+            'message' => 'Storage link already exists',
+            'link' => $link,
+            'target' => $target
+        ]);
+    }
+
+    try {
+        symlink($target, $link);
+        return response()->json([
+            'success' => true,
+            'message' => 'Storage link created successfully',
+            'link' => $link,
+            'target' => $target
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to create symlink: ' . $e->getMessage(),
+            'link' => $link,
+            'target' => $target
+        ]);
+    }
 });
 
 // Debug route - REMOVE IN PRODUCTION
@@ -278,3 +331,4 @@ Route::get('/debug-auth', function () {
         'session_id' => session()->getId()
     ]);
 });
+

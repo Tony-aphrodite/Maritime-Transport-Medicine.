@@ -7,91 +7,143 @@
 @endpush
 
 @section('content')
-<section class="appointment-dashboard">
-    <!-- Stepper -->
-    <div class="stepper">
-        <div class="step completed">
-            <div class="step-number"></div>
-            <span class="step-label">Fecha y Hora</span>
-        </div>
-        <div class="step completed">
-            <div class="step-number"></div>
-            <span class="step-label">Archivos</span>
-        </div>
-        <div class="step completed">
-            <div class="step-number"></div>
-            <span class="step-label">Declaracion</span>
-        </div>
-        <div class="step active">
-            <div class="step-number">4</div>
-            <span class="step-label">Confirmacion</span>
-        </div>
-        <div class="step">
-            <div class="step-number">5</div>
-            <span class="step-label">Pago</span>
-        </div>
+<section class="booking-container">
+    <!-- Back Navigation -->
+    <div class="back-nav">
+        <a href="{{ route('appointments.step3') }}" class="btn-back-link">
+            <i class="fas fa-arrow-left"></i> Volver a Declaracion
+        </a>
     </div>
 
-    <!-- Main Content -->
-    <div class="appointment-container">
-        <div class="appointment-header">
-            <h2><i class="fas fa-clipboard-check"></i> Verifique su Informacion</h2>
-            <p>Revise cuidadosamente los datos de su cita antes de proceder al pago.</p>
-        </div>
+    <!-- Stepper -->
+    <div class="stepper">
+        <div class="step completed"><span><i class="fas fa-check"></i></span><p>Fecha</p></div>
+        <div class="step completed"><span><i class="fas fa-check"></i></span><p>Archivos</p></div>
+        <div class="step completed"><span><i class="fas fa-check"></i></span><p>Declaracion</p></div>
+        <div class="step active"><span>4</span><p>Confirmacion</p></div>
+        <div class="step"><span>5</span><p>Pago</p></div>
+    </div>
 
-        <div class="confirmation-summary">
-            <!-- Personal Information -->
-            <div class="summary-card">
-                <h4><i class="fas fa-user"></i> Informacion Personal</h4>
-                <div class="summary-item">
-                    <span class="label">Nombre Completo</span>
-                    <span class="value">{{ $user->full_name ?? $user->name }}</span>
+    <div class="confirmation-layout">
+        <!-- Left Section - Info Review -->
+        <div class="info-review-section">
+            <div class="card-white">
+                <h3><i class="fas fa-user-check"></i> Verifique su Informacion</h3>
+                <p class="subtitle">Confirme que sus datos personales son correctos para la emision del certificado medico.</p>
+
+                <div class="data-profile-grid">
+                    <div class="data-item">
+                        <label>Nombre Completo</label>
+                        <p>{{ $user->full_name ?? $user->name }}</p>
+                    </div>
+                    <div class="data-item">
+                        <label>Correo Electronico</label>
+                        <p>{{ $user->email }}</p>
+                    </div>
+                    @if($user->telefono_movil)
+                    <div class="data-item">
+                        <label>Telefono</label>
+                        <p>{{ $user->telefono_movil }}</p>
+                    </div>
+                    @endif
+                    @if($user->libreta_de_mar)
+                    <div class="data-item">
+                        <label><i class="fas fa-anchor"></i> Numero de Libreta de Mar</label>
+                        <p>{{ $user->libreta_de_mar }}</p>
+                    </div>
+                    @endif
+                    <div class="data-item" style="grid-column: 1 / -1;">
+                        <label><i class="fas fa-file-medical-alt"></i> Tipo de Examen</label>
+                        <p style="font-weight: 600; color: var(--primary-dark);">Dictamen de Aptitud Psicofisica (STCW)</p>
+                    </div>
                 </div>
-                <div class="summary-item">
-                    <span class="label">Correo Electronico</span>
-                    <span class="value">{{ $user->email }}</span>
+
+                <div class="declaration-status">
+                    <i class="fas fa-file-medical"></i>
+                    <div>
+                        <h4>Declaracion Medica</h4>
+                        <p>Su formulario de salud ha sido cargado correctamente.</p>
+                    </div>
+                    <span class="badge-success">Completado</span>
                 </div>
-                @if($user->telefono_movil)
-                <div class="summary-item">
-                    <span class="label">Telefono</span>
-                    <span class="value">{{ $user->telefono_movil }}</span>
+
+                <div class="declaration-summary-mini">
+                    <div class="mini-status-item">
+                        <span><i class="fas fa-history"></i> Modalidad:</span>
+                        <strong>{{ $appointmentData['medical_declaration']['exam_type'] == 'new' ? 'NUEVO' : 'RENOVACION' }}</strong>
+                    </div>
+                    <div class="mini-status-item">
+                        <span><i class="fas fa-anchor"></i> Tiempo en Mar:</span>
+                        <strong>{{ $appointmentData['medical_declaration']['years_at_sea'] }} anos</strong>
+                    </div>
+                    @if(!empty($appointmentData['medical_declaration']['workplace_risks']))
+                    <div class="mini-status-item">
+                        <span><i class="fas fa-exclamation-triangle"></i> Riesgos:</span>
+                        <strong>
+                            @php
+                                $riskLabels = [
+                                    'none' => 'Ninguno',
+                                    'noise' => 'Ruido',
+                                    'dust' => 'Polvo',
+                                    'radiation' => 'Radiacion',
+                                    'other' => 'Otro'
+                                ];
+                                $risks = $appointmentData['medical_declaration']['workplace_risks'];
+                                $riskNames = array_map(fn($r) => $riskLabels[$r] ?? $r, $risks);
+                            @endphp
+                            {{ implode(', ', $riskNames) }}
+                        </strong>
+                    </div>
+                    @endif
                 </div>
-                @endif
-                @if($user->curp)
-                <div class="summary-item">
-                    <span class="label">CURP</span>
-                    <span class="value">{{ $user->curp }}</span>
+
+                <!-- Uploaded Documents Summary -->
+                @if($documents->count() > 0)
+                <div class="documents-summary">
+                    <h4 style="color: var(--primary-dark); margin: 20px 0 15px 0; font-size: 1rem;">
+                        <i class="fas fa-folder-open"></i> Documentos Subidos ({{ $documents->count() }})
+                    </h4>
+                    <div class="docs-list">
+                        @foreach($documents as $document)
+                        <div class="doc-item">
+                            <i class="fas fa-check-circle" style="color: #28a745;"></i>
+                            <span>{{ $document->document_type_label }}</span>
+                        </div>
+                        @endforeach
+                    </div>
                 </div>
                 @endif
             </div>
+        </div>
 
-            <!-- Appointment Details -->
-            <div class="summary-card">
-                <h4><i class="fas fa-calendar-alt"></i> Detalles de la Cita</h4>
-                <div class="summary-item">
-                    <span class="label">Fecha</span>
-                    <span class="value">
+        <!-- Right Section - Summary Card -->
+        <aside class="summary-section">
+            <div class="summary-card-dark">
+                <h4>Detalles de la Cita</h4>
+                <div class="detail-row">
+                    <span>Fecha:</span>
+                    <strong>
                         @php
                             $date = \Carbon\Carbon::parse($appointmentData['date']);
                             $dayNames = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
                             $monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
                         @endphp
                         {{ $dayNames[$date->dayOfWeek] }}, {{ $date->day }} de {{ $monthNames[$date->month - 1] }}
-                    </span>
+                    </strong>
                 </div>
-                <div class="summary-item">
-                    <span class="label">Hora</span>
-                    <span class="value">
+                <div class="detail-row">
+                    <span>Hora:</span>
+                    <strong>
                         @php
                             $hour = (int) substr($appointmentData['time'], 0, 2);
                             $display = sprintf('%d:00 %s', $hour > 12 ? $hour - 12 : $hour, $hour >= 12 ? 'PM' : 'AM');
                         @endphp
                         {{ $display }}
-                    </span>
+                    </strong>
                 </div>
-                <div class="summary-item">
-                    <span class="label">Zona Horaria</span>
-                    <span class="value">
+                <div class="detail-row">
+                    <span>Zona Horaria:</span>
+                    <strong>
                         @php
                             $tzLabels = [
                                 'America/Mexico_City' => 'CDMX (GMT-6)',
@@ -101,125 +153,24 @@
                             ];
                         @endphp
                         {{ $tzLabels[$appointmentData['timezone']] ?? $appointmentData['timezone'] }}
-                    </span>
+                    </strong>
                 </div>
-                <div class="summary-item">
-                    <span class="label">Tipo de Examen</span>
-                    <span class="value">
-                        {{ $appointmentData['medical_declaration']['exam_type'] == 'new' ? 'Dictamen Nuevo' : 'Renovacion' }}
-                    </span>
-                </div>
-            </div>
-
-            <!-- Medical Declaration Summary -->
-            <div class="summary-card">
-                <h4><i class="fas fa-file-medical"></i> Declaracion Medica</h4>
-                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
-                    <span class="document-status uploaded"><i class="fas fa-check-circle"></i> Completada</span>
-                </div>
-                <div class="summary-item">
-                    <span class="label">Anos en el Mar</span>
-                    <span class="value">{{ $appointmentData['medical_declaration']['years_at_sea'] }} anos</span>
-                </div>
-                <div class="summary-item">
-                    <span class="label">Puesto Actual</span>
-                    <span class="value">{{ $appointmentData['medical_declaration']['current_position'] }}</span>
-                </div>
-                <div class="summary-item">
-                    <span class="label">Tipo de Embarcacion</span>
-                    <span class="value">
-                        @php
-                            $vesselTypes = [
-                                'cargo' => 'Buque de Carga',
-                                'tanker' => 'Buque Tanque',
-                                'passenger' => 'Buque de Pasajeros',
-                                'fishing' => 'Buque Pesquero',
-                                'offshore' => 'Plataforma Offshore',
-                                'tugboat' => 'Remolcador',
-                                'other' => 'Otro'
-                            ];
-                        @endphp
-                        {{ $vesselTypes[$appointmentData['medical_declaration']['vessel_type']] ?? $appointmentData['medical_declaration']['vessel_type'] }}
-                    </span>
-                </div>
-                @if(!empty($appointmentData['medical_declaration']['workplace_risks']))
-                <div class="summary-item">
-                    <span class="label">Riesgos Laborales</span>
-                    <span class="value">
-                        @php
-                            $riskLabels = [
-                                'noise' => 'Ruido',
-                                'dust' => 'Polvo',
-                                'chemicals' => 'Quimicos',
-                                'vibration' => 'Vibracion',
-                                'heights' => 'Alturas',
-                                'confined_spaces' => 'Espacios Confinados'
-                            ];
-                            $risks = $appointmentData['medical_declaration']['workplace_risks'];
-                            $riskNames = array_map(fn($r) => $riskLabels[$r] ?? $r, $risks);
-                        @endphp
-                        {{ implode(', ', $riskNames) }}
-                    </span>
-                </div>
-                @endif
-            </div>
-
-            <!-- Uploaded Documents -->
-            <div class="summary-card">
-                <h4><i class="fas fa-folder-open"></i> Documentos Subidos</h4>
-                @foreach($documents as $document)
-                <div class="summary-item">
-                    <span class="label">{{ $document->document_type_label }}</span>
-                    <span class="value" style="display: flex; align-items: center; gap: 0.5rem;">
-                        <i class="fas fa-check-circle" style="color: #28a745;"></i>
-                        {{ $document->original_name }}
-                    </span>
-                </div>
-                @endforeach
-            </div>
-
-            <!-- Price Summary -->
-            <div class="price-summary">
-                <h4><i class="fas fa-receipt"></i> Detalle del Cargo</h4>
+                <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 20px 0;">
                 <div class="price-row">
-                    <span>Dictamen Medico {{ $appointmentData['medical_declaration']['exam_type'] == 'new' ? 'Nuevo' : 'Renovacion' }}</span>
-                    <span>${{ number_format($serviceCost['subtotal'], 2) }} MXN</span>
+                    <span>Costo del Servicio:</span>
+                    <span class="price">${{ number_format($serviceCost['total'], 2) }} MXN</span>
                 </div>
-                <div class="price-row">
-                    <span>IVA ({{ $serviceCost['tax_rate'] }}%)</span>
-                    <span>${{ number_format($serviceCost['tax'], 2) }} MXN</span>
-                </div>
-                <div class="price-row total">
-                    <span>Total</span>
-                    <span class="amount">${{ number_format($serviceCost['total'], 2) }} MXN</span>
-                </div>
-            </div>
 
-            <!-- Notice -->
-            <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 1rem; display: flex; align-items: flex-start; gap: 0.75rem;">
-                <i class="fas fa-info-circle" style="color: #856404; font-size: 1.2rem; margin-top: 2px;"></i>
-                <div>
-                    <strong style="color: #856404;">Importante</strong>
-                    <p style="color: #856404; margin: 0.25rem 0 0 0; font-size: 0.9rem;">
-                        Al hacer clic en "Proceder al Pago", su espacio quedara reservado temporalmente por 10 minutos
-                        mientras completa el proceso de pago.
-                    </p>
-                </div>
-            </div>
-        </div>
+                <p class="notice-text">Al hacer clic en pagar, su espacio quedara reservado temporalmente por 10 minutos.</p>
 
-        <!-- Navigation -->
-        <form action="{{ route('appointments.step4.process') }}" method="POST">
-            @csrf
-            <div class="step-navigation">
-                <a href="{{ route('appointments.step3') }}" class="btn-back">
-                    <i class="fas fa-arrow-left"></i> Atras
-                </a>
-                <button type="submit" class="btn-next" style="background: linear-gradient(135deg, #28a745 0%, #218838 100%);">
-                    <i class="fas fa-credit-card"></i> Proceder al Pago
-                </button>
+                <form action="{{ route('appointments.step4.process') }}" method="POST">
+                    @csrf
+                    <button type="submit" class="btn-primary-gold w-100">
+                        Proceder al Pago <i class="fas fa-credit-card"></i>
+                    </button>
+                </form>
             </div>
-        </form>
+        </aside>
     </div>
 </section>
 @endsection

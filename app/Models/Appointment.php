@@ -27,6 +27,7 @@ class Appointment extends Model
 
     protected $fillable = [
         'user_id',
+        'doctor_id',
         'appointment_date',
         'appointment_time',
         'timezone',
@@ -52,6 +53,7 @@ class Appointment extends Model
         'tax',
         'total',
         'status',
+        'hold_expires_at',
         'payment_status',
         'payment_date',
         'payment_reference',
@@ -60,6 +62,7 @@ class Appointment extends Model
 
     protected $casts = [
         'appointment_date' => 'date',
+        'hold_expires_at' => 'datetime',
         'payment_date' => 'datetime',
         'has_chronic_conditions' => 'boolean',
         'takes_medications' => 'boolean',
@@ -81,6 +84,14 @@ class Appointment extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the doctor for the appointment.
+     */
+    public function doctor()
+    {
+        return $this->belongsTo(Doctor::class);
     }
 
     /**

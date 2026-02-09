@@ -1,0 +1,97 @@
+-- =============================================
+-- MERCADO PAGO PAYMENT SYSTEM - SETUP NOTES
+-- =============================================
+-- This file contains setup instructions for Mercado Pago integration
+
+-- =============================================
+-- 1. COMPOSER INSTALLATION
+-- =============================================
+-- Run this command to install the Mercado Pago SDK:
+-- composer require mercadopago/dx-php:^3.0
+
+-- =============================================
+-- 2. ENVIRONMENT VARIABLES
+-- =============================================
+-- Add these to your .env file:
+
+-- # Mercado Pago Configuration
+-- MERCADOPAGO_PUBLIC_KEY=your_public_key_here
+-- MERCADOPAGO_ACCESS_TOKEN=your_access_token_here
+-- MERCADOPAGO_WEBHOOK_SECRET=your_webhook_secret_here
+-- MERCADOPAGO_SANDBOX=true  # Set to false for production
+
+-- =============================================
+-- 3. GET YOUR CREDENTIALS
+-- =============================================
+-- 1. Go to: https://www.mercadopago.com.mx/developers
+-- 2. Create a new application
+-- 3. Go to "Credenciales" section
+-- 4. For testing: Use "Credenciales de prueba" (TEST credentials)
+-- 5. For production: Use "Credenciales de produccion"
+--
+-- PUBLIC_KEY: Used in frontend for card tokenization
+-- ACCESS_TOKEN: Used in backend for API calls
+
+-- =============================================
+-- 4. WEBHOOK CONFIGURATION
+-- =============================================
+-- 1. In MercadoPago Developer Panel, go to "Webhooks"
+-- 2. Add your webhook URL: https://yourdomain.com/mercadopago/webhook
+-- 3. Select events: "Payments" (pagos)
+-- 4. Save the webhook secret provided
+
+-- =============================================
+-- 5. TEST CARDS (SANDBOX MODE)
+-- =============================================
+-- Use these test cards when MERCADOPAGO_SANDBOX=true:
+--
+-- APPROVED PAYMENT:
+--   Card: 5031 7557 3453 0604
+--   CVV: 123
+--   Expiry: 11/25
+--   Name: APRO
+--
+-- PENDING PAYMENT:
+--   Card: 5031 7557 3453 0604
+--   CVV: 123
+--   Expiry: 11/25
+--   Name: CONT
+--
+-- REJECTED PAYMENT:
+--   Card: 5031 7557 3453 0604
+--   CVV: 123
+--   Expiry: 11/25
+--   Name: OTHE
+
+-- =============================================
+-- 6. PAYMENT STATUSES
+-- =============================================
+-- approved    - Payment was approved and credited
+-- pending     - Payment is waiting for processing
+-- in_process  - Payment is being reviewed
+-- rejected    - Payment was rejected
+-- cancelled   - Payment was cancelled
+-- refunded    - Payment was refunded
+
+-- =============================================
+-- 7. IMPORTANT NOTES
+-- =============================================
+-- 1. The appointment_holds table manages 15-minute slot reservations
+-- 2. Payment preference expires after 15 minutes (matches hold time)
+-- 3. Webhook handles payment confirmation asynchronously
+-- 4. CSRF is disabled for webhook endpoint in VerifyCsrfToken.php
+
+-- =============================================
+-- 8. FILES CREATED/MODIFIED
+-- =============================================
+-- NEW FILES:
+-- - app/Services/MercadoPagoService.php (Service class)
+-- - app/Http/Controllers/MercadoPagoController.php (Controller)
+--
+-- MODIFIED FILES:
+-- - config/services.php (Added mercadopago config)
+-- - .env.example (Added mercadopago variables)
+-- - routes/web.php (Added mercadopago routes)
+-- - app/Http/Middleware/VerifyCsrfToken.php (Webhook exception)
+-- - resources/views/appointments/step5.blade.php (New payment UI)
+-- - composer.json (Added mercadopago/dx-php package)

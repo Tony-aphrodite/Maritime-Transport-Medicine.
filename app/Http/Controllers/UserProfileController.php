@@ -54,6 +54,7 @@ class UserProfileController extends Controller
             'calle' => 'required|string|max:200',
             'numero_exterior' => 'required|string|max:20',
             'numero_interior' => 'nullable|string|max:20',
+            'libreta_de_mar' => 'nullable|string|max:50',
         ];
 
         // Conditional rules based on nationality
@@ -131,6 +132,7 @@ class UserProfileController extends Controller
             'calle' => $validated['calle'],
             'numero_exterior' => $validated['numero_exterior'],
             'numero_interior' => $validated['numero_interior'] ?? null,
+            'libreta_de_mar' => $validated['libreta_de_mar'] ?? null,
         ];
 
         // Handle Mexican-specific fields

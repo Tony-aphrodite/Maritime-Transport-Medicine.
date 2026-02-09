@@ -821,6 +821,19 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Libreta de Mar (for all maritime workers) -->
+                    <div class="field-group" style="margin-top: 1.25rem;">
+                        <label class="field-label">
+                            <i class="fas fa-anchor"></i>
+                            Numero de Libreta de Mar
+                        </label>
+                        <input type="text" class="form-control" name="libreta_de_mar" id="libretaDeMarInput"
+                               value="{{ old('libreta_de_mar', $user->libreta_de_mar) }}"
+                               placeholder="Numero de Libreta de Mar (si aplica)" maxlength="50"
+                               style="font-family: 'Courier New', monospace; letter-spacing: 0.5px;">
+                        <span class="input-hint"><i class="fas fa-info-circle"></i> Ingrese su numero de libreta de mar si ya cuenta con una</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1259,8 +1272,13 @@ function handleProfilePhotoUpload(event) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Update avatar image
+            // Update avatar image on profile page
             avatarImg.src = data.photo_url;
+            // Also update dashboard header avatar if exists
+            const dashboardAvatar = document.getElementById('dashboardAvatar');
+            if (dashboardAvatar) {
+                dashboardAvatar.src = data.photo_url;
+            }
             // Show success message
             showNotification('success', data.message);
         } else {
