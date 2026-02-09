@@ -148,16 +148,17 @@
                 <!-- Payment Content -->
                 <div class="payment-form-content" id="paymentContent">
                     <div class="mp-logo">
-                        <img src="https://http2.mlstatic.com/frontend-assets/mp-web-navigation/ui-navigation/6.6.92/mercadopago/logo__large.png" alt="Mercado Pago">
+                        <i class="fas fa-hand-holding-usd" style="font-size: 28px; color: #009EE3;"></i>
+                        <span style="font-size: 1.2rem; font-weight: 700; color: #009EE3; margin-left: 10px;">Mercado Pago</span>
                     </div>
 
                     <div class="payment-header" style="text-align: center; margin-bottom: 25px;">
-                        <h3 style="margin-bottom: 10px;">Pago Seguro</h3>
+                        <h3 style="margin-bottom: 10px;"><i class="fas fa-lock" style="color: #28a745; font-size: 1rem;"></i> Pago Seguro</h3>
                         <p style="color: #666; font-size: 0.95rem;">Complete su pago de forma segura con Mercado Pago</p>
                     </div>
 
                     <button type="button" class="mercadopago-button" id="btnPayMercadoPago">
-                        <img src="https://http2.mlstatic.com/frontend-assets/mp-web-navigation/ui-navigation/6.6.92/mercadopago/logo__small.png" alt="MP">
+                        <i class="fas fa-credit-card" style="font-size: 18px;"></i>
                         Pagar ${{ number_format($appointment->total, 2) }} MXN
                     </button>
 
@@ -170,19 +171,19 @@
                         <h5><i class="fas fa-credit-card"></i> Metodos de pago aceptados:</h5>
                         <div class="payment-methods-grid">
                             <div class="payment-method-item">
-                                <i class="fab fa-cc-visa" style="font-size: 30px; color: #1A1F71;"></i>
+                                <i class="fab fa-cc-visa" style="font-size: 22px; color: #1A1F71;"></i>
                                 <span>Visa</span>
                             </div>
                             <div class="payment-method-item">
-                                <i class="fab fa-cc-mastercard" style="font-size: 30px; color: #EB001B;"></i>
+                                <i class="fab fa-cc-mastercard" style="font-size: 22px; color: #EB001B;"></i>
                                 <span>Mastercard</span>
                             </div>
                             <div class="payment-method-item">
-                                <i class="fab fa-cc-amex" style="font-size: 30px; color: #006FCF;"></i>
+                                <i class="fab fa-cc-amex" style="font-size: 22px; color: #006FCF;"></i>
                                 <span>Amex</span>
                             </div>
                             <div class="payment-method-item">
-                                <i class="fas fa-store" style="font-size: 30px; color: #FF6600;"></i>
+                                <i class="fas fa-store" style="font-size: 22px; color: #FF6600;"></i>
                                 <span>OXXO</span>
                             </div>
                         </div>
