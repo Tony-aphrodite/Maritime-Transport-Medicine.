@@ -299,3 +299,4 @@ Route::get('/debug-auth', function () {
         'session_id' => session()->getId()
     ]);
 });
+

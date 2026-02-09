@@ -46,7 +46,7 @@
             </div>
 
             <!-- Document Type Selection Modal -->
-            <div id="documentTypeModal" class="modal-overlay">
+            <div id="documentTypeModal" class="modal-overlay" style="display: none;">
                 <div class="modal-content">
                     <h3><i class="fas fa-file-medical" style="color: var(--accent-gold);"></i> Tipo de Estudio</h3>
                     <p style="margin-bottom: 1rem; color: #666;">Seleccione el tipo de estudio que esta subiendo:</p>

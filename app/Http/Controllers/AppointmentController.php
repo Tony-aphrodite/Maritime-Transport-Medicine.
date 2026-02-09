@@ -41,6 +41,14 @@ class AppointmentController extends Controller
         // Get active doctor (for now, get first active doctor)
         $doctor = Doctor::active()->first();
 
+        // Debug logging
+        Log::info('Step1 Debug', [
+            'doctor_found' => $doctor ? true : false,
+            'doctor_id' => $doctor?->id,
+            'doctor_name' => $doctor?->name,
+            'active_doctors_count' => Doctor::active()->count(),
+        ]);
+
         // Check if user has an existing hold
         $existingHold = AppointmentHold::where('user_id', $user->id)->active()->first();
 
