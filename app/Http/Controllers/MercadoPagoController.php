@@ -21,7 +21,7 @@ class MercadoPagoController extends Controller
      */
     public function createPreference(Request $request)
     {
-        $appointmentId = session('appointment_id');
+        $appointmentId = session('appointment.id');
 
         if (!$appointmentId) {
             return response()->json([
@@ -99,8 +99,7 @@ class MercadoPagoController extends Controller
 
                 // Clear session data
                 session()->forget([
-                    'appointment_id',
-                    'appointment_step',
+                    'appointment',
                     'mercadopago_preference_id',
                 ]);
 
@@ -152,8 +151,7 @@ class MercadoPagoController extends Controller
 
             // Clear session data
             session()->forget([
-                'appointment_id',
-                'appointment_step',
+                'appointment',
                 'mercadopago_preference_id',
             ]);
 

@@ -210,8 +210,18 @@ document.addEventListener('DOMContentLoaded', function() {
             method: 'POST',
             body: formData
         })
-        .then(response => response.json())
+        .then(response => {
+            console.log('Response status:', response.status);
+            if (!response.ok) {
+                return response.text().then(text => {
+                    console.error('Server error response:', text);
+                    throw new Error('Server error: ' + response.status);
+                });
+            }
+            return response.json();
+        })
         .then(data => {
+            console.log('Upload response:', data);
             uploadingRow.remove();
 
             if (data.success) {
@@ -222,7 +232,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(error => {
             uploadingRow.remove();
-            alert('Error al subir el archivo. Por favor, intente de nuevo.');
+            alert('Error al subir el archivo: ' + error.message);
             console.error('Upload error:', error);
         });
 

@@ -280,6 +280,38 @@ Route::middleware(['auth', 'verified'])->group(function () {
 // Mercado Pago Webhook (no auth required - called by MercadoPago servers)
 Route::post('/mercadopago/webhook', [App\Http\Controllers\MercadoPagoController::class, 'webhook'])->name('mercadopago.webhook');
 
+// TEMPORARY: Create storage symlink - REMOVE AFTER USE
+Route::get('/create-storage-link', function () {
+    $target = storage_path('app/public');
+    $link = public_path('storage');
+
+    if (file_exists($link)) {
+        return response()->json([
+            'success' => true,
+            'message' => 'Storage link already exists',
+            'link' => $link,
+            'target' => $target
+        ]);
+    }
+
+    try {
+        symlink($target, $link);
+        return response()->json([
+            'success' => true,
+            'message' => 'Storage link created successfully',
+            'link' => $link,
+            'target' => $target
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to create symlink: ' . $e->getMessage(),
+            'link' => $link,
+            'target' => $target
+        ]);
+    }
+});
+
 // Debug route - REMOVE IN PRODUCTION
 Route::get('/debug-auth', function () {
     $user = auth()->user();

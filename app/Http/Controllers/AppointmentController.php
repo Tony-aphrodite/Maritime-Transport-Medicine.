@@ -352,26 +352,13 @@ class AppointmentController extends Controller
     {
         $user = Auth::user();
 
-        // Check required medical studies are uploaded
-        $requiredTypes = [
-            'blood_test',    // Biometria Hematica
-            'chemistry',     // Quimica Sanguinea
-            'urine_test',    // Examen General de Orina
-            'chest_xray',    // Radiografia de Torax
-            'ecg',           // Electrocardiograma
-            'vision_test',   // Examen de Vista
-            'audiometry',    // Audiometria
-        ];
-
-        $uploadedTypes = AppointmentDocument::where('user_id', $user->id)
+        // Check at least one document is uploaded
+        $uploadedCount = AppointmentDocument::where('user_id', $user->id)
             ->where('appointment_id', null)
-            ->pluck('document_type')
-            ->toArray();
+            ->count();
 
-        $missingTypes = array_diff($requiredTypes, $uploadedTypes);
-
-        if (!empty($missingTypes)) {
-            return back()->with('error', 'Por favor, suba todos los estudios medicos requeridos.');
+        if ($uploadedCount === 0) {
+            return back()->with('error', 'Por favor, suba al menos un estudio medico.');
         }
 
         session(['appointment.documents_uploaded' => true]);
