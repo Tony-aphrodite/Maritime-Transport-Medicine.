@@ -666,7 +666,7 @@
             <div class="profile-avatar-container">
                 @php
                     $profilePhotoUrl = $user->profile_photo
-                        ? asset('storage/' . $user->profile_photo)
+                        ? asset('storage/' . $user->profile_photo) . '?t=' . time()
                         : asset('assets/img/user-avatar.jpg');
                 @endphp
                 <img src="{{ $profilePhotoUrl }}" alt="Avatar" class="profile-avatar" id="profileAvatarImg">
@@ -1272,13 +1272,20 @@ function handleProfilePhotoUpload(event) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Update avatar image on profile page
-            avatarImg.src = data.photo_url;
+            // Update avatar image with cache busting
+            const newPhotoUrl = data.photo_url + '?t=' + new Date().getTime();
+            avatarImg.src = newPhotoUrl;
             // Also update dashboard header avatar if exists
             const dashboardAvatar = document.getElementById('dashboardAvatar');
             if (dashboardAvatar) {
-                dashboardAvatar.src = data.photo_url;
+                dashboardAvatar.src = newPhotoUrl;
             }
+            // Update any other avatar images on the page
+            document.querySelectorAll('.user-avatar, .profile-avatar').forEach(img => {
+                if (img !== avatarImg) {
+                    img.src = newPhotoUrl;
+                }
+            });
             // Show success message
             showNotification('success', data.message);
         } else {

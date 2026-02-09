@@ -317,6 +317,11 @@ class UserProfileController extends Controller
             $filename = 'profile_' . $user->id . '_' . time() . '.' . $extension;
             $path = 'profile-photos/' . $filename;
 
+            // Ensure the directory exists
+            if (!Storage::disk('public')->exists('profile-photos')) {
+                Storage::disk('public')->makeDirectory('profile-photos');
+            }
+
             // Delete old photo if exists
             if ($user->profile_photo && Storage::disk('public')->exists($user->profile_photo)) {
                 Storage::disk('public')->delete($user->profile_photo);

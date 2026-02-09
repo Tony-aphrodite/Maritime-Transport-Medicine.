@@ -312,6 +312,42 @@ Route::get('/create-storage-link', function () {
     }
 });
 
+// TEMPORARY: Debug storage - REMOVE AFTER USE
+Route::get('/debug-storage', function () {
+    $storagePath = storage_path('app/public/profile-photos');
+    $publicPath = public_path('storage/profile-photos');
+
+    $storageFiles = [];
+    $publicFiles = [];
+
+    if (is_dir($storagePath)) {
+        $storageFiles = array_diff(scandir($storagePath), ['.', '..']);
+    }
+
+    if (is_dir($publicPath)) {
+        $publicFiles = array_diff(scandir($publicPath), ['.', '..']);
+    }
+
+    // Check symlink
+    $symlinkTarget = null;
+    $symlinkExists = is_link(public_path('storage'));
+    if ($symlinkExists) {
+        $symlinkTarget = readlink(public_path('storage'));
+    }
+
+    return response()->json([
+        'storage_path' => $storagePath,
+        'storage_exists' => is_dir($storagePath),
+        'storage_files' => array_values($storageFiles),
+        'public_path' => $publicPath,
+        'public_exists' => is_dir($publicPath),
+        'public_files' => array_values($publicFiles),
+        'symlink_exists' => $symlinkExists,
+        'symlink_target' => $symlinkTarget,
+        'user_profile_photo' => auth()->user()?->profile_photo,
+    ]);
+});
+
 // Debug route - REMOVE IN PRODUCTION
 Route::get('/debug-auth', function () {
     $user = auth()->user();

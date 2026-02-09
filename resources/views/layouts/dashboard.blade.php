@@ -36,7 +36,7 @@
                 <div class="user-welcome">
                     @php
                         $userAvatarUrl = auth()->user()->profile_photo
-                            ? asset('storage/' . auth()->user()->profile_photo)
+                            ? asset('storage/' . auth()->user()->profile_photo) . '?t=' . time()
                             : asset('assets/img/user-avatar.jpg');
                     @endphp
                     <img src="{{ $userAvatarUrl }}" alt="Usuario" class="user-avatar" id="dashboardAvatar">
