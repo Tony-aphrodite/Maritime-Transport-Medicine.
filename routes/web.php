@@ -312,6 +312,21 @@ Route::get('/create-storage-link', function () {
     }
 });
 
+// Serve profile photos directly (workaround for symlink issues on shared hosting)
+Route::get('/storage/profile-photos/{filename}', function ($filename) {
+    $path = storage_path('app/public/profile-photos/' . $filename);
+
+    if (!file_exists($path)) {
+        abort(404);
+    }
+
+    $mimeType = mime_content_type($path);
+    return response()->file($path, [
+        'Content-Type' => $mimeType,
+        'Cache-Control' => 'public, max-age=31536000',
+    ]);
+})->where('filename', '.*');
+
 // TEMPORARY: Debug storage - REMOVE AFTER USE
 Route::get('/debug-storage', function () {
     $storagePath = storage_path('app/public/profile-photos');
