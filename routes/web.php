@@ -18,6 +18,15 @@ use App\Http\Controllers\Auth\PasswordResetController;
 |
 */
 
+// TEMPORARY: Clear cache route - REMOVE AFTER USE
+Route::get('/clear-cache', function () {
+    \Artisan::call('config:clear');
+    \Artisan::call('route:clear');
+    \Artisan::call('view:clear');
+    \Artisan::call('cache:clear');
+    return 'Cache cleared! <a href="/seed-zonas-horarias">Now click here to seed zonas horarias</a>';
+});
+
 Route::get('/', function () {
     return view('landing');
 })->name('home');
