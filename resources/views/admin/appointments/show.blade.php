@@ -686,7 +686,7 @@
                 </div>
                 <div class="info-row">
                     <span class="info-label">Zona Horaria</span>
-                    <span class="info-value">{{ $appointment->timezone ?? 'America/Mexico_City' }}</span>
+                    <span class="info-value">{{ \App\Models\ZonaHoraria::getLabelByCode($appointment->timezone ?? 'America/Mexico_City') }}</span>
                 </div>
             </div>
 

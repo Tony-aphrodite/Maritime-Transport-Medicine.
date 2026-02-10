@@ -47,9 +47,19 @@
                 </div>
                 <div class="timezone-selector">
                     <i class="fas fa-globe"></i>
+                    @php
+                        $zonasHorarias = \App\Models\ZonaHoraria::active()->ordered()->get();
+                        $currentTimezone = session('appointment.timezone', 'America/Mexico_City');
+                    @endphp
                     <select id="timezone">
-                        <option>Zona Central / Ciudad de Mexico (GMT-6)</option>
-                        <option>Tiempo Universal Coordinado (UTC)</option>
+                        @forelse($zonasHorarias as $zona)
+                            <option value="{{ $zona->codigo }}" {{ $currentTimezone == $zona->codigo ? 'selected' : '' }}>
+                                {{ $zona->nombre }} ({{ $zona->offset }})
+                            </option>
+                        @empty
+                            <option value="America/Mexico_City">Zona Central / Ciudad de Mexico (GMT-6)</option>
+                            <option value="UTC">Tiempo Universal Coordinado (UTC)</option>
+                        @endforelse
                     </select>
                 </div>
             </header>

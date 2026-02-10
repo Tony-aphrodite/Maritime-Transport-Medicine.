@@ -144,15 +144,7 @@
                 <div class="detail-row">
                     <span>Zona Horaria:</span>
                     <strong>
-                        @php
-                            $tzLabels = [
-                                'America/Mexico_City' => 'CDMX (GMT-6)',
-                                'America/Tijuana' => 'Tijuana (GMT-8)',
-                                'America/Cancun' => 'Cancun (GMT-5)',
-                                'UTC' => 'UTC'
-                            ];
-                        @endphp
-                        {{ $tzLabels[$appointmentData['timezone']] ?? $appointmentData['timezone'] }}
+                        {{ \App\Models\ZonaHoraria::getLabelByCode($appointmentData['timezone']) }}
                     </strong>
                 </div>
                 <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 20px 0;">

@@ -163,10 +163,14 @@
                 <div class="timezone-card">
                     <label><i class="fas fa-globe"></i> Zona Horaria</label>
                     <select name="timezone_select" id="timezoneSelect" class="timezone-select">
-                        <option value="America/Mexico_City" {{ $userTimezone == 'America/Mexico_City' ? 'selected' : '' }}>Zona Central / Ciudad de Mexico (GMT-6)</option>
-                        <option value="America/Tijuana" {{ $userTimezone == 'America/Tijuana' ? 'selected' : '' }}>Zona Pacifico / Tijuana (GMT-8)</option>
-                        <option value="America/Cancun" {{ $userTimezone == 'America/Cancun' ? 'selected' : '' }}>Zona Sureste / Cancun (GMT-5)</option>
-                        <option value="UTC" {{ $userTimezone == 'UTC' ? 'selected' : '' }}>Tiempo Universal Coordinado (UTC)</option>
+                        @forelse($zonasHorarias as $zona)
+                            <option value="{{ $zona->codigo }}" {{ $userTimezone == $zona->codigo ? 'selected' : '' }}>
+                                {{ $zona->nombre }} ({{ $zona->offset }})
+                            </option>
+                        @empty
+                            <option value="America/Mexico_City" {{ $userTimezone == 'America/Mexico_City' ? 'selected' : '' }}>Zona Central / Ciudad de Mexico (GMT-6)</option>
+                            <option value="UTC" {{ $userTimezone == 'UTC' ? 'selected' : '' }}>Tiempo Universal Coordinado (UTC)</option>
+                        @endforelse
                     </select>
                 </div>
 

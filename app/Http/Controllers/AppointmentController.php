@@ -7,6 +7,7 @@ use App\Models\AppointmentDocument;
 use App\Models\AppointmentHold;
 use App\Models\AuditLog;
 use App\Models\Doctor;
+use App\Models\ZonaHoraria;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -58,7 +59,10 @@ class AppointmentController extends Controller
         // Get available time slots for the next 30 days
         $availableSlots = $this->getAvailableSlots($doctor, $userTimezone);
 
-        return view('appointments.step1', compact('user', 'availableSlots', 'doctor', 'existingHold', 'userTimezone'));
+        // Get timezones from database
+        $zonasHorarias = ZonaHoraria::active()->ordered()->get();
+
+        return view('appointments.step1', compact('user', 'availableSlots', 'doctor', 'existingHold', 'userTimezone', 'zonasHorarias'));
     }
 
     /**

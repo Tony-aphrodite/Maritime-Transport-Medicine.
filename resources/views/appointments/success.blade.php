@@ -52,15 +52,7 @@
                 <div class="summary-item">
                     <span class="label">Zona Horaria</span>
                     <span class="value">
-                        @php
-                            $tzLabels = [
-                                'America/Mexico_City' => 'Ciudad de Mexico (GMT-6)',
-                                'America/Tijuana' => 'Tijuana (GMT-8)',
-                                'America/Cancun' => 'Cancun (GMT-5)',
-                                'UTC' => 'UTC'
-                            ];
-                        @endphp
-                        {{ $tzLabels[$appointment->timezone] ?? $appointment->timezone }}
+                        {{ \App\Models\ZonaHoraria::getLabelByCode($appointment->timezone) }}
                     </span>
                 </div>
                 <div class="summary-item">

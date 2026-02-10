@@ -363,6 +363,81 @@ Route::get('/debug-storage', function () {
     ]);
 });
 
+// TEMPORARY: Seed zonas_horarias table - REMOVE AFTER USE
+Route::get('/seed-zonas-horarias', function () {
+    try {
+        // Create table if not exists
+        if (!\Schema::hasTable('zonas_horarias')) {
+            \Schema::create('zonas_horarias', function ($table) {
+                $table->id();
+                $table->string('nombre', 100);
+                $table->string('codigo', 50);
+                $table->string('offset', 20);
+                $table->integer('offset_minutos')->default(0);
+                $table->boolean('activo')->default(true);
+                $table->integer('orden')->default(0);
+                $table->timestamps();
+            });
+        }
+
+        // Seed data
+        $zonas = [
+            [
+                'nombre' => 'Zona Central / Ciudad de Mexico',
+                'codigo' => 'America/Mexico_City',
+                'offset' => 'GMT-6',
+                'offset_minutos' => -360,
+                'activo' => true,
+                'orden' => 1,
+            ],
+            [
+                'nombre' => 'Zona Pacifico / Tijuana',
+                'codigo' => 'America/Tijuana',
+                'offset' => 'GMT-8',
+                'offset_minutos' => -480,
+                'activo' => true,
+                'orden' => 2,
+            ],
+            [
+                'nombre' => 'Zona Noroeste / Hermosillo',
+                'codigo' => 'America/Hermosillo',
+                'offset' => 'GMT-7',
+                'offset_minutos' => -420,
+                'activo' => true,
+                'orden' => 3,
+            ],
+            [
+                'nombre' => 'Tiempo Universal Coordinado',
+                'codigo' => 'UTC',
+                'offset' => 'UTC',
+                'offset_minutos' => 0,
+                'activo' => true,
+                'orden' => 10,
+            ],
+        ];
+
+        foreach ($zonas as $zona) {
+            \App\Models\ZonaHoraria::updateOrCreate(
+                ['codigo' => $zona['codigo']],
+                $zona
+            );
+        }
+
+        $count = \App\Models\ZonaHoraria::count();
+
+        return response()->json([
+            'success' => true,
+            'message' => "Zonas horarias seeded successfully. Total: {$count}",
+            'zonas' => \App\Models\ZonaHoraria::orderBy('orden')->get()
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error: ' . $e->getMessage()
+        ], 500);
+    }
+});
+
 // Debug route - REMOVE IN PRODUCTION
 Route::get('/debug-auth', function () {
     $user = auth()->user();
