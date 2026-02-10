@@ -122,15 +122,8 @@
         <div class="step active"><span>5</span><p>Pago</p></div>
     </div>
 
-    <!-- Timer -->
-    <div class="timer-container">
-        <div class="timer-box" id="timerBox">
-            <i class="fas fa-clock"></i>
-            <span>Su sesion expira en: </span>
-            <span id="countdown-timer">15:00</span>
-        </div>
-        <p class="timer-disclaimer">Su espacio reservado se liberara si no completa el pago antes de que el tiempo termine.</p>
-    </div>
+    <!-- Hold Timer -->
+    @include('appointments.partials.hold-timer')
 
     <div class="payment-layout">
         <!-- Left Section - Payment Form -->
@@ -269,33 +262,6 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Countdown timer
-    let timeLeft = 15 * 60; // 15 minutes in seconds
-    const countdownEl = document.getElementById('countdown-timer');
-    const timerBox = document.getElementById('timerBox');
-
-    const timer = setInterval(function() {
-        timeLeft--;
-        const minutes = Math.floor(timeLeft / 60);
-        const seconds = timeLeft % 60;
-        countdownEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-
-        if (timeLeft <= 180) { // 3 minutes warning
-            timerBox.classList.add('timer-warning');
-        }
-
-        if (timeLeft <= 60) {
-            timerBox.classList.remove('timer-warning');
-            timerBox.classList.add('timer-urgent');
-        }
-
-        if (timeLeft <= 0) {
-            clearInterval(timer);
-            alert('El tiempo para completar el pago ha expirado. Sera redirigido al inicio.');
-            window.location.href = '{{ route("appointments.step1") }}';
-        }
-    }, 1000);
-
     // Mercado Pago payment button
     const btnPayMercadoPago = document.getElementById('btnPayMercadoPago');
     const paymentLoading = document.getElementById('paymentLoading');

@@ -24,6 +24,9 @@
         <div class="step"><span>5</span><p>Pago</p></div>
     </div>
 
+    <!-- Hold Timer -->
+    @include('appointments.partials.hold-timer')
+
     <div class="confirmation-layout">
         <!-- Left Section - Info Review -->
         <div class="info-review-section">

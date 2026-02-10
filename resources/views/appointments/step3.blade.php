@@ -24,6 +24,9 @@
         <div class="step"><span>5</span><p>Pago</p></div>
     </div>
 
+    <!-- Hold Timer -->
+    @include('appointments.partials.hold-timer')
+
     <div class="card-white medical-declaration">
         <div class="declaration-header">
             <h3>Declaracion de Salud del Candidato</h3>

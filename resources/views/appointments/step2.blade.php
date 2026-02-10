@@ -24,6 +24,9 @@
         <div class="step"><span>5</span><p>Pago</p></div>
     </div>
 
+    <!-- Hold Timer -->
+    @include('appointments.partials.hold-timer')
+
     @if(session('error'))
         <div class="alert alert-danger" style="background: #f8d7da; color: #721c24; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
             {{ session('error') }}

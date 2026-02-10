@@ -599,8 +599,9 @@ class AppointmentController extends Controller
         AppointmentHold::releaseHold($user->id);
 
         // Store appointment ID in session for payment
+        // Keep hold_expires_at so the timer continues to display through step 5
         session(['appointment.id' => $appointment->id]);
-        session()->forget(['appointment.hold_id', 'appointment.hold_expires_at']);
+        session()->forget(['appointment.hold_id']);
 
         return redirect()->route('appointments.step5');
     }
