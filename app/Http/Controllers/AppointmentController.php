@@ -250,10 +250,24 @@ class AppointmentController extends Controller
                 ->with('error', 'Por favor, seleccione una fecha y hora primero.');
         }
 
-        // Get any previously uploaded documents for this user
-        $documents = AppointmentDocument::where('user_id', $user->id)
-            ->where('appointment_id', null) // Temporary uploads
-            ->get();
+        // Check if there's an existing pending appointment in session
+        $existingAppointmentId = session('appointment.id');
+
+        // Get documents - either linked to existing appointment or unlinked
+        if ($existingAppointmentId) {
+            // Get documents linked to the existing pending appointment
+            $documents = AppointmentDocument::where('user_id', $user->id)
+                ->where(function ($query) use ($existingAppointmentId) {
+                    $query->where('appointment_id', $existingAppointmentId)
+                        ->orWhere('appointment_id', null);
+                })
+                ->get();
+        } else {
+            // Get unlinked documents (temporary uploads)
+            $documents = AppointmentDocument::where('user_id', $user->id)
+                ->where('appointment_id', null)
+                ->get();
+        }
 
         return view('appointments.step2', compact('user', 'documents'));
     }
@@ -356,10 +370,22 @@ class AppointmentController extends Controller
     {
         $user = Auth::user();
 
-        // Check at least one document is uploaded
-        $uploadedCount = AppointmentDocument::where('user_id', $user->id)
-            ->where('appointment_id', null)
-            ->count();
+        // Check if there's an existing pending appointment in session
+        $existingAppointmentId = session('appointment.id');
+
+        // Check at least one document is uploaded (either unlinked or linked to existing appointment)
+        $query = AppointmentDocument::where('user_id', $user->id);
+
+        if ($existingAppointmentId) {
+            $query->where(function ($q) use ($existingAppointmentId) {
+                $q->where('appointment_id', $existingAppointmentId)
+                    ->orWhere('appointment_id', null);
+            });
+        } else {
+            $query->where('appointment_id', null);
+        }
+
+        $uploadedCount = $query->count();
 
         if ($uploadedCount === 0) {
             return back()->with('error', 'Por favor, suba al menos un estudio medico.');
@@ -385,7 +411,10 @@ class AppointmentController extends Controller
             return redirect()->route('appointments.step2');
         }
 
-        return view('appointments.step3', compact('user'));
+        // Get previously saved medical declaration data (if user navigated back)
+        $medicalDeclaration = session('appointment.medical_declaration', []);
+
+        return view('appointments.step3', compact('user', 'medicalDeclaration'));
     }
 
     /**
@@ -435,10 +464,28 @@ class AppointmentController extends Controller
             'medical_declaration' => session('appointment.medical_declaration'),
         ];
 
-        // Get uploaded documents
-        $documents = AppointmentDocument::where('user_id', $user->id)
-            ->where('appointment_id', null)
-            ->get();
+        // Check if there's an existing pending appointment for this session
+        $existingAppointmentId = session('appointment.id');
+
+        // Get uploaded documents - either linked to existing appointment or unlinked
+        if ($existingAppointmentId) {
+            // Get documents linked to the existing pending appointment
+            $documents = AppointmentDocument::where('user_id', $user->id)
+                ->where('appointment_id', $existingAppointmentId)
+                ->get();
+
+            // If no documents found linked to appointment, also check for unlinked ones
+            if ($documents->isEmpty()) {
+                $documents = AppointmentDocument::where('user_id', $user->id)
+                    ->where('appointment_id', null)
+                    ->get();
+            }
+        } else {
+            // Get unlinked documents (not yet associated with an appointment)
+            $documents = AppointmentDocument::where('user_id', $user->id)
+                ->where('appointment_id', null)
+                ->get();
+        }
 
         // Calculate service cost
         $serviceCost = $this->calculateServiceCost($appointmentData['medical_declaration']['exam_type']);
@@ -447,7 +494,7 @@ class AppointmentController extends Controller
     }
 
     /**
-     * Process Step 4 - Create appointment and proceed to payment
+     * Process Step 4 - Create or update appointment and proceed to payment
      */
     public function processStep4(Request $request)
     {
@@ -472,8 +519,8 @@ class AppointmentController extends Controller
         // Get doctor from session
         $doctorId = session('appointment.doctor_id');
 
-        // Create the appointment
-        $appointment = Appointment::create([
+        // Prepare appointment data
+        $appointmentFields = [
             'user_id' => $user->id,
             'doctor_id' => $doctorId,
             'appointment_date' => $appointmentData['date'],
@@ -481,29 +528,69 @@ class AppointmentController extends Controller
             'timezone' => $appointmentData['timezone'],
             'exam_type' => $appointmentData['medical_declaration']['exam_type'],
             'years_at_sea' => $appointmentData['medical_declaration']['years_at_sea'],
-            'current_position' => null, // Not collected in simplified form
-            'vessel_type' => null, // Not collected in simplified form
+            'current_position' => null,
+            'vessel_type' => null,
             'has_chronic_conditions' => $hasChronicConditions,
             'chronic_conditions_detail' => $hasChronicConditions ? implode(', ', array_filter($healthConditions, fn($c) => in_array($c, ['high_blood_pressure', 'diabetes']))) : null,
-            'takes_medications' => false, // Collected in additional_notes instead
+            'takes_medications' => false,
             'medications_detail' => null,
-            'has_allergies' => false, // Not collected separately
+            'has_allergies' => false,
             'allergies_detail' => null,
             'has_surgeries' => $hasSurgeries,
             'surgeries_detail' => $hasSurgeries ? 'Cirugias recientes' : null,
             'workplace_risks' => $appointmentData['medical_declaration']['workplace_risks'] ?? [],
             'additional_notes' => $appointmentData['medical_declaration']['additional_notes'] ?? null,
             'declaration_truthful' => !empty($appointmentData['medical_declaration']['declaration_truthful']),
-            'declaration_terms' => true, // Implied by proceeding
-            'declaration_privacy' => true, // Implied by proceeding
-            'declaration_consent' => true, // Implied by proceeding
+            'declaration_terms' => true,
+            'declaration_privacy' => true,
+            'declaration_consent' => true,
             'subtotal' => $serviceCost['subtotal'],
             'tax' => $serviceCost['tax'],
             'total' => $serviceCost['total'],
             'status' => 'pending_payment',
-        ]);
+        ];
 
-        // Link uploaded documents to this appointment
+        // Check if there's an existing pending appointment in session
+        $existingAppointmentId = session('appointment.id');
+        $appointment = null;
+
+        if ($existingAppointmentId) {
+            // Try to find existing appointment that's still pending payment
+            $appointment = Appointment::where('id', $existingAppointmentId)
+                ->where('user_id', $user->id)
+                ->where('status', 'pending_payment')
+                ->first();
+
+            if ($appointment) {
+                // Update existing appointment with new data
+                $appointment->update($appointmentFields);
+                Log::info('Updated existing appointment', ['id' => $appointment->id]);
+            }
+        }
+
+        // Create new appointment if no existing one found
+        if (!$appointment) {
+            $appointment = Appointment::create($appointmentFields);
+            Log::info('Created new appointment', ['id' => $appointment->id]);
+
+            // Log the appointment creation
+            try {
+                AuditLog::logEvent(
+                    'appointment_created',
+                    'success',
+                    [
+                        'appointment_id' => $appointment->id,
+                        'date' => $appointment->appointment_date,
+                        'exam_type' => $appointment->exam_type,
+                    ],
+                    $user->id
+                );
+            } catch (\Exception $e) {
+                Log::warning('Failed to log appointment creation: ' . $e->getMessage());
+            }
+        }
+
+        // Link any unlinked documents to this appointment
         AppointmentDocument::where('user_id', $user->id)
             ->where('appointment_id', null)
             ->update(['appointment_id' => $appointment->id]);
@@ -514,22 +601,6 @@ class AppointmentController extends Controller
         // Store appointment ID in session for payment
         session(['appointment.id' => $appointment->id]);
         session()->forget(['appointment.hold_id', 'appointment.hold_expires_at']);
-
-        // Log the appointment creation
-        try {
-            AuditLog::logEvent(
-                'appointment_created',
-                'success',
-                [
-                    'appointment_id' => $appointment->id,
-                    'date' => $appointment->appointment_date,
-                    'exam_type' => $appointment->exam_type,
-                ],
-                $user->id
-            );
-        } catch (\Exception $e) {
-            Log::warning('Failed to log appointment creation: ' . $e->getMessage());
-        }
 
         return redirect()->route('appointments.step5');
     }

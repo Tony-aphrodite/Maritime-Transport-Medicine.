@@ -56,12 +56,12 @@
                     <div class="radio-options">
                         <label class="radio-item">
                             <input type="radio" name="exam_type" value="new"
-                                   {{ old('exam_type', session('appointment.medical_declaration.exam_type')) == 'new' ? 'checked' : '' }} required>
+                                   {{ old('exam_type', $medicalDeclaration['exam_type'] ?? '') == 'new' ? 'checked' : '' }} required>
                             <span>Si, es el primero</span>
                         </label>
                         <label class="radio-item">
                             <input type="radio" name="exam_type" value="renewal"
-                                   {{ old('exam_type', session('appointment.medical_declaration.exam_type')) == 'renewal' ? 'checked' : '' }}>
+                                   {{ old('exam_type', $medicalDeclaration['exam_type'] ?? '') == 'renewal' ? 'checked' : '' }}>
                             <span>No, es renovacion</span>
                         </label>
                     </div>
@@ -71,7 +71,7 @@
                     <label>¿Cuantos anos has estado trabajando en la mar?</label>
                     <div class="input-unit">
                         <input type="number" name="years_at_sea" min="0" max="60" placeholder="0"
-                               value="{{ old('years_at_sea', session('appointment.medical_declaration.years_at_sea', 0)) }}" required>
+                               value="{{ old('years_at_sea', $medicalDeclaration['years_at_sea'] ?? 0) }}" required>
                         <span>anos</span>
                     </div>
                 </div>
@@ -79,7 +79,7 @@
                 <div class="question-group">
                     <p class="question-text">¿A que tipo de riesgos laborales estas expuesto en tu area de trabajo?</p>
                     @php
-                        $risks = session('appointment.medical_declaration.workplace_risks', []);
+                        $risks = $medicalDeclaration['workplace_risks'] ?? [];
                         if (!is_array($risks)) $risks = [];
                     @endphp
                     <div class="check-grid">
@@ -116,7 +116,7 @@
             <div class="form-section">
                 <p class="question-text">¿Sufre o ha sufrido alguna de las siguientes condiciones?</p>
                 @php
-                    $conditions = session('appointment.medical_declaration.health_conditions', []);
+                    $conditions = $medicalDeclaration['health_conditions'] ?? [];
                     if (!is_array($conditions)) $conditions = [];
                 @endphp
                 <div class="check-grid">
@@ -146,14 +146,14 @@
             <!-- Medications and Observations -->
             <div class="form-group mt-30">
                 <label>Medicamentos actuales y observaciones:</label>
-                <textarea name="additional_notes" placeholder="Especifique medicamento, dosis o cualquier informacion que considere relevante...">{{ old('additional_notes', session('appointment.medical_declaration.additional_notes')) }}</textarea>
+                <textarea name="additional_notes" placeholder="Especifique medicamento, dosis o cualquier informacion que considere relevante...">{{ old('additional_notes', $medicalDeclaration['additional_notes'] ?? '') }}</textarea>
             </div>
 
             <!-- Declaration Confirmation -->
             <div class="declaration-confirm">
                 <label class="confirm-label">
                     <input type="checkbox" name="declaration_truthful" value="1"
-                           {{ old('declaration_truthful', session('appointment.medical_declaration.declaration_truthful')) ? 'checked' : '' }} required>
+                           {{ old('declaration_truthful', $medicalDeclaration['declaration_truthful'] ?? false) ? 'checked' : '' }} required>
                     <span>Declaro bajo protesta de decir verdad que la informacion proporcionada es veridica y actual.</span>
                 </label>
             </div>
