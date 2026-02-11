@@ -268,6 +268,9 @@ Route::middleware(['auth', 'verified'])->prefix('appointments')->name('appointme
     // Success Page / Confirmation
     Route::get('/success/{id}', [App\Http\Controllers\AppointmentController::class, 'success'])->name('success');
     Route::get('/confirmation/{id}', [App\Http\Controllers\AppointmentController::class, 'success'])->name('confirmation');
+
+    // Cancel Appointment
+    Route::post('/{id}/cancel', [App\Http\Controllers\AppointmentController::class, 'cancel'])->name('cancel');
 });
 
 // ========================================

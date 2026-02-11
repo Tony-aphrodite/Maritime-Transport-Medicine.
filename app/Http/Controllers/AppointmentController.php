@@ -787,4 +787,78 @@ class AppointmentController extends Controller
             'tax_rate' => $taxRate * 100,
         ];
     }
+
+    /**
+     * Cancel an appointment
+     */
+    public function cancel(Request $request, $id)
+    {
+        $user = Auth::user();
+
+        $appointment = Appointment::where('id', $id)
+            ->where('user_id', $user->id)
+            ->whereIn('status', ['pending_payment', 'confirmed', 'scheduled'])
+            ->first();
+
+        if (!$appointment) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cita no encontrada o no puede ser cancelada.',
+            ], 404);
+        }
+
+        try {
+            // Delete associated documents
+            $documents = AppointmentDocument::where('appointment_id', $appointment->id)->get();
+            foreach ($documents as $document) {
+                // Delete file from storage
+                if (Storage::disk('public')->exists($document->file_path)) {
+                    Storage::disk('public')->delete($document->file_path);
+                }
+                $document->delete();
+            }
+
+            // Release any holds for this user
+            AppointmentHold::releaseHold($user->id);
+
+            // Store appointment info before deletion for logging
+            $appointmentInfo = [
+                'appointment_id' => $appointment->id,
+                'date' => $appointment->appointment_date->format('Y-m-d'),
+                'time' => $appointment->appointment_time,
+                'status' => $appointment->status,
+            ];
+
+            // Delete the appointment
+            $appointment->delete();
+
+            // Clear any session data related to this appointment
+            session()->forget('appointment');
+
+            // Log the cancellation
+            try {
+                AuditLog::logEvent(
+                    'appointment_cancelled',
+                    'success',
+                    $appointmentInfo,
+                    $user->id
+                );
+            } catch (\Exception $e) {
+                Log::warning('Failed to log appointment cancellation: ' . $e->getMessage());
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Su cita ha sido cancelada exitosamente.',
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Failed to cancel appointment: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al cancelar la cita. Por favor, intente de nuevo.',
+            ], 500);
+        }
+    }
 }

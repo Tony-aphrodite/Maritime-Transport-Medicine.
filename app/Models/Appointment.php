@@ -14,6 +14,7 @@ class Appointment extends Model
      */
     const STATUS_PENDING_PAYMENT = 'pending_payment';
     const STATUS_CONFIRMED = 'confirmed';
+    const STATUS_SCHEDULED = 'scheduled';
     const STATUS_COMPLETED = 'completed';
     const STATUS_CANCELLED = 'cancelled';
 
@@ -23,6 +24,7 @@ class Appointment extends Model
     const ACTIVE_STATUSES = [
         self::STATUS_PENDING_PAYMENT,
         self::STATUS_CONFIRMED,
+        self::STATUS_SCHEDULED,
     ];
 
     protected $fillable = [
@@ -134,6 +136,7 @@ class Appointment extends Model
         return match($this->status) {
             'pending_payment' => 'Pendiente de Pago',
             'confirmed' => 'Confirmada',
+            'scheduled' => 'Programada',
             'completed' => 'Completada',
             'cancelled' => 'Cancelada',
             default => 'Desconocido',
