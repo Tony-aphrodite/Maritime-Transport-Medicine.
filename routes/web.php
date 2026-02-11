@@ -386,3 +386,115 @@ Route::get('/debug-auth', function () {
     ]);
 });
 
+// TEMPORARY: Delete user by email for testing - REMOVE AFTER USE
+Route::get('/delete-user-by-email/{email}', function ($email) {
+    $user = \App\Models\User::where('email', $email)->first();
+
+    if (!$user) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Usuario no encontrado con el email: ' . $email
+        ], 404);
+    }
+
+    try {
+        // Delete related appointments and documents
+        $appointments = \App\Models\Appointment::where('user_id', $user->id)->get();
+        foreach ($appointments as $appointment) {
+            // Delete appointment documents
+            $documents = \App\Models\AppointmentDocument::where('appointment_id', $appointment->id)->get();
+            foreach ($documents as $document) {
+                if (\Illuminate\Support\Facades\Storage::disk('public')->exists($document->file_path)) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($document->file_path);
+                }
+                $document->delete();
+            }
+            $appointment->delete();
+        }
+
+        // Delete any orphan documents
+        \App\Models\AppointmentDocument::where('user_id', $user->id)->delete();
+
+        // Delete appointment holds
+        \App\Models\AppointmentHold::where('user_id', $user->id)->delete();
+
+        // Store user info before deletion
+        $userInfo = [
+            'id' => $user->id,
+            'email' => $user->email,
+            'name' => $user->nombres . ' ' . $user->apellido_paterno,
+        ];
+
+        // Delete the user
+        $user->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Usuario eliminado exitosamente',
+            'deleted_user' => $userInfo
+        ]);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al eliminar usuario: ' . $e->getMessage()
+        ], 500);
+    }
+})->where('email', '.*');
+
+// TEMPORARY: Clear cache - REMOVE AFTER USE
+Route::get('/clear-all-cache', function () {
+    try {
+        \Illuminate\Support\Facades\Artisan::call('config:clear');
+        \Illuminate\Support\Facades\Artisan::call('route:clear');
+        \Illuminate\Support\Facades\Artisan::call('cache:clear');
+        \Illuminate\Support\Facades\Artisan::call('view:clear');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'All caches cleared successfully'
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error: ' . $e->getMessage()
+        ], 500);
+    }
+});
+
+// TEMPORARY: Debug MercadoPago - REMOVE AFTER USE
+Route::get('/debug-mercadopago', function () {
+    $config = [
+        'public_key' => config('services.mercadopago.public_key') ? 'SET (' . substr(config('services.mercadopago.public_key'), 0, 15) . '...)' : 'NOT SET',
+        'access_token' => config('services.mercadopago.access_token') ? 'SET (' . substr(config('services.mercadopago.access_token'), 0, 15) . '...)' : 'NOT SET',
+        'sandbox' => config('services.mercadopago.sandbox'),
+    ];
+
+    $session = [
+        'appointment_id' => session('appointment.id'),
+        'appointment_data' => session('appointment'),
+    ];
+
+    $appointment = null;
+    if (session('appointment.id')) {
+        $apt = \App\Models\Appointment::with('user')->find(session('appointment.id'));
+        if ($apt) {
+            $appointment = [
+                'id' => $apt->id,
+                'user_id' => $apt->user_id,
+                'user_name' => $apt->user->name ?? $apt->user->nombres ?? 'N/A',
+                'user_email' => $apt->user->email ?? 'N/A',
+                'exam_type' => $apt->exam_type,
+                'total' => $apt->total,
+                'status' => $apt->status,
+            ];
+        }
+    }
+
+    return response()->json([
+        'mercadopago_config' => $config,
+        'session' => $session,
+        'appointment' => $appointment,
+    ]);
+})->middleware(['auth']);
+

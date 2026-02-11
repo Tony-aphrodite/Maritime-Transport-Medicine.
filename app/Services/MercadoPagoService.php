@@ -42,6 +42,18 @@ class MercadoPagoService
                 ? 'Dictamen Medico Nuevo'
                 : 'Renovacion de Dictamen Medico';
 
+            // Get user name - use nombres field if name is not available
+            $userName = $appointment->user->name ?? $appointment->user->nombres ?? '';
+            $userEmail = $appointment->user->email ?? '';
+
+            Log::info('MercadoPago Service: Creating preference', [
+                'appointment_id' => $appointment->id,
+                'user_name' => $userName,
+                'user_email' => $userEmail,
+                'total' => $appointment->total,
+                'exam_type' => $appointment->exam_type,
+            ]);
+
             $preferenceData = [
                 'items' => [
                     [
@@ -54,8 +66,8 @@ class MercadoPagoService
                     ]
                 ],
                 'payer' => [
-                    'name' => $appointment->user->name ?? '',
-                    'email' => $appointment->user->email ?? '',
+                    'name' => $userName,
+                    'email' => $userEmail,
                 ],
                 'back_urls' => [
                     'success' => route('appointments.payment.success'),
@@ -71,11 +83,19 @@ class MercadoPagoService
                 'expiration_date_to' => now()->addMinutes(15)->toIso8601String(),
             ];
 
+            Log::info('MercadoPago Service: Sending request to API', [
+                'url' => $this->baseUrl . '/checkout/preferences',
+                'preference_data' => $preferenceData,
+            ]);
+
             $response = Http::withToken($this->accessToken)
                 ->post($this->baseUrl . '/checkout/preferences', $preferenceData);
 
             if ($response->successful()) {
                 $data = $response->json();
+                Log::info('MercadoPago Service: Preference created successfully', [
+                    'preference_id' => $data['id'],
+                ]);
                 return [
                     'success' => true,
                     'preference_id' => $data['id'],
@@ -87,15 +107,22 @@ class MercadoPagoService
             Log::error('MercadoPago API Error', [
                 'status' => $response->status(),
                 'body' => $response->json(),
+                'headers' => $response->headers(),
             ]);
+
+            $errorBody = $response->json();
+            $errorMessage = $errorBody['message'] ?? 'Error al crear la preferencia de pago.';
 
             return [
                 'success' => false,
-                'error' => 'Error al crear la preferencia de pago.',
+                'error' => $errorMessage,
             ];
 
         } catch (\Exception $e) {
-            Log::error('MercadoPago Error: ' . $e->getMessage());
+            Log::error('MercadoPago Exception', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
 
             return [
                 'success' => false,
