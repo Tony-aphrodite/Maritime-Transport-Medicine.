@@ -10,6 +10,14 @@ class AppointmentDocument extends Model
 {
     use HasFactory;
 
+    /**
+     * Storage disk to use (can be configured via environment)
+     */
+    protected static function getStorageDisk(): string
+    {
+        return env('DOCUMENT_STORAGE_DISK', 'public');
+    }
+
     protected $fillable = [
         'user_id',
         'appointment_id',
@@ -19,6 +27,13 @@ class AppointmentDocument extends Model
         'file_size',
         'mime_type',
         'status',
+        'notes',
+        'reviewed_at',
+        'reviewed_by',
+    ];
+
+    protected $casts = [
+        'reviewed_at' => 'datetime',
     ];
 
     /**
@@ -35,6 +50,14 @@ class AppointmentDocument extends Model
     public function appointment()
     {
         return $this->belongsTo(Appointment::class);
+    }
+
+    /**
+     * Get the doctor/admin who reviewed this document.
+     */
+    public function reviewer()
+    {
+        return $this->belongsTo(User::class, 'reviewed_by');
     }
 
     /**
@@ -63,6 +86,21 @@ class AppointmentDocument extends Model
     }
 
     /**
+     * Get status label in Spanish.
+     */
+    public function getStatusLabelAttribute()
+    {
+        return match($this->status) {
+            'uploaded' => 'Subido',
+            'pending_review' => 'Pendiente de Revision',
+            'reviewed' => 'Revisado',
+            'approved' => 'Aprobado',
+            'rejected' => 'Rechazado',
+            default => ucfirst($this->status),
+        };
+    }
+
+    /**
      * Get formatted file size.
      */
     public function getFormattedSizeAttribute()
@@ -80,17 +118,100 @@ class AppointmentDocument extends Model
 
     /**
      * Get the full URL to the document.
+     * Works with both local and S3 storage.
      */
     public function getUrlAttribute()
     {
-        return Storage::disk('s3')->url($this->file_path);
+        $disk = self::getStorageDisk();
+
+        if ($disk === 's3') {
+            return Storage::disk('s3')->url($this->file_path);
+        }
+
+        // For local/public disk, return asset URL
+        return asset('storage/' . $this->file_path);
     }
 
     /**
      * Get temporary URL for secure access.
+     * Only works with S3, returns regular URL for local storage.
      */
     public function getTemporaryUrl($minutes = 30)
     {
-        return Storage::disk('s3')->temporaryUrl($this->file_path, now()->addMinutes($minutes));
+        $disk = self::getStorageDisk();
+
+        if ($disk === 's3') {
+            return Storage::disk('s3')->temporaryUrl($this->file_path, now()->addMinutes($minutes));
+        }
+
+        // For local storage, return regular URL
+        return $this->url;
+    }
+
+    /**
+     * Check if the file exists in storage.
+     */
+    public function fileExists(): bool
+    {
+        return Storage::disk(self::getStorageDisk())->exists($this->file_path);
+    }
+
+    /**
+     * Get file contents.
+     */
+    public function getFileContents(): ?string
+    {
+        if (!$this->fileExists()) {
+            return null;
+        }
+        return Storage::disk(self::getStorageDisk())->get($this->file_path);
+    }
+
+    /**
+     * Delete the file from storage.
+     */
+    public function deleteFile(): bool
+    {
+        if ($this->fileExists()) {
+            return Storage::disk(self::getStorageDisk())->delete($this->file_path);
+        }
+        return true;
+    }
+
+    /**
+     * Mark document as reviewed.
+     */
+    public function markAsReviewed(int $reviewerId, string $status = 'reviewed', ?string $notes = null): bool
+    {
+        return $this->update([
+            'status' => $status,
+            'reviewed_at' => now(),
+            'reviewed_by' => $reviewerId,
+            'notes' => $notes,
+        ]);
+    }
+
+    /**
+     * Scope for documents pending review.
+     */
+    public function scopePendingReview($query)
+    {
+        return $query->whereIn('status', ['uploaded', 'pending_review']);
+    }
+
+    /**
+     * Scope for reviewed documents.
+     */
+    public function scopeReviewed($query)
+    {
+        return $query->whereNotNull('reviewed_at');
+    }
+
+    /**
+     * Scope for a specific document type.
+     */
+    public function scopeOfType($query, string $type)
+    {
+        return $query->where('document_type', $type);
     }
 }

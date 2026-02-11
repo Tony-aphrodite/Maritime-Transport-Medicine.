@@ -379,6 +379,98 @@
             color: #6b7280;
         }
 
+        .document-icon.pdf {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .document-icon.image {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .document-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-doc {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .btn-view {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .btn-view:hover {
+            background: #1d4ed8;
+            color: white;
+        }
+
+        .btn-download {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .btn-download:hover {
+            background: #059669;
+            color: white;
+        }
+
+        .document-status {
+            display: inline-block;
+            padding: 0.125rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.625rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-left: 0.5rem;
+        }
+
+        .document-status.status-uploaded {
+            background: #e0e7ff;
+            color: #4338ca;
+        }
+
+        .document-status.status-reviewed {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .document-status.status-approved {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .document-status.status-rejected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .no-documents {
+            text-align: center;
+            padding: 2rem;
+            color: #9ca3af;
+        }
+
+        .no-documents i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .no-documents p {
+            font-size: 0.95rem;
+        }
+
         /* Buttons */
         .btn {
             padding: 0.75rem 1.5rem;
@@ -876,33 +968,56 @@
         </div>
 
         <!-- Documents -->
-        @if($appointment->documents && $appointment->documents->count() > 0)
         <div class="card" style="margin-bottom: 1.5rem;">
             <div class="card-header">
                 <div class="card-icon cyan">
                     <i class="fas fa-file-alt"></i>
                 </div>
-                <h2 class="card-title">Documentos Subidos</h2>
+                <h2 class="card-title">Documentos Medicos ({{ $appointment->documents ? $appointment->documents->count() : 0 }})</h2>
             </div>
 
+            @if($appointment->documents && $appointment->documents->count() > 0)
             <div class="document-list">
                 @foreach($appointment->documents as $document)
                 <div class="document-item">
-                    <div class="document-icon">
-                        <i class="fas fa-file-{{ Str::contains($document->file_type, 'pdf') ? 'pdf' : 'image' }}"></i>
+                    <div class="document-icon {{ Str::contains($document->mime_type ?? '', 'pdf') ? 'pdf' : 'image' }}">
+                        @if(Str::contains($document->mime_type ?? '', 'pdf'))
+                            <i class="fas fa-file-pdf"></i>
+                        @else
+                            <i class="fas fa-file-image"></i>
+                        @endif
                     </div>
                     <div class="document-info">
-                        <div class="document-name">{{ $document->original_name ?? $document->document_type }}</div>
+                        <div class="document-name">{{ $document->document_type_label }}</div>
                         <div class="document-meta">
-                            {{ $document->document_type }} -
-                            {{ $document->created_at->format('d/m/Y H:i') }}
+                            {{ $document->original_name }} - {{ $document->formatted_size }}
+                            <br>
+                            <span style="color: #9ca3af;">Subido: {{ $document->created_at->format('d/m/Y H:i') }}</span>
+                            @if($document->status)
+                                <span class="document-status status-{{ $document->status }}">
+                                    {{ $document->status_label }}
+                                </span>
+                            @endif
                         </div>
+                    </div>
+                    <div class="document-actions">
+                        <a href="{{ $document->url }}" target="_blank" class="btn-doc btn-view" title="Ver documento">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <a href="{{ $document->url }}" download="{{ $document->original_name }}" class="btn-doc btn-download" title="Descargar">
+                            <i class="fas fa-download"></i>
+                        </a>
                     </div>
                 </div>
                 @endforeach
             </div>
+            @else
+            <div class="no-documents">
+                <i class="fas fa-folder-open"></i>
+                <p>No hay documentos subidos para esta cita</p>
+            </div>
+            @endif
         </div>
-        @endif
 
         <!-- Actions -->
         <div class="actions-card">
